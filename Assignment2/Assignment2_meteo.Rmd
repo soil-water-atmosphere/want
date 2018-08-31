@@ -1,0 +1,44 @@
+---
+title: "Assignment 2 - Transient diffusion in SBL"
+author: "The WANT Team"
+date: "31-8-2018"
+output:
+  html_document:
+    css: want.css
+    toc: yes
+  html_notebook:
+    css: want.css
+    toc: yes
+---
+
+<!-- include the hint.js -->
+<script src="hints.js"></script>
+
+<button type="button" onclick="showHint(1)">Show Hint</button>
+<p id="Q1"> </p>
+
+# Learning Goals
+* goal1
+* goal2
+* etc
+
+# Introduction to transient turbulent transfer in the stably stratified boundary layer
+The figure below shows a potential temperature profile with height for specific conditions. We will produce a comparable graph in this assignment, but now transient factors are taken into account.
+
+![](potentialT_height.png)
+
+# The model setup
+The state variable and the flow domain of the model will be the same as in assignment 1, the potential temperature is denoted by $\theta$ and its units are in Kelvin (K).
+
+# Internal fluxes
+Flux of energy in the x-direction (height) is calculated using Fick’s law with a so-called eddy-diffusivity:
+
+$$q=-K_{eddy}*\frac{\delta \theta}{\delta x}$$
+Where in the case of non-linear diffusion with the atmospheric boundary layer (ABL) and with a neutrally stratified boundary layer, $k_{eddy}$ is described by:
+
+$$K_{eddy}=ku_{*}z$$
+
+where the Von Kármán constant $k$ equals 0.4 and $u_{*}$ denotes the friction velocity at the surface.
+
+# External fluxes
+

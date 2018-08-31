@@ -33,7 +33,7 @@ Since this model will simulate states (heads) for transient conditions (i.e. in 
 <div class="question">What are the units of the above mentioned aspects?</div>  
 
 <div class="answer">
-The domain of the model has only one spatial dimention, (e.g. the x-direction). Therefore, the spatial flux should have the same dimentions. Here the flux density is defined as length per time, $m/d$. From this follows that the storage coefficient should be dimentionless. The dimentions in which the well is entered in the model is $m^2/d$, but internally the value is divided by the nodal distance at the specific location. Per time step a certain water height, $m/d$, is substracted in this situation.
+The domain of the model has only one spatial dimention, (e.g. the x-direction). Therefore, the spatial flux should have the same dimentions. Here the flux density is defined as length per time, $m/d$. From this follows that the storage coefficient should be dimentionless. The dimentions in which the well is entered in the model is $m^2/d$, but internally the value is divided by the nodal distance at the specific location. Per time step a certain water height, $m/d, is substracted in this situation.
 
 1.    Phreatic storage coefficient: $m^3/m^3 \rightarrow (-)$ 
 2.    (Extraction) Well $m^2/d$ 
