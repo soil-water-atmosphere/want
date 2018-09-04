@@ -2,6 +2,10 @@ h1 {
     font-size: 16pt;
 }
 
+p {
+	color: grey;
+}
+
 .answer {
     color: red;
 }
