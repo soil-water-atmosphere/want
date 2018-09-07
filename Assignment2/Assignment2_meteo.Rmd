@@ -30,9 +30,9 @@ The figure below shows a potential temperature profile with height for specific 
 </div>
 
 # The model setup
-The state variable and the flow domain of the model will be the same as in assignment 1, the potential temperature is denoted by $\theta$ and its units are in Kelvin (K).
+The state variable and the flow domain of the model will be the same as in assignment 1. The potential temperature is denoted by $\theta$ and its units are in Kelvin (K). The flow domain starts at a height of 0.5 meter above the surface and ends at the depth of the SBL, 100 meter above the surface, which is fixed in this model.
 
-# Internal fluxes
+## Internal fluxes
 Flux of energy in the x-direction (height) is calculated using Fick’s law with a so-called eddy-diffusivity:
 
 $$q=-K_{eddy}*\frac{\delta \theta}{\delta x}$$
@@ -40,22 +40,19 @@ Where in the case of non-linear diffusion with the atmospheric boundary layer (A
 
 $$K_{eddy}=ku_{*}z$$
 
-where the Von Kármán constant $k$ equals 0.4 and $u_{*}$ denotes the friction velocity at the surface.
+where the Von Kármán constant $k$ equals 0.4, $u_{*} = 0.25$ m/s and denotes the friction velocity at the surface and $z$ is the height above the surface ($x$ in our model).
 
-# External fluxes
-* External flux type 1:
-  A linear decreasing radiative divergence which has a constant value of -1.74E-4 K/s from the surface to a height of 0.5 m,   above which it linearly decreases to a value of -5.55E-5 K/s at the top of the SBL.
+## External fluxes
+__External flux type 3__: A linearly decreasing radiative divergence which has a constant value of -1.74E-4 K/s from the surface to a height of 0.5 m,   above which it linearly decreases to a value of -5.55E-5 K/s at the top of the SBL.
   
-# Boundary conditions
-The upper temperature will be implemented as a Dirichlet boundary condition. The lower boundary condition will be implemented with a Neumann boundary condition.
-For the potential temperature at the lower boundary an initial value of 291.73 K is adopted, which is decreasing with 0.5 K/h as time evolves. 
-At the upper boundary a potential temperature of 295 K is prescribed which is invariable in time.
+## Boundary conditions
+The potential temperature at the upper boundary will be implemented as a Dirichlet boundary condition. The lower boundary condition will be implemented with a Neumann boundary condition. For the potential temperature at the lower boundary an initial value of 291.73 K is adopted, which is decreasing with 0.5 K/h as time evolves. The potential temperature of the upper boundary is set to 295.0 k.
 
-#Discretization
-* space:  $\Delta x = 2m$
-* time:   $\Delta t = 1s$
+## Discretization
+* space:  $\Delta x = 2m$,    i.e. the nodal distance.
+* time:   $\Delta t = 1s$,    i.e. the time resolution the model will be solved for.
 
-#State variables
+## State variables
 <span class="question">
 Enter the correct units in the table below
 </span>
@@ -68,13 +65,27 @@ Enter the correct units in the table below
 | Space (scale)   | ...           |
 | Time  (scale)   | ...           |
 
+
+<span class="answer">
+
+| System variable | Unit (answer) | 
+| ----------------|---------------| 
+| State ($\theta$)| m             |
+| Internal flux   | m^2/s         |
+| External flux   | K/s           |
+| Space (scale)   | m             |
+| Time  (scale)   | sec           |
+
+</span>
+
+
 The model setup as described above resembles largely the setup of assignment 1. However, in contrast to assignment 1, the lower boundary condition is not constant in time, but progressively decreases according to a prescribed cooling rate.
  
 # Analyzing the situation before the surface starts to cool
-Before studying transient behaviour we first create stationary models that describe the start situation before the surface starts to cool.
+Before we can start studying the transient behaviour of the model, we have to create a stationary model first. The solution of this stationary model describes the situation right before the surface starts to cool. The states of this stationary model will be used as input for our transient model.
 
 <span class="question">
-1.	Make a model for the initial situation, i.e. the situation before the surface starts to cool. Call this model oneDinitmodel. Do not forget to clear your environment and to import the FVFE1D package.
+1.  Set up the mathematical part of the model of the initial situation, i.e. the situation before the surface starts to cool. Call this model oneDinitmodel. Do not forget to clear your environment and to import the FVFE1D package.
 
 </span>
 <button type="button" onclick="showHint(211)">Show Hint</button>
@@ -82,27 +93,131 @@ Before studying transient behaviour we first create stationary models that descr
 
 <span class="answer">
 ```{r}
+# Clear environment
+rm(list=ls()) 
+# load package
+library(FVFE1D)
 
+# Defining the flow domain of the model.
+# Fill out min and max to determine the length of the model domain. For example, domain = c(0,100).
+# The result is a simple array with two values: domain[1]=0 and domain[2]=100. Here, c() stands for the function
+# concatenate. For more info type "?c()" in your console. 
+
+domain = c(0.5,100.)
+
+# The system flux function: 
+# With the internal flux function one determines the flow type.
+# This is where one implements the darcy, Fr=0, richards equation or an other flow equation.
+# All these system flux functions require the location (x) at hand, a state at (x) and a gradient of that state at (x).
+# 
+# The system flux function has three arguments: 
+# a) x          : place x withtin the domain
+# b) state      : the state s at this point
+# c) gradstate  : the gradient of the state at x
+#
+# The return() argument (between brackets) holds the actual flux equation, so what's on 
+# the right hand side of the system flux equation. Here Fick's law is implemented as the sytem flux function.
+
+k = 0.4
+ust = 0.25
+tempflux = function(x,state,gradstate)  
+{
+  return(-k*ust*x*gradstate)
+}
+
+# Now you are going to construct the flow model.
+# Two arguments are required:
+# 1) domain
+# 2) systemfluxfunction
+# 3) name (this is optional, but it can be usefull when you want to compare several different models)
+
+oneDinitmodel = newFLOW1D(domain=domain, systemfluxfunction = tempflux, name = "oneDmodel") 
+
+# Besides setting up the model also boundary conditions need to be set.
+# Three different types of Boundary Conditions (BC) can be applied:
+# 
+# Dirichlet -> a function to set a prescribed state:
+# usage:  set.BC.fixedstate(model, where, value)
+# 
+# Neumann -> a function to set a prescribed prescribed flux:
+# usage:  set.BC.fixedflux(model, where, value)
+# 
+# Cauchy/Robin/Fourier -> a function to formulate a state dependent flux:
+# usage:  set.BC.stateflux(model, where, value)
+#
+# These functions have three arguments:
+# model = the current model
+# where = a string that determines the position of the BC: 'l' or 'left, 'r' or 'right' 
+# value = the value (or function) assigned to this BC
+#
+# When a boundary condition is not specified explicitly, a no-flow boundary is assumed.
+
+set.BC.fixedstate(oneDinitmodel, 'left', 291.7) 
+set.BC.fixedstate(oneDinitmodel, 'right', 295.)
+
+# Not only internal fluxes, but certainly also external fluxes can be implemented into the model.
+# Two generic flavours are available:
+# 
+# 1) add.pointflux(model, at, value, name)
+# model : the one dimensional model at hand
+# at    : the location in the domain where to add the point flux
+# value : magnitude of the flux, this can eihter be a number or a state dependent function
+# name  : name (optional; name for the flux)
+# 
+# 2) add.spatialflux(model, rate, name)
+# model : the one dimensional model at hand
+# rate  : a function of space (x) and state (s) returning the intensity of the spatial flux at that point, 
+#         or a constant giving the flux at all spatial points independent of the states at these points, for example 
+#         precipitation
+# name  : name (optional; name for the point flux)
+
+RD.func = approxfun(c(0,0.5,100),c(-1.74E-4,-1.74E-4,-5.55E-5))
+extfunc = function(x,state)
+{return(RD.func(x))}
+
+# Add the external flux the model
+add.spatialflux(oneDinitmodel,extfunc,'RDcons')
 ```
 </span>
 
 <span class="question">
-2.	Solve the model for the initial situation to obtain values of the state variables for all volumes (nodes) in this situation. Make plots of the values of the state variable and the internal fluxes versus height.
+2.	Implement the numerical part and solve the model for the initial situation to obtain values of the state variables for all volumes (nodes). Make plots of the state variable and the internal fluxes as a function of height.
 </span>
+
+<button type="button" onclick="showHint(212)">Show Hint</button>
+<p id="Q212"> </p>
 
 <span class="answer">
 ```{r}
+# Implementing the numerical part:
+# Define the nodes at which the states should be solved.
+nodes = seq(domain[1], domain[2], by=2)
 
+# Discretise the model and choose the numerical method which will be used for the solution.
+set.discretisation(oneDinitmodel, nodes, 'FV')
+
+# Solving the initial model:
+# Since the initial model is not linear, several iterations (steps) will be needed to reduce the misfit of the model.
+# This function returns a list of two entries: RMSM which contains the root mean square of the misfit and MAM which 
+# contains the max absolute misfit.
+solve.steps(oneDinitmodel)
+
+# Plotting the states and the internal fluxes as a function of height.
+plot(oneDinitmodel, fluxplot=TRUE)
 ```
 </span>
 
 <span class="question">
-3.	Using dataframe.balance, check for the initial situation whether the net internal flux over the boundaries of the region defined by the volumes associated with nodes 30 and 31, equals indeed the integrated external fluxes over this region. What is your conclusion?
+3.  Choose the volume associated with nodes 30 and 31 and check whether the net internal flux over the boundaries of this control volume indeed equals the integrated external flux over this region. What is your conclusion and what do you think is the relation with the returned misfit by the solve.steps() function?
 </span>
+
+<button type="button" onclick="showHint(213)">Show Hint</button>
+<p id="Q213"> </p>
 
 <span class="answer">
 ```{r}
-
+# This returns a table from which one can read that the water balance for this control volume is indeed closed, althought the netto change is not exactly zero. The larger the misfit one permits in the solve.steps() function, the larger this net change in the water balance can become. Note that this is not what you want!
+dataframe.balance(oneDinitmodel, region = c(30, 31))
 ```
 </span>
 
@@ -453,7 +568,7 @@ Add the above equation for the net radiation to your model and redo question 24 
 
 </span>
 
-===================================
+
 
 
 
