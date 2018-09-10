@@ -216,7 +216,7 @@ plot(oneDinitmodel, fluxplot=TRUE)
 
 <span class="answer">
 ```{r}
-# This returns a table from which one can read that the water balance for this control volume is indeed closed, althought the netto change is not exactly zero. The larger the misfit one permits in the solve.steps() function, the larger this net change in the water balance can become. Note that this is not what you want!
+# This returns a table from which one can read that the water balance for this control volume is indeed closed, althought the net change is not exactly zero. The larger the misfit one permits in the solve.steps() function, the larger this net change in the water balance can become. Note that this is not what you want!
 dataframe.balance(oneDinitmodel, region = c(30, 31))
 ```
 </span>
