@@ -1,0 +1,81 @@
+---
+title: "Finite differences: Taylor series and time derivates"
+author: "The WANT team"
+date: "24/08/2018"
+output:
+  html_document:
+    css: ../want.css
+---
+
+# Learning goals
+* Understand the use of Taylor series
+* Understand the mathematics of Taylor series
+* Be able to calculate Taylor series for arbitrary functions
+* Derive approximations for first derivatives from Taylor series
+
+# Introduction
+Introduce the emptying reservoir and the differential equation. Explain the intuitive first-order derivative $dh/dt = (h(t+1)-h(t)) / \Delta t$ and how that gives us the most straightforward model to solve an equation: the Euler forward.
+
+# Part 1
+# Exercise 1.1
+<span class="question">
+Write down full discretization with $h(t+1)$ on the LHS and the rest right.
+</span>
+
+<span class="student_answer">
+Fill in your answer...
+</span>
+
+# Exercise 1.2
+<span class="question">
+Implement the derived equation into the model below. Make questions on dt variation, show convergence, show instability to introduce concepts intuitively. Let students first find instability, then convergence. Let them estimate order of convergence.
+</span>
+```{r}
+# Make a code that solves the equation which has the analytical solution on the background. Let students fill everything on the RHS, let them play with 
+```
+
+<span class="student_answer">
+Discuss the code and figure...
+</span>
+
+<span class="answer">
+This will only appear in the answers.
+```{r}
+# Solution
+```
+</span>
+
+# Part 2
+# Exercise 2.1
+The former exercise can be done also formally. For that we need Taylor series. Introduce Taylor series.
+
+<span class="question">
+Create code below that allows for plotting the first four terms of taylor series of the reservoir model derived in exercise 1. Make students add them one by one and discuss quality of the solution.
+</span>
+
+# Exercise 2.2
+We know the analytical solution of our model. Therefore, we can use the Taylor series to calculate the error exactly.
+<span class="question">
+Calculate the first four terms of Taylor series for our problem exactly. Which terms approximate the error?
+</span>
+
+# Exercise 2.3
+<span class="question">
+Calculate the error by subtracting the analytical solution from approximation. Calculate also the error based on Taylor series. Are they the same? How many terms of the Tayloer series do you need to have a good estimation of error?
+</span>
+
+```{r}
+# Make a code that solves the equation which has the analytical solution on the background. Let students fill everything on the RHS, let them play with 
+```
+
+<span class="student_answer">
+Discuss the code and figure...
+</span>
+
+<span class="answer">
+This will only appear in the answers.
+```{r}
+# Solution
+```
+</span>
+This is the end.
