@@ -222,7 +222,7 @@ dataframe.balance(oneDinitmodel, region = c(30, 31))
 </span>
 
 # Incorporating transient behaviour with the model
-For stationary systems the state variables are fully constrained by the BCs, the formulation of the internal fluxes and the formulation of the external fluxes. By checking the balance of a particular volume in exercise 3, we noticed that indeed at a certain location there is a balance between the net internal flux between adjacent volumes and the external fluxes provided to the volumes. The external fluxes summed over the entire flow domain equal the net flux over the boundaries of the system.
+For stationary systems the state variables are fully constrained by the BCs, the formulation of the internal and the external fluxes. By checking the balance of a particular volume in question 3, we noticed that at a certain location there is a balance between the net internal flux between adjacent volumes and the external fluxes provided to the volumes. The external fluxes summed over the entire flow domain equal the net flux over the boundaries of the system.
 
 However, for many systems the time that the system needs to adapt to the BCs or the external fluxes is larger than the rate of change in the BCs and/or the external fluxes. In these cases, the system “resists” the “pulling” of the system towards a new equilibrium where the external fluxes are in balance with the net internal fluxes. In these transient systems, there appears to be an additional flux that hampers the external fluxes for a particular volume to be in balance with the net internal flux for that particular volume. This additional flux is called the storage flux.
 
@@ -234,46 +234,60 @@ However, for many systems the time that the system needs to adapt to the BCs or 
 A picture of the situation for transient systems is given above.
 In the upper figure we see the situation at time t=0, the initial time before the surface starts to cool. In this situation there is a balance between the external fluxes within the particular volume and the internal fluxes between the particular volume and its adjacent volumes. 
 
-In the lower picture the situation is shown when the system is progressed one time step in time after the surface started cooling. In this case, there is again a balance between the external fluxes that act on the system at t=∆t and the internal fluxes within the system at. t=∆t. However, in contrast to the initial stationary situation, there is an additional flux that results from the change of storage with the system, i.e. the fact that going one time step ahead leads to increase or decrease of the amount of the state variable stored within the system. 
+In the lower picture the situation is shown when the system has progressed one time step after the surface started cooling. In this case, there is again a balance between the external fluxes that act on the system at t=∆t and the internal fluxes within the system at t=∆t. However, in contrast to the initial stationary situation, there is an additional flux that results from the change of storage within the system, i.e. the fact that going one time step ahead leads to an increase or decrease of the amount of the state variable stored within the system. 
 
 The storage flux is directly related to the increase or decrease of the amount of the state variable stored within the system. It is thus given as:
 
 $$Q_{st} = -\int_{Vol}S\frac{\delta \theta}{\delta t}dx$$
 
-where $Q_{st}$ is the storage flux, and $S$ is the storage coefficient that related the change rate of the state variable to a change rate in storage (usually 1 in the atmosphere). The storage flux is thus directly linked to rate of the change of the state variable at a certain location.
+where $Q_{st}$ is the storage flux, and $S$ is the storage coefficient that is related to the change rate of the state variable to a change rate in storage (usually 1 in the atmosphere). The storage flux is thus directly linked to the rate of change of the state variable at a certain location.
 
 <span class="question">
 4.	 What is the dimension of this flux and why is the storage flux negatively related to the rate of change in the state variable?
 </span>
 
 <span class="answer">
-
+The storage flux should have the same dimentions as the internal flux. Thus the dimentions of the storage flux are $\frac{m^2}{s}. The storage flux is negatively related to the rate of change in the state variable because the flow direction should always be opposite to the gradient.
 </span>
 
-In the previous we have identified the storage flux as in a way that is similarto the external fluxes. As the external fluxes, it is given as the integral of function that defines the storage in a point in space.The storage flux can therefore in a transient system be implemented in a way that is similar to the way that external fluxes caused by external processes are implemented within model. 
+In the previous question we have identified the storage flux in a way that is similar to the external fluxes. Such as the external fluxes, it is given as the integral of a function that defines the storage at one point in space. Therefore, the storage flux in a transient system can be implemented in the same way as the external fluxes are implemented. 
 
 <span class="question">
-5.	Make a new model which is an exact copy of oneDinitmodel. Call this model oneDtransientmodel?
+5.	Make a new model which is an exact copy of your oneDinitmodel. Call this model oneDstationmodel. Use this model to create another copy, call this copy oneDtransientmodel.
 </span>
+
+<script src="hints.js"></script>
+
+<button type="button" onclick="showHint(215)">Show Hint</button>
+<p id="Q215"> </p>
 
 <span class="answer">
-
-</span>
-
-<span class="question">
-6.	Add the storageflux as an additional spatialflux to the oneDtransientmodel via the following piece of code:
-```{r, eval=FALSE}
-add.spatialflux(oneDtransientmodel, storageflux, name=”storage”)
+```{r}
+# Create a copy of your initial one dimentional stationary model. Creating this copy prevents that you make any changes to your original model.
+oneDstationmodel = copy.model(oneDinitmodel)
+# This model will used for a transient analysis in the next questions.
+oneDtransientmodel = copy.model(oneDstationmodel)
 ```
 </span>
 
-The storage flux has now been added as an additional spatialflux to the transient model . However, we still need to provide a function that calculates the storage flux for a specific location. As this function is added to the model in analogy to an external function from external processes, the function for the storage flux should be a function that takes as arguments the location, and the value of the state variable and return the storage flux.
+<span class="question">
+6.	Check the documentation and try to find the function which should be used to add the storageflux function to your transient model.
+</span>
 
-To develop such a function, we first need to discretize the formulation of the storage flux as given above. The simplest method being an Euler forward method:
+<span class="answer">
+```{r, eval=FALSE}
+# Add the storage flux to your transient model with the function below. As long as you do not evaluate this code block in the knitting procedure, it is allowed to refer to arguments that are not defined yet i.e. the storageflux argument.
+add.spatialflux(oneDtransientmodel, storageflux, name="storage")
+```
+</span>
+
+Now you know how the storage flux can be added, the function itself should be defined. We need to provide a function that calculates the storage flux for a specific location. The function for the storage flux should be a function that takes as arguments the location, and the value of the state variable at this location. The return value is the storage flux.
+
+To develop such a function, we first need to discretize the formulation of the storage flux as given above. Discretization of this function is done using the Euler forward method and looks as follows: 
 
 $$Q_{st}=-\int_{Vol}S\frac{\theta_{t}-\theta_{t-\Delta t}}{\Delta t}dx$$
 
-where $θ_{st}$ it the value of the state at the current time step (which we want to calculate), $θ_{t-∆t} is the potential temperature at the previous time step (which is generally known), and $\Delta t$ is the time step.
+where $θ_{st}$ it the value of the state at the current time step (which we want to calculate), $θ_{t-∆t}$ is the potential temperature at the previous time step (which is generally known), and $\Delta t$ is the time step.
 
 Now we have discretized the storage flux, translation to a R-function looks as follows:
 ```{r, eval=FALSE}
@@ -285,56 +299,68 @@ storageflux = function(x, state)
 ```
 
 <span class="question">
-7.	Verify that indeed the piece of R-code as given above in combination with add.spatialflux(1Dtransientmodel,storageflux,name=”storage”) defines a spatialflux that is equal to the (discretized) storage flux
-</span>
-
-<span class="question">
-8.	Add the function storageflux to the code that you use to define the transient model.
+7.	Add the storageflux function to your transient model.
 </span>
 
 <span class="answer">
+```{r}
+# The storage flux is dependent on position and state. oldstate(x) is not defined yet, we can already define the storage flux function but we are not able to call it without defining the oldstate function. The oldstate function returns the state of the system at specific location, x, at the previous timestep. This information is needed in order to calculate the gradient of the state in time. dt and S are still to be determined too.
+storageflux = function(x, state)
+{
+   storageflux = -S * (state - oldstate(x)) / dt
+   return(storageflux)
+}
 
+# Add the storage flux to your transient model.
+add.spatialflux(oneDtransientmodel, storageflux, name="storage")
+```
 </span>
 
 In order for the storage flux function to work we still do need to define:
 
-•	a value for S: use a constant value of 1.0
+•	a value for S (storage coefficient): use a constant value of 1.0
 
-•	a value for dt (the code equivalent of Δt): use a value of 1.0 s for a start
+•	a value for dt (the code equivalent of $\Delta t$): use 1.0 second as a staring value 
 
-•	a function that is called oldstate and that returns for a given argument  x (location)  the value of the state at the previous time step at that location
+•	a function that is called oldstate and that returns the value of the state at the previous time step at location x
 
 #Integrating the transient model
 In the previous exercises we developed a transient model that incorporates that in transient systems there is an additional flux caused by the storage change within the system. This model can now be used to analyse the effect of the progressive cooling of the surface in time. In our model, the surface starts to cool at $t=0$. 
 
 <span class="question">
-9.	Include a piece of code that tells the script that the initial time is zero (use the variable name “time” for time in your code).
+8.	Include a piece of code that tells the script that the initial time is zero (use the variable name “time” for time in your code).
 </span>
 
 <span class="answer">
-
+```{r}
+# Starting time is set to zero.
+time = 0
+```
 </span>
 
-At the initial time, there is, for each volume, a balance between the external fluxes and net internal flux. The profile of the state variable is thus given by the model called oneDinitmodel. The situation at t=0 is therefore given by the profiles of the state variable as calculated in exercise 2. This profile is called the initial profile for the transient system.
+At the initial time, there is, for each volume, a balance between the external fluxes and the net internal flux. The states of the transient model at t=0 are given by the profile of the state variable as calculated in exercise 2, copied as oneDstationmodel. This profile is used as the initial profile for our transient system.
 
 Now, we increase the time by a time step $\Delta t$.
 
 <span class="question">
-10. Include a piece of code that tells the script that the time should increase with $\Delta t$.
+9. Include a piece of code that tells the script that the time should increase with $\Delta t$.
 </span>
 
 <span class="answer">
-
+```{r}
+# Define the size of the time step. 
+dt = 1
+```
 </span>
 
-As time progresses, the temperature at the lower boundary changes as a result of cooling of the surface. The cooling rate is 0.5 K/h and in the form of a formula as function of time the surface temperature change can be described by:
+As time progresses, the temperature at the lower boundary changes as a result of cooling of the surface. The cooling rate is 0.5 K/h. The surface temperature change as a function of time can be described by:
 
 $$T_{1}(t=\Delta t)=T_{1,init}-\frac{\Delta t}{3600}0.5$$
 where $T_{1}(t=\Delta t)$ is the temperature of the lower boundary at $t=\Delta t$, and $T_{1,init}$ is the temperature of the lower boundary at $t=0$.
 
 
 <span class="question">
-11. Include the lower boundary condition to your transient model as described by the cooling of the surface equation, as shown above.
+10. Include the lower boundary condition to your transient model as described by the cooling of the surface equation, as shown above.
 </span>
 
 <span class="answer">
@@ -356,7 +382,7 @@ oldstate = approxfun(startprof$x, startprof@state, rule=2)
 ```
 
 <span class="question">
-12. Add this piece of code and verify that it indeed gives the value of the state at the previous time step, $t=0$ in this case, for the locations $x=25$ and $x=50$.
+11. Add this piece of code and verify that it indeed gives the value of the state at the previous time step, $t=0$ in this case, for the locations $x=25$ and $x=50$.
 </span>
 
 <span class="answer">
@@ -377,7 +403,7 @@ control = solve.steps(...)
 ```
 
 <span class="question">
-13. Add a piece of code that defines the numerical formulation to your model and solve it to obtain the profile of the state variables at $t=\Delta t$.
+12. Add a piece of code that defines the numerical formulation to your model and solve it to obtain the profile of the state variables at $t=\Delta t$.
 </span>
 
 <span class="answer">
@@ -385,7 +411,7 @@ control = solve.steps(...)
 </span>
 
 <span class="question">
-14. Plot the profiles of the state variables and the internal fluxes for time $t=\Delta t$ and compare these to the profiles at $t=0$.
+13. Plot the profiles of the state variables and the internal fluxes for time $t=\Delta t$ and compare these to the profiles at $t=0$.
 </span>
 
 <span class="answer">
@@ -393,7 +419,7 @@ control = solve.steps(...)
 </span>
 
 <span class="question">
-15.	Use dataframe.balance(oneDtransientmodel) and show that the sum of the external fluxes and the storage flux are in balance with the net internal fluxes.
+14.	Use dataframe.balance(oneDtransientmodel) and show that the sum of the external fluxes and the storage flux are in balance with the net internal fluxes.
 </span>
 
 <span class="answer">
@@ -412,7 +438,7 @@ oldstate = approxfun(prevprof$x, prevprof@state, rule=2)
 ```
 
 <span class="question">
-16. Add a piece of code that increments the time by one time step, $\Delta t$.
+15. Add a piece of code that increments the time by one time step, $\Delta t$.
 </span>
 
 <span class="answer">
@@ -420,7 +446,7 @@ oldstate = approxfun(prevprof$x, prevprof@state, rule=2)
 </span>
 
 <span class="question">
-17. Update the lower boundary condition for the new situation at $t=\Delta t$.
+16. Update the lower boundary condition for the new situation at $t=\Delta t$.
 </span>
 
 <span class="answer">
@@ -428,7 +454,7 @@ oldstate = approxfun(prevprof$x, prevprof@state, rule=2)
 </span>
 
 <span class="question">
-18. Update the function oldstate so that is takes the states from the correct time step.
+17. Update the function oldstate so that is takes the states from the correct time step.
 </span>
 
 <span class="answer">
@@ -438,7 +464,7 @@ oldstate = approxfun(prevprof$x, prevprof@state, rule=2)
 As we progress in time, the number and the positioning of the volumes does not change, because the applied numerical method does not change. So there is no need to reinvoke the set.discretisation() function and we can directly solve the transient model for the new time step $t=2\Delta t$.
 
 <span class="question">
-19. Solve the transient model to obtain the profile of the state variable at the new time step, $t=2\Delta t$.
+18. Solve the transient model to obtain the profile of the state variable at the new time step, $t=2\Delta t$.
 </span>
 
 <span class="answer">
@@ -460,7 +486,7 @@ while (time < endtime)
 ```
 
 <span class="question">
-20.	Finish the code given above by replacing the lines starting with a @ with proper R-code. In the line where some precessing can be done, enter at least an instruction that plots the transient model and add a waiting code line, sys.sleep(0.1), to control the updating of the window. The end time of the model should be 4 hours after the start of the surface cooling.
+19.	Finish the code given above by replacing the lines starting with a @ with proper R-code. In the line where some precessing can be done, enter at least an instruction that plots the transient model and add a waiting code line, sys.sleep(0.1), to control the updating of the window. The end time of the model should be 4 hours after the start of the surface cooling.
 </span>
 
 <span class="answer">
@@ -468,7 +494,7 @@ while (time < endtime)
 </span>
 
 <span class="question">
-21. Run the code. If all went well, and the endtime was chosed properly, you should see a movie of the state transitions between the initial situation and the situation after 4 hours.
+20. Run the code. If all went well, and the endtime was chosed properly, you should see a movie of the state transitions between the initial situation and the situation after 4 hours.
 </span>
 
 <span class="answer">
@@ -489,7 +515,7 @@ plot(result.store$t, result.store$outflow, type="o", col="red")
 ```
 
 <span class="question">
-22.	 Use these ideas to make one plot showing both the flux at the lower boundary and the state at a location of 50 m above the surface.
+21.	 Use these ideas to make one plot showing both the flux at the lower boundary and the state at a location of 50 m above the surface.
 </span>
 
 <span class="answer">
@@ -497,7 +523,7 @@ plot(result.store$t, result.store$outflow, type="o", col="red")
 </span>
 
 <span class="question">
-23.	Perform a sensitivity analysis to the applied time step by modifying it from 2 seconds to 1 hour using values of 30 seconds, 10 minutes, 30 minutes, 45 minutes and 1 hour. Check the potential temperature at 50 m and the time series of the flux over the lower boundary. What is your conclusion?
+22.	Perform a sensitivity analysis to the applied time step by modifying it from 2 seconds to 1 hour using values of 30 seconds, 10 minutes, 30 minutes, 45 minutes and 1 hour. Check the potential temperature at 50 m and the time series of the flux over the lower boundary. What is your conclusion?
 </span>
 
 <span class="answer">
@@ -527,7 +553,7 @@ For $C_{v}$ we adopt a value of $2000$ $J m^{-2} K^{-1}$, $\rho=1$ $kgm^{-3}$, $
 
 
 <span class="question">
-24. Add the model described above for the surface temperature to the transient model you developed. Use $Q_{net}=-25$ $W m{-2}$.
+23. Add the model described above for the surface temperature to the transient model you developed. Use $Q_{net}=-25$ $W m{-2}$.
 </span>
 
 <span class="answer">
@@ -535,7 +561,7 @@ For $C_{v}$ we adopt a value of $2000$ $J m^{-2} K^{-1}$, $\rho=1$ $kgm^{-3}$, $
 </span>
 
 <span class="question">
-25	Plot the  vertical profile of the state, the (internal) fluxes and the surface temperature for each hour. What is your conclusion?
+24. Plot the  vertical profile of the state, the (internal) fluxes and the surface temperature for each hour. What is your conclusion?
 </span>
 
 <span class="answer">
@@ -543,7 +569,7 @@ For $C_{v}$ we adopt a value of $2000$ $J m^{-2} K^{-1}$, $\rho=1$ $kgm^{-3}$, $
 </span>
 
 <span class="question">
-26	Plot the time series of flux over the lower boundary. What is your conclusion?
+25. Plot the time series of flux over the lower boundary. What is your conclusion?
 </span>
 
 <span class="answer">
@@ -551,7 +577,7 @@ For $C_{v}$ we adopt a value of $2000$ $J m^{-2} K^{-1}$, $\rho=1$ $kgm^{-3}$, $
 </span>
 
 <span class="question">
-27	Perform a sensitivity analysis to the applied time step by modifying it from 30 seconds to 1 hour using values of 30 seconds, 10 minutes, 30 minutes, 45 minutes and 1 hour. Check the vertical profile of the potential temperature after 4 hours and the time series of the internal flux between node 1 and node 2. What is your conclusion.
+26. Perform a sensitivity analysis to the applied time step by modifying it from 30 seconds to 1 hour using values of 30 seconds, 10 minutes, 30 minutes, 45 minutes and 1 hour. Check the vertical profile of the potential temperature after 4 hours and the time series of the internal flux between node 1 and node 2. What is your conclusion.
 </span>
 
 <span class="answer">
