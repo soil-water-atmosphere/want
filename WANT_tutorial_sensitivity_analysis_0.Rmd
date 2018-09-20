@@ -7,6 +7,9 @@ output:
     css: want.css
 ---
 
+<!-- include the hint.js -->
+<script src="hints.js"></script>
+
 # Learning goals
 * Understand the concept of local sensitivity analysis
 * Understand the limitations of local sensitivity analysis 
@@ -37,11 +40,55 @@ b = 7
 y = a*x + b
 plot(x,y)
 ```
-This is a linear function, where $a$ is the slope of the function and $b$ the intersect. Which one is most sensitive is difficult to determine at this stage. 
+This is a linear function, where $a$ is the slope of the function and $b$ the intersect. Depending on where we will evaluate sensitivity on, probably $y$ is more sensitive to $a$.
 </span>
 
 <span class="question">
-Determine the sensitivity of y for $a$ and $b$ with the given base-values. You can do this manually, or use R as calculator.  
+Determine the sensitivity of y for $a$ and $b$ with the given base-values and for x=[1:10]. You can do this manually, or use R as calculator.  
+</span>
+
+<!-- Here a hint is implemented. Argument to showHint is the QUESTION_NUMBER as documented in the hints.js file.
+The position the hint is displayed where a paragraph text with id = Q + QUESTION_NUMBER is entered. -->
+<button type="button" onclick="showHint(1)">During the lectures, we only evaluated the influence of different parameters on a single value (in the example discused in the lectures, this was the maximum groundwater level). In this exercise, you suddenly deal with a vector of 10 values. What we need in order to determine the sensitivity, is a way of expressing changes in the vector $y$ in a single value. The sums of squares could be a good option. </button>
+<p id="Q1"> </p>
+<!-- Here a hint is implemented. Argument to showHint is the QUESTION_NUMBER as documented in the hints.js file.
+The position the hint is displayed where a paragraph text with id = Q + QUESTION_NUMBER is entered. -->
+<button type="button" onclick="showHint(2)">The sums of squares can be obtained as follows: SS = $\sum_1^{10}(y_{base}-y_{change})^2$ </button>
+<p id="Q2"> </p>
+
+
+```{r}
+# Type your code here.
+```
+
+<span class="answer">
+```{r}
+# y of base values from previous assignment
+y_base = y 
+
+# sensitivity for a
+a_change = 3.1 
+b = 7
+y_change = a_change*x + b
+SS_a = sum(y_base-y_change)^2
+# so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
+LSA_a = SS_a / (a_change-a)
+
+# sensitivity for b
+a = 3 
+b_change = 7.1
+y_change = a*x + b_change
+SS_b = sum(y_base-y_change)^2
+# so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
+LSA_b = SS_b / (b_change-b)
+
+# In this particular example, $a$ and $b$ have no units, and we do not specify a scale of variation, because we are not investigating a physical system with clearly defined boundary conditions. Therefore, we can directly interpret the restuls obtained above. This shows that our model $y$ is more sensitive to parameter $a$ than to parameter $b$, given that we evaluate $y$ based on the SS-metric. 
+
+```
+</span>
+
+<span class="question">
+Same as above, but now use base values 4 and 6 respectively for  $a$ and $b$. Do you expect that this will influence the sensitivity and why (not)? 
 </span>
 
 
@@ -49,30 +96,39 @@ Determine the sensitivity of y for $a$ and $b$ with the given base-values. You c
 # Type your code here.
 ```
 
-
 <span class="answer">
 ```{r}
-y_base = y
-# sensitivity of a
-a_
+# In this particular case, we know that different base values will not lead to a different sensitivity, because it is a linear function. Over linear functions, the sensitivity is constant over the complete function. We can simply check this with repeating the calculation: 
 
+# y of base values 
+x = seq(0,10,1)
+a = 4
+b = 6
+y_base = a*x + b
+
+# sensitivity for a
+a_change = 4.1 
+b = 6
+y_change = a_change*x + b
+SS_a = sum(y_base-y_change)^2
+# so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
+LSA_a = SS_a / (a_change-a)
+
+# sensitivity for b
+a = 4 
+b_change = 6.1
+y_change = a*x + b_change
+SS_b = sum(y_base-y_change)^2
+# so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
+LSA_b = SS_b / (b_change-b)
 
 ```
-This is a linear function, where $a$ is the slope of the function and $b$ the intersect. Which one is most sensitive is difficult to determine at this stage. 
 </span>
 
 
+# Assignment 2
+This time we evaluate a non-linear function. 
 
-
-
-
-
-
-
-
-
-# Question 2
-In this question, you have to make your first plot.
 
 <span class="question">
 Plot the function $y = \cos(x)$ for the domain $x = [0, 10]$ in the code chunk below.
@@ -96,4 +152,4 @@ plot(x,y)
 ```
 </span>
 
-This is the end.
+This is the end. My only friend, the end. 
