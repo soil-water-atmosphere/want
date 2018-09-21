@@ -134,10 +134,10 @@ print(LSA_b)
 
 # Assignment 2
 Most systems in environmental sciences behave non-linear. We will now evaluate a simple non-linear function: 
-$y = ax^2+bx$
+$y = ax^6+bx$
 
 <span class="question">
-Plot the function $y = ax^2+bx$ for the domain $x = [0, 10]$ in the code chunk below. Base values for $a$ and $b$ are 3 and 7. Which parameter do you expect to be of more influence on y? 
+Plot the function $y = ax^6+bx$ for the domain $x = [0, 10]$ in the code chunk below. Base values for $a$ and $b$ are 3 and 7. Which parameter do you expect to be of more influence on y? 
 </span>
 
 ```{r}
@@ -149,7 +149,7 @@ Plot the function $y = ax^2+bx$ for the domain $x = [0, 10]$ in the code chunk b
 x = seq(0,10,1)
 a = 3
 b = 7
-y = a*x^2 + b*x
+y = a*x^6 + b*x
 plot(x,y,type="o")
 ```
 Generally, we would expect y to be more sensitive to a, because this parameter relates to x squared. 
@@ -157,7 +157,7 @@ Generally, we would expect y to be more sensitive to a, because this parameter r
 
 
 <span class="question">
-For the function $y = ax^2+bx$ for the domain $x = [0, 10]$, calculate the sensitivity of $y$ for $a$ and $b$ for 1) base values of 3 and 7 respectively, and 2) base values of 0.5 and 60 respectively. Does the base value influence the sensitivity? 
+For the function $y = ax^3+bx$ for the domain $x = [0, 10]$, calculate the sensitivity of $y$ for $a$ and $b$ for 1) base values of 3 and 7 respectively, and 2) base values of 0.5 and 60 respectively. Does the base value influence the sensitivity? 
 </span>
 
 
@@ -171,17 +171,17 @@ For the function $y = ax^2+bx$ for the domain $x = [0, 10]$, calculate the sensi
 x = seq(0,10,1)
 a = 3
 b = 7
-y_base = a*x^2 + b*x
+y_base = a*x^6 + b*x
 
 a_change = 3.1
 b        = 7
-y_a      = a_change*x^2 + b*x
+y_a      = a_change*x^6 + b*x
 SS_a     = sum((y_base-y_a)^2)
 LSA_a1   = SS_a / (a_change-a)
 
 a        = 3
 b_change = 7.1
-y_b      = a*x^2 + b_change*x
+y_b      = a*x^6 + b_change*x
 SS_b     = sum((y_base-y_b)^2)
 LSA_b1   = SS_b / (b_change-b)
 
@@ -189,17 +189,17 @@ LSA_b1   = SS_b / (b_change-b)
 x = seq(0,10,1)
 a = 0.5
 b = 60
-y_base = a*x^2 + b*x
+y_base = a*x^6 + b*x
 
-a_change = 0.51
+a_change = 0.6
 b        = 60
-y_a      = a_change*x^2 + b*x
+y_a      = a_change*x^6 + b*x
 SS_a     = sum((y_base-y_a)^2)
 LSA_a2   = SS_a / (a_change-a)
 
 a        = 0.5
 b_change = 60.1
-y_b      = a*x^2 + b_change*x
+y_b      = a*x^6 + b_change*x
 SS_b     = sum((y_base-y_b)^2)
 LSA_b2   = SS_b / (b_change-b)
 
@@ -235,32 +235,34 @@ Run over all values for a and b between 0.1 and 20 and plot how the relative sen
 <span class="answer">
 ```{r}
 # vector with all parameter values that will be checked
-par_sample = seq(0.1,20,0.1) 
-LSA_a      = matrix(nrow=length(par_sample),ncol=2)
-LSA_b      = matrix(nrow=length(par_sample),ncol=2)
+stepsize   = 0.1
+par_sample = seq(0.1,20,stepsize) 
+LSA_a      = matrix(nrow=length(par_sample),ncol=length(par_sample))
+LSA_b      = matrix(nrow=length(par_sample),ncol=length(par_sample))
+x = seq(0,10,1)
 
-for (i in 1:length(par_sample)){
-     # assign base values
-     a_base  = par_sample[i]
-     b_base  = par_sample[i]
+for (j in 1:length(par_sample)){
+  for (i in 1:length(par_sample)){
+        
+        # Sensitivity of a
+        # assign base values
+        a_base  = par_sample[j]
+        b_base  = par_sample[i]
      
-     # calculate base y
-     y_base = a_base*x^2+b_base*x
+        # calculate base y
+        y_base = a_base*x^3+b_base*x
      
-     # calculate perturbed y
-     y_a   = (a_base+0.1)*x^2 + 4*x
-     y_b   = a_base*x^2 + (b_base+0.1)*x
-     
-     # calculate SS
-     SS_a     = sum((y_base-y_a)^2)
-     SS_b     = sum((y_base-y_b)^2)
-     
-     # calculate LSA and store in vector
-     LSA_a[i,1]   = par_sample[i]
-     LSA_a[i,2]   = SS_a / 0.1 
-     LSA_b[i,1]   = par_sample[i]
-     LSA_b[i,2]   = SS_b / 0.1 
+        # calculate perturbed y
+        y_a    = (a_base+0.1)*x^3 + b_base*x
+
+        # calculate SS
+        SS_a   = sum((y_base-y_a)^2)
+
+        # calculate LSA and store in vector
+        LSA_a[i,j]   = SS_a / stepsize 
+     }
 }
+plot(raster(LSA_a))
 
 ```
 
