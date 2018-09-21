@@ -12,10 +12,10 @@ output:
 
 # Learning goals
 * Understand the concept of local sensitivity analysis
-* Understand the limitations of local sensitivity analysis 
+* Understand the imlications and limitations of local sensitivity analysis 
 
 # Introduction
-In this assignment, we will manually work out the local sensitivity at several places for several functions. The idea is that you can do these calculations by hand. 
+In this assignment, we will manually work out the local sensitivity at several places for several functions. The idea is that you can do these calculations by hand (or support by R). 
 
 # Assignment 1
 We have a linear function $y = ax + b$, with parameters $a$ and $b$. 
@@ -47,13 +47,12 @@ This is a linear function, where $a$ is the slope of the function and $b$ the in
 Determine the sensitivity of y for $a$ and $b$ with the given base-values and for x=[0:10]. You can do this manually, or use R as calculator.  
 </span>
 
-<!-- Here a hint is implemented. Argument to showHint is the QUESTION_NUMBER as documented in the hints.js file.
-The position the hint is displayed where a paragraph text with id = Q + QUESTION_NUMBER is entered. -->
-<button type="button" onclick="showHint(1)">During the lectures, we only evaluated the influence of different parameters on a single value (in the example discused in the lectures, this was the maximum groundwater level). In this exercise, you suddenly deal with a vector of 10 values. What we need in order to determine the sensitivity, is a way of expressing changes in the vector $y$ in a single value. The sums of squares could be a good option. </button>
+
+<!-- HINT 1 -->
+<button type="button" onclick="showHint(1)">Hint 1</button>
 <p id="Q1"> </p>
-<!-- Here a hint is implemented. Argument to showHint is the QUESTION_NUMBER as documented in the hints.js file.
-The position the hint is displayed where a paragraph text with id = Q + QUESTION_NUMBER is entered. -->
-<button type="button" onclick="showHint(2)">The sums of squares can be obtained as follows: SS = $\sum_1^{10}(y_{base}-y_{change})^2$ </button>
+<!-- HINT 2 -->
+<button type="button" onclick="showHint(2)">Hint 2</button>
 <p id="Q2"> </p>
 
 
@@ -73,7 +72,7 @@ y_base = a*x + b
 a_change = 3.1 
 b = 7
 y_change = a_change*x + b
-SS_a = sum(y_base-y_change)^2
+SS_a = sum((y_base-y_change)^2)
 # so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
 LSA_a = SS_a / (a_change-a)
 print(LSA_a)
@@ -82,7 +81,7 @@ print(LSA_a)
 a = 3 
 b_change = 7.1
 y_change = a*x + b_change
-SS_b = sum(y_base-y_change)^2
+SS_b = sum((y_base-y_change)^2)
 # so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
 LSA_b = SS_b / (b_change-b)
 print(LSA_b)
@@ -115,7 +114,7 @@ y_base = a*x + b
 a_change = 0.6 
 b = 60
 y_change = a_change*x + b
-SS_a = sum(y_base-y_change)^2
+SS_a = sum((y_base-y_change)^2)
 # so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
 LSA_a = SS_a / (a_change-a)
 print(LSA_a)
@@ -124,7 +123,7 @@ print(LSA_a)
 a = 0.5 
 b_change = 60.1
 y_change = a*x + b_change
-SS_b = sum(y_base-y_change)^2
+SS_b = sum((y_base-y_change)^2)
 # so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
 LSA_b = SS_b / (b_change-b)
 print(LSA_b)
@@ -177,13 +176,13 @@ y_base = a*x^2 + b*x
 a_change = 3.1
 b        = 7
 y_a      = a_change*x^2 + b*x
-SS_a     = sum(y_base-y_a)^2
+SS_a     = sum((y_base-y_a)^2)
 LSA_a1   = SS_a / (a_change-a)
 
 a        = 3
 b_change = 7.1
 y_b      = a*x^2 + b_change*x
-SS_b     = sum(y_base-y_b)^2
+SS_b     = sum((y_base-y_b)^2)
 LSA_b1   = SS_b / (b_change-b)
 
 # 2) base values
@@ -195,13 +194,13 @@ y_base = a*x^2 + b*x
 a_change = 0.51
 b        = 60
 y_a      = a_change*x^2 + b*x
-SS_a     = sum(y_base-y_a)^2
+SS_a     = sum((y_base-y_a)^2)
 LSA_a2   = SS_a / (a_change-a)
 
 a        = 0.5
 b_change = 60.1
 y_b      = a*x^2 + b_change*x
-SS_b     = sum(y_base-y_b)^2
+SS_b     = sum((y_base-y_b)^2)
 LSA_b2   = SS_b / (b_change-b)
 
 # change in a:
@@ -209,26 +208,25 @@ LSA_a1-LSA_a2
 # change in b:
 LSA_b1-LSA_b2
 ```
-So, the sensitivity for parameter $a$ changed with different base values, while the sensitivity for parameter $b$ did not change. This can be understood from the equation; $b$ is only linearly related to x, and we've seen that for linear equations the sensitivity does not change. Parameter $a$, however, is related to the square root of x, thereby being not linear and as such, sensitivity changes for different base values. Since most systems in environmental sciences behave non-linearly, choosing the base values carefully is therefore very important.  
+So, the sensitivity for parameter $a$ changed with different base values, while the sensitivity for parameter $b$ did not change. This can be understood from the equation; $b$ is only linearly related to x, and we've seen that for linear equations the sensitivity does not change. Parameter $a$, however, is related to the square root of x, thereby being not linear and as such, sensitivity changes for different base values. This implies that, even though the sensitivity for $b$ in itself does not change, the ratio of sensitivity between $b$ and $a$ changes:
+
+
+```{r}
+par(mfrow=c(2,1))
+pie(c(LSA_a1,LSA_b1),labels=c('a','b'),col=c("red","blue"))
+pie(c(LSA_a2,LSA_b2),labels=c('a','b'),col=c("red","blue"))
+
+```
+
+Since most systems in environmental sciences behave non-linearly, choosing the base values carefully is therefore very important.  
 </span>
 
-# Add an assignment with sensitivity over x? or a highly non-linear function? Or local global sensitivity analysis? 
-# Extra assignment - global local sensitivity analysis 
+# Extra assignment
+Run over all values for a and b between 0.1 and 20 and plot how the relative sensitivity changes. 
 
-<span class="question">
-We have a function $y = ax^3+bx^2+cx$ for the domain $x = [0, 10]$ to describe a process in a natural system. We don't know the base values of parameters $a$, $b$, and $c$, just that, because of physical boundaries, all parameters can vary between 0 and 20. We do have observations of variable $y$, $y_{obs}$, provided below. 
-```{r}
-y_obs=c(0.1,22.4,140.8,434.2,978.2,1852.3,3134.9,4903.4,7236.1,10210.4,13903.9)
-```
-Calculate the sensitivity of $y$ to the three parameters over the complete parameter space. 
-
-<!-- Here a hint is implemented. Argument to showHint is the QUESTION_NUMBER as documented in the hints.js file.
-The position the hint is displayed where a paragraph text with id = Q + QUESTION_NUMBER is entered. -->
-<button type="button" onclick="showHint(1)">Ai, we don't know any base values. So where do we start? We can make two choices here; either we assume that all parameters are completely independent and we make a latin hypercube sample to efficiently run through parameter space, or we just run all possible combinations over the complete parameter space, with a given step size. We can determine the step size based on the amount of runs needed. A step size of 0.1 would result in 201 samples per parameter, running all combinations yiels $201^3=8120601$ runs, perhaps a bit too much at this stage. Therefore, we can start with a step size of 1, which yields $21^3=9261$ runs.  </button>
-<p id="Q1"> </p>
-
--> here we can refer to latin hypercube sampling stragies (is not dealt with in the lectures yet)
--> here we can also refer to the curse of dimensionality
+<!-- HINT 3 -->
+<button type="button" onclick="showHint(3)">Hint 3</button>
+<p id="Q3"> </p>
 
 ```{r}
 # Type your code here.
@@ -236,50 +234,37 @@ The position the hint is displayed where a paragraph text with id = Q + QUESTION
 
 <span class="answer">
 ```{r}
-par_sample = seq(0,20,1) # vector with all parameter values that will be checked
-LSA_a      = matrix(nrow=9261,ncol=2)
-LSA_b      = matrix(nrow=9261,ncol=2)
-LSA_c      = matrix(nrow=9261,ncol=2)
-
-# start value for counter
-n_a = 1 
-n_b = 1
-n_c = 1
+# vector with all parameter values that will be checked
+par_sample = seq(0.1,20,0.1) 
+LSA_a      = matrix(nrow=length(par_sample),ncol=2)
+LSA_b      = matrix(nrow=length(par_sample),ncol=2)
 
 for (i in 1:length(par_sample)){
-  for (j in 1:length(par_sample)){
-   for (k in 1:length(par_sample)){
+     # assign base values
+     a_base  = par_sample[i]
+     b_base  = par_sample[i]
      
-     # assign parameter values
-     a_low = par_sample[i]
-     b_low = par_sample[i]
-     c_low = par_sample[i]
+     # calculate base y
+     y_base = a_base*x^2+b_base*x
      
-     a_mid   = par_sample[j]
-     b_mid   = par_sample[j]
-     c_mid   = par_sample[j]
+     # calculate perturbed y
+     y_a   = (a_base+0.1)*x^2 + 4*x
+     y_b   = a_base*x^2 + (b_base+0.1)*x
      
-     a_high   = par_sample[k]
-     b_high   = par_sample[k]
-     c_high   = par_sample[k]
+     # calculate SS
+     SS_a     = sum((y_base-y_a)^2)
+     SS_b     = sum((y_base-y_b)^2)
      
-     # combine them into the model
-     # for parameter a
-     a = a_high
-     b = b_low
-     c = c_mid
-
-     y_base = a*x^3+b*x^2+c*x
-     
-SS_b     = sum(y_base-y_b)^2
-LSA_b1   = SS_b / (b_change-b)
-     
-     
-   } 
-  }
+     # calculate LSA and store in vector
+     LSA_a[i,1]   = par_sample[i]
+     LSA_a[i,2]   = SS_a / 0.1 
+     LSA_b[i,1]   = par_sample[i]
+     LSA_b[i,2]   = SS_b / 0.1 
 }
+
 ```
-</span>
+
+
 
 
 
