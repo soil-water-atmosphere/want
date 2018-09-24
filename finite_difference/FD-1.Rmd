@@ -1,0 +1,151 @@
+---
+title: "Finite differences 1"
+author: "The WANT team"
+date: "24/09/2018"
+output:
+  html_document:
+    css: ../want.css
+---
+
+# Learning goals
+* Understand the use of Taylor series
+* Understand the mathematics of Taylor series
+* Be able to calculate Taylor series for arbitrary functions
+* Derive approximations for first derivatives from Taylor series
+
+# Introduction
+With this markdown you are going to to analyse the effect of properties and numerical schemes on the behavior of the solutions for simple 0D (no spatial dimensions) kind of models, known as bucket or reservoir models. The differential equations that need to be solved are simple ordinary differential equations. 
+
+# Part 1
+# Exercise 1.1
+As the first example of a simple ordenary differential equation (ODE) an emptying reservoir is considered. It is an illustrative example because the exact solution is known so different methods can be compared to the real answer.
+
+physical example of the emptying reservoir (or emptying bucket)
+
+![](reservoir_properties.png) 
+
+
+
+This system can be represented by the following ODE:
+$$ \dfrac{ds}{dt} = -\alpha s$$
+
+The mathematical definition of the time derivate is as follows
+
+$$ \dfrac{ds}{dt} = \lim_{\Delta t\to\ 0}\frac{s(t+\Delta t)-s(t)}{\Delta t} $$
+
+To approximate this function to implement it in a computer this function can be simplified, taking a small $\Delta$t:
+
+$$ \dfrac{ds}{dt} = \frac{s(t+\Delta t)-s(t)}{\Delta t} $$
+
+<span class="question">
+1.1.1 Combine these function to make a discretisation for the next timestep (s(t+$\Delta$t))
+</span>
+
+<span class="student_answer">
+$$ s(t+\Delta t) = s(t)(1-\alpha \Delta t) $$
+</span>
+
+<span class="comment">Maybe the hard track can derive the true solution here</span>
+
+# Exercise 1.2
+To implement this function four vallues need to be given to be able to run:
+
+```{r chunk1}
+begin.time = 0    # usually this variable is set to 0
+end.time = 50     # end time of the simulation (50)
+dt = 10          # delta t; time discretisation (0.1)
+init.state = 3    # state of the system at the beginning of the simulation (100)
+alpha = 0.25       # decay constant (6)
+```
+
+Implement the formula derived in question 1.1 in the following script to run the first simulation
+
+<span class="student_answer">
+```{r chunk2}
+sys.fun = function(state)
+{
+  newstate = ...
+  return(newstate)
+}
+```
+</span>
+
+<span class="answer">
+```{r chunk3}
+sys.fun = function(state)
+{
+  newstate = state*(1-alpha*dt)
+  return(newstate)
+}
+```
+</span>
+
+Run the following chunk to run and visualise the simulation
+
+```{r chunk4}
+time = begin.time
+result.state= c(init.state)
+result.time = c(time)
+current.state = init.state
+##time loop
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+##plotting
+plot(result.time,result.state,type='o',xlab="time",ylab="state")
+title(main='Emptying reservoir')
+grid()
+```
+
+<span class="question">
+1.2.1 Vary the ‘dt’ parameter between 0.01 and 25.
+TIP! adjust the value of dt and use the speed button ‘run all previous chunks’ in the ‘Data collection and plotting’ chunk to have a direct view of the result.
+Are there any numerical problems arising beyond a certain value for dt? Do you notice any time difference in run-time?
+</span>
+
+<span class="question">
+1.2.2 Reset dt to 0.5 and vary alpha in the same way. Characterise the effect of this parameter. Did it gave any numerical problems, and if so, what kind and for which values of alpha?
+</span>
+
+<span class="question">
+1.2.3 Add the following two lines of code into chunk4 just below the plot command.
+
+time.sequence = seq(begin.time,end.time,by=0.1)
+analyt.state=init.state * exp(-time.sequence*alpha)
+lines(time.sequence,analyt.state,col='blue',lwd=2)
+*maybe the hard track can implement this themselves?
+</span>
+
+<span class="answer">
+```{r chunk5}
+time = begin.time
+result.state= c(init.state)
+result.time = c(time)
+current.state = init.state
+##time loop
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+##plotting
+plot(result.time,result.state,type='o', xlab="time",ylab="state")
+time.sequence = seq(begin.time,end.time,by=0.1)
+analyt.state=init.state * exp(-time.sequence*alpha)
+lines(time.sequence,analyt.state,col='blue',lwd=2)
+title(main='Numerical and analytical solution compared')
+grid()
+```
+</span>
+
+<span class="question">
+1.2.4 At which dt do the numerical approximation and analytical solution agree fairly reasonably?
+</span>
