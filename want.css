@@ -13,3 +13,8 @@ h1 {
 .question {
     color: blue;
 }
+
+.comment {
+    color: red;
+    font-style: italic;
+}
