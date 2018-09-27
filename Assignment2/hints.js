@@ -4,6 +4,8 @@ dict[211] = "The model resembles the model made in the previous assignment.";
 dict[212] = "Check the arguments of the plot function of the FVFE1D package to make both plots in one line of code.";
 dict[213] = "Check the documentation of dataframe.balance().";
 dict[215] = "Read the documentation of the copy.model() function.";
+dict[2113] = "Check the arguments of the plot function of the FVFE1D package to make both plots in one line of code.";
+dict[2119] = "Before the loop construct is entered, you can basically copy the previous code that describes the two time increments. Do not forget to assign the proper state values to the oldstate function before entering the while loop."
 
 
 
