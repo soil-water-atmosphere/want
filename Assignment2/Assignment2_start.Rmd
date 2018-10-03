@@ -1,5 +1,7 @@
 ---
-title: "Assignment 2"
+title: "Assignment 2.2 - A transient groundwater model"
+author: "The WANT team"
+date: "3-10-2018"
 output:
   html_document:
     css: want.css
@@ -9,7 +11,15 @@ output:
     toc: yes
 ---
 
-#Introduction transient groundwater flow model  
+<!-- include the hint.js -->
+<script src="hints.js"></script>
+
+# Learning Goals
+* Goal 1
+* Goal 2
+* Enz
+
+# Introduction transient groundwater flow model  
 In this assignment, a transient groundwater system will be studied. As a first example, the development of an extraction cone is examined. A schematic of this process is shown below.
 The description of this system is largely equal to that of assignment 1. So we take (again):   <!-- still true? -->
 
@@ -17,160 +27,325 @@ The description of this system is largely equal to that of assignment 1. So we t
 *    Dirichlet boundary conditions left and right river = 5.0 $m$
 *    kD = 45 $m^2/d$ for type 1 flow
 *    k = 10 $m/d$ for type 2 flow
-*    nodes with $\Delta$ x = 10 m
-*    recharge R = 0.001 $m/d$
-*    Extraction rate well = 0.25 $m^2/d$ at 90 $m$ from the left
+*    The nodal distance $\Delta$ x = 10 m
+*    Recharge R = 0.001 $m/d$
+*    Extraction rate of the well is 0.25 $m^2/d$ at 90 $m$ from the left
 
 ![](assignment2_1D_trans.png)
 
-##1.1. New concepts in modeling  
-Since this model will simulate states (heads) for transient conditions (i.e. in time), the dynamical aspects now need to be implemented: 
+Figure 1: Transient flow including an extraction well.
+
+## 1.1. New concepts in modeling  
+Since this model will simulate states (heads) for transient conditions (i.e. in time), the following dynamical aspects need to be implemented: 
 
 1.    The variable; Storage Coefficient $S$ 
-2.    A point flux; the extraction well 
-3.    A new spatial flux; 'from the past ' or simply the storage flux : $Q(t)=-S\frac {H(x)_{new}- H(x)_{old}}{\Delta t}$
+2.    A new spatial flux; 'from the past ' or simply the storage flux as explained in the previous part of this assignment: $$Q(t)=-S\frac {H(x)_{new}- H(x)_{old}}{\Delta t}$$
+3.    A point flux; the extraction well
 
-<div class="question">What are the units of the above mentioned aspects?</div>  
+<div class="question">
+1.What are the units of the above mentioned aspects?
+</div>  
 
 <div class="answer">
-The domain of the model has only one spatial dimention, (e.g. the x-direction). Therefore, the spatial flux should have the same dimentions. Here the flux density is defined as length per time, $m/d$. From this follows that the storage coefficient should be dimentionless. The dimentions in which the well is entered in the model is $m^2/d$, but internally the value is divided by the nodal distance at the specific location. Per time step a certain water height, $m/d, is substracted in this situation.
+The domain of the model has only one spatial dimension, (e.g. the x-direction). Therefore, the spatial flux should have the same dimensions. Here the flux density is defined as length per time, $m/d$. From this follows that the storage coefficient should be dimensionless. The dimensions in which the well is entered in the model is $m^2/d$, but internally the value is divided by the nodal distance at the specific location. Per time step a certain water height, $m/d$, is substracted in this situation.
 
 1.    Phreatic storage coefficient: $m^3/m^3 \rightarrow (-)$ 
-2.    (Extraction) Well $m^2/d$ 
-3.    Spatial flux $m/d$
+2.    Spatial flux $m/d$
+3.    Extraction Well $m^2/d$
 </div>
 
-##1.2. Setting up the stationary part of the model  
-In the following exercises a transient model, based on the stationary model created in the first assignment, will be developed. Before we start this exercise, the workspace should be cleaned and the FVFE1D package has to be loaded.  
+## 1.2. Setting up the stationary part of the model  
+In the following exercises a transient model, based on the stationary model created in assignment 1, will be developed. Before we start this exercise, the workspace should be cleaned and the FVFE1D package has to be loaded.  
 
 ```{r}
 # cleaning
-rm(list = ls())
+rm(list=ls())
 # loading
 library(FVFE1D)
 ```
 
-<div class="question">Setup and run the stationary model containing the above data without the extraction well.  
-You may use a code chunk from the previous assignment (assignment1.Rmd). Call this model 'startmodel' and solve it using the finite volumes method. Plot both the states and the fluxes of the model in an individual graph. Check the plot documentation in the FVFE1D package for more information.
+<div class="question">
+2.Setup and run the stationary model containing the above data without the extraction well.  
+You may use a code chunk from assignment 1. Call this model 'startmodel' and solve it using the finite volumes method. Plot both the states and the fluxes of the model in an individual graph. Check the plot documentation in the FVFE1D package for more information.
 </div>
+
+<button type="button" onclick="showHint(222)">Show Hint</button>
+<p id="Q222"> </p>
 
 <div class="answer">
 ```{r}
 # system properties
 domain = c(0, 200)
-nodes = seq(0, 200, 10)
 kD = 45
 k = 10
 left.bound = 5
 right.bound = 5
 
-# functions
+# Mathematical part; functions
 flux.fun = function(x, s, grads) {return (-kD*grads)}
-startmodel = newFLOW1D(domain = domain, systemfluxfunction = flux.fun, name = "startmodel")
+startmodel = newFLOW1D(domain=domain, systemfluxfunction=flux.fun, name="startmodel")
 set.BC.fixedstate(startmodel, "left", left.bound)
 set.BC.fixedstate(startmodel, "right", right.bound)
 add.spatialflux(startmodel, 0.001, "recharge")
 
+# Numerical part
+nodes = seq(0, 200, 10)
 set.discretisation(startmodel, nodes, "FV")
 result = solve.steps(startmodel)
-plot(startmodel, stateplot = TRUE, fluxplot = TRUE)
-
-
+plot(startmodel, stateplot=TRUE, fluxplot=TRUE)
 ```
 </div>
 
-<div class="question">Create an identical stationary model now with the extraction well at 90 m from the West.  
-You may use copy.model() from the FVFE1D package.  
-See the help on this package for further details.  Call this model 'endmodel'.</div>  
-
-
-
-<div class="question">Calculate the origin of the water extracted by the well. In other words where does this extracted come from? </div> 
-
-
 <div class="question">
-Plot both head distributions in one graph by simply using 'dataframe.states()' </div>  
-
-
-
-##1.3 Setting up the transient model  
-One of the key aspects of creating a transient model is to define the storage flux or the ”external flux from the past”. The formula (given at the beginning of this assignment) is translated into R-code as follows:
-
-```{r}
-storage.flux = function(x,state)
-  {
-  return(S * (oldstate.fun(x) - state)/delt)
-  }
-```
-
-Furthermore values for the Storage Coefficient $S$ and $\Delta t$ are required.  We start with 0.15 $(-)$ and 0.5 $d$ respectively.  
-The function **oldstate.fun(x)** contains the previous head of the model and is required to calculate the **storage.flux**.  The easiest approach would be the use of the **state.fun(model)** contained in the FVFE1D package, see help for further details.  
-The very first state distribution for which the transient model starts running is based on the states of the 'startmodel'.  
-
-<div class="question">
-Do you agree with the "sign" in the **storage.flux** function above?  
-Define the $S$, $\Delta t$ and the **oldstate.fun** based on the states of the startmodel.
+3.Now, create, solve and plot an identical stationary model with the extraction well at 90 m from the west. You may use copy.model() from the FVFE1D package to prevent repetitive code blocks. Call this copied model 'endmodel' and assign a new name to it using set.name().
 </div>  
 
+<div class="answer">
 ```{r}
-##insert your code here
+# Copy and rename
+endmodel = copy.model(startmodel)
+set.name(model=endmodel, newname="Stationary model with well")
+
+# Add the extration well at 90 meters from the western boundary
+add.pointflux(endmodel, at=90, value=-0.25, "extraction well")
+
+# Solve and plot
+control = solve.steps(endmodel)
+plot(endmodel, stateplot=TRUE, fluxplot=TRUE)
 ```
-
-
-To have an idea how this oldstate.fun function 'works' simply type at the console (lower left window of R-studio) 'oldstate.fun(20)' which will result in the head (state) at position $x=20 m$.  
+</div>
 
 <div class="question">
-To create a transient model the following aspects need to be implemented:  
+4.Examine the origin of the water extracted by the well. In other words, where does this extracted water come from? Give your answers as a fraction of the total amount of extracted water.
+</div> 
 
-1.    make a copy of the startmodel and call it transientmodel (use copy.model()) 
-2.    add the extraction well to this model 
-3.    add the storage flux to the model 
-4.    you may give this model a new name with set.name() 
-</div>
+<button type="button" onclick="showHint(224)">Show Hint</button>
+<p id="Q224"> </p>
+
+<div class="answer">
 ```{r}
-##insert your code here
+# This is the total water balance from which the origin of the water can be read. 0.2 meter of water originates from recharge and 0.05 meter of water flows over the boundaries into the model.
+wbal = dataframe.balance(endmodel)
+print(wbal)
+
+# More water flows over the left boundary than over the right boundary.
+bounds = dataframe.boundaries(endmodel)
+print(bounds)
+
+# The recharge distribution is homogeneous. Each cell, except both volumes at the boundary of the domain because these are half the size of the other volumes, captures a equal amount of water.
+recharge = dataframe.externalfluxes(endmodel)
+print(recharge)
+
+# Since water is entering at the boundaries, the total amount of recharge is going into the well plus what is entering from the boundaries. Calculation of the origin of water in the well can be performed as follows:
+print(paste('Fraction recharge of total extraction :',wbal[2,2]/wbal[3,3]))
+print(paste('Fraction of left river :',bounds[1,4]/wbal[3,3]))
+print(paste('Fraction of right river :',bounds[2,4]/wbal[3,3]))
 ```
+</div>
 
+<div class="question">
+5.Plot the head distributions of the startmodel and the endmodel in one graph by simply using 'dataframe.states()'.
+</div>
 
+<button type="button" onclick="showHint(225)">Show Hint</button>
+<p id="Q225"> </p>
 
-To cycle through the time steps of 0.5 d starting at **begin.time** and finalizing at **end.time**, a time loop need to be implemented.  
-A small chunk of 'pseudo code' to do this is illustrated in the following picture;  
+<div class="answer">
+```{r}
+# One plot comparing stationary start model and the stationary end model with the extraction well.  
+plot(dataframe.states(startmodel), type="o", col="red", ylim=c(4.8,5.2), main="Influence of the extraction well")
+lines(dataframe.states(endmodel), type="o", col="blue")
+legend("topleft", legend=c("startmodel", "endmodel"))
+grid()
+```
+</div>
+
+## 1.3 Setting up the transient model  
+One of the key aspects of creating a transient model is to define the storage flux or the ”external flux from the past”. 
+The function **oldstate.fun(x)** contains the heads of the previous model and is required to calculate the **storage.flux**. In the first part of this assignment the **oldstate.fun(x)** was calculated with a linear approximation between the nodes using the **approxfun()**. A property of the finite volume method is that the values are not interpolated between the nodes. Therefore, it would be more correct to use **state.fun(modelobject)** to retreive the states of a different model run. Check the docs for its description!
+
+<div class="question">
+6.Define the storage flux and its dependencies. Use 0.15 $(-)$ and 0.5 $d$ for the storage coefficient $S$ and time step $\Delta t$, respectively. Also, use the states from the startmodel.
+</div>
+
+<div class="answer">
+```{r}
+# Global constants
+S = 0.15
+dt = 0.5
+
+# Storage flux function
+storage.flux = function(x, state)
+{
+  storageflux = -S * (state - oldstate.fun(x)) / dt
+  return(storageflux)
+}
+
+# New oldstate function
+oldstate.fun = state.fun(startmodel)
+```
+</div>
+
+To have an idea how this oldstate.fun works, simply type at the console 'oldstate.fun(20)'. This will result in the head (state) at position $x=20 m$. Play a bit around with this function and check whether it is really different from the linearly interpolated oldstate functio used before.
+
+<div class="question">
+7.To create a transient model the following has to be implemented. 
+
+1.    Make a copy of the startmodel and call it transientmodel
+2.    Give this model a new name (this is not required, but it is recommended)
+3.    Add the extraction well to this model 
+4.    Add the storage flux to the model 
+</div>
+
+<div class="answer">
+```{r}
+# Copy and set new name.
+transientmodel = copy.model(startmodel)
+set.name(transientmodel, "Transient Model")
+
+# Add external fluxes. The storage change can be seen as a external flux coming from the previous time step.
+add.pointflux(transientmodel, at=90, value=-0.25, "extraction well")
+add.spatialflux(transientmodel, storage.flux, "storage change")
+```
+</div>
+
+To cycle through the time steps $\Delta t$ of 0.5 $d$ starting at **begin.time** and finalizing at **end.time**, a time loop needs to be implemented. A small chunk of psuedo code that describes how to do this, is given in the following picture: 
+
 ![](timeloop.png)
 
-figure 2: time loop construct  
-
-***
+Figure 2: time loop construct.
     
-<div class="question">  
-*   Replace the the lines starting with the @ with proper R-code. 
-*   For the @do..some..processing..here just plot the transientmodel and add a waiting code-line **Sys.sleep(0.1)** to control the updating of the window. 
-*   Choose the begin.time and the end.time.  
-
-If all went well (and the end.time was chosen properly), you should see a "movie" of the state transition between the start-model and the transient(end)-model.  
-A real movie can be included when one Knits the document. ffmpeg.exe is a program which then creates this movie into the html document.
-</div>
-
-
-
-
-##1.4 Transient intermediate results  
-During the transient simulation it is very interesting to have a look at some intermediate results like the states and fluxes for the different time steps.  The following code lines will help to save these results.  
 <div class="question">
+8.Use the psuedo code and convert it to actual R-code. Take the following actions and simulate the model for 30 days.
 
-1.   use **result.store = data.frame()** to have a container for the required data above the time loop
-2.   use **curresult = dataframe.states(transientmodel)** to store the heads 
-3.   use **curboundaries = dataframe.boundaries(transientmodel)** to store the outflow of both rivers 
-4.   use **watbal = dataframe.balance(transientmodel)**
-5.   use **result.store = rbind(result.store,data.frame('t'=time,'Hatwell'=curresult$state[9],'Qoutleft'=curboundaries[1,4],Qoutright'=curboundaries[2,4],'Qstorage'=wbal[2,2]))** to add the intermediate data 
-6.    put numbers 2 - 5 in the time loop, just after **solve.steps()**
-7.    to inspect the results create some plots from the result.store data.fram  
+* Replace the lines starting with a at sign (@) with proper R-code. 
+* For the @do..some..processing..here just plot the transient model and add a waiting code-line 'Sys.sleep(0.1)' to control the updating of the window. Also, plot the stationary startmodel and endmodel.
+* Set the proper time constraints.
+* add 'animation1,  fig.show='animate', aniopts=c('controls','loop'), interval=0.1' between the curly brackets at the first line of your R-code block to create an animation.
+
+You should see a "movie" of the state transitions during the execution of the transient model. A real movie can be included when one Knits the document. ffmpeg.exe is a program, that should be in the same directory as your markdown file already, which creates this movie within the html document. If the animation does not work, try opening the html in Google Chrome.
+</div>
+
+<div class="answer">
+```{r animation1,  fig.show='animate', aniopts=c('controls','loop'), interval=0.1}
+# Graphical parameter for plots
+par(bg = "white") 
+
+# Time contraints
+begin.time = 0
+end.time = 30
+
+# Initialize the model with states of the startmodel. Default initialization is zero.
+do.initialize(transientmodel, state.fun(startmodel))
+
+# Increment time manually and enter the time loop
+time = begin.time + dt
+while(time < end.time)
+{ 
+  # Solve
+  control=solve.steps(transientmodel)
+  curresult = dataframe.states(transientmodel)
+  
+  # Plotting
+  title = paste("time =", formatC(time,digits=3,width=6,format="f"))
+  plot(dataframe.states(startmodel), type="o", col="red",
+       main = title, ylim=c(4.8,5.2))
+  lines(dataframe.states(endmodel), type="o", col="blue")
+  lines(curresult$x, curresult$state,
+       main=paste("time=",time), type="o")
+  Sys.sleep(0.1)
+  
+  # Increment time and make the states of the current time step accessible for the next time step.
+  time = time + dt
+  oldstate.fun = state.fun(transientmodel)
+}
+```
+</div>
+
+## 1.4 Transient intermediate results  
+During the transient simulation it is very interesting to have a look at some intermediate results, for example the states and fluxes at the different time steps. The following lines of R-code will help you to save these results.  
+
+<div class="question">
+9.Adapt your transient model calculations using the tips below and create some plots of the intermediate results. At least make a plot of the flow over both boundaries, state at the extraction well and storage flux change.
+
+1. Use **result.store = data.frame()** to have a container for the required data.
+2. Use **curresult = dataframe.states(transientmodel)** to store the heads.
+3. Use **curboundaries = dataframe.boundaries(transientmodel)** to store the outflow of both rivers.
+4. Use **wbal = dataframe.balance(transientmodel)** to obtain the intermediate storage flux.
+5. Use **result.store = rbind(result.store, data.frame('t'=time, 'Hatwell'=curresult$state[9], 'Qoutleft'=curboundaries[1,4], Qoutright'=curboundaries[2,4], 'Qstorage'=wbal[2,2]))** to add the intermediate data to your container.
 
 </div>
 
+<div class="answer">
+```{r}
+# The data container
+result.store = data.frame()
 
-<div class="question"> Does this simulation have reached stationary conditions? </div>  
+# Time constraints
+begin.time = 0
+end.time = 30
 
-##1.5. Using the non-linear (type 2) internal flux  
+# Initialize the model with states of the startmodel. Default initialization is zero.
+oldstate.fun = state.fun(startmodel)
+do.initialize(transientmodel, oldstate.fun)
+
+# Increment the time manually before entering the time loop.
+time = begin.time + dt
+while(time < end.time)
+{
+  # Solve
+  control=solve.steps(transientmodel)
+  
+  # Store the intermediate states, boundaries and water balance.
+  curresult = dataframe.states(transientmodel)
+  curboundaries = dataframe.boundaries(transientmodel)
+  wbal = dataframe.balance(transientmodel)
+  
+  # Store the intermediate result in the data container
+  result.store=rbind(result.store,
+                     data.frame("t"=time,
+                                "Hatwell"=curresult$state[9],
+                                "Qoutleft"=curboundaries[1,4],
+                                "Qoutright="=curboundaries[2,4],
+                                "Qstorage="=wbal[2,2]))
+  
+  # Increment time and make the states of the current time step accessible for the next time step.
+  time = time + dt
+  oldstate.fun = state.fun(transientmodel)
+}
+```
+```{r}
+# Plot the flow over both boundaries as a function of time
+plot(result.store$t,result.store$Qoutleft,
+     type="o", col="red", ylab ='Outflow (m2/d)', xlab ='Time (d)',
+     main='Outflow to rivers; left (red) and right (blue)')
+lines(result.store$t, result.store$Qoutright,
+      type="o", col="blue")
+grid()
+
+# Plot the heads at the location of the well as a function of time.
+plot(result.store$t, result.store$Hatwell, type='o',
+     col='red', ylab ='Head (m)', xlab ="Time (d)",
+     main='Head at well')
+grid()
+
+# Plot the storage flux as a function of time.
+plot(result.store$t, result.store$Qstorage, type="o",
+     col='green', ylab='Storage change (m2/d)', xlab='Time (d)',
+     main='Storage change')
+grid()
+```
+</div>
+
+<div class="question">
+10.Is the simulation time long enough for the model to reach stationary conditions?
+</div>
+
+<div class="answer">
+In order to answer this question all three the plots that you created above can be used to argue that the model did not reach steady state. The flow over both boundaries is not constant in time. There is still change in the head at the extraction well and the storage flux is not zero yet. In the model the storage flux is used as the criterium for being stationary. This will approach zero, but it will not become exactly zero. This mismatch is called the misfit of the stationary solution.
+<div>
+
+## 1.5. Using the non-linear (type 2) internal flux  
 The internal flux is now not based on an average transmissivity but on the saturated thickness and a constant hydraulic conductivity of $10 m/d$.  
 
 Does this give different results?  
@@ -196,7 +371,7 @@ Does this give different results?
 
 
 
-##1.6. Adding a recharge pattern to the model  
+## 1.6. Adding a recharge pattern to the model  
 In this last assignment a non constant recharge pattern need to be applied to the model.  
 The data comes from the meteorological station Hupsel located near Eijbergen and in the catchment area of the brook Hupsel.
 

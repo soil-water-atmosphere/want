@@ -1,5 +1,5 @@
 ---
-title: "Assignment 2 - Transient diffusion in SBL"
+title: "Assignment 2.1 - Transient diffusion in SBL"
 author: "The WANT Team"
 date: "31-8-2018"
 output:
@@ -324,7 +324,7 @@ In order for the storage flux function to work we still do need to define:
 
 •	a function that is called oldstate and that returns the value of the state at the previous time step at location x
 
-#Integrating the transient model
+# Integrating the transient model
 In the previous exercises we developed a transient model that incorporates that in transient systems there is an additional flux caused by the storage change within the system. This model can now be used to analyse the effect of the progressive cooling of the surface in time. In our model, the surface starts to cool at $t=0$. 
 
 <span class="question">

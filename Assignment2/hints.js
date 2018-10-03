@@ -5,7 +5,10 @@ dict[212] = "Check the arguments of the plot function of the FVFE1D package to m
 dict[213] = "Check the documentation of dataframe.balance().";
 dict[215] = "Read the documentation of the copy.model() function.";
 dict[2113] = "Check the arguments of the plot function of the FVFE1D package to make both plots in one line of code.";
-dict[2119] = "Before the loop construct is entered, you can basically copy the previous code that describes the two time increments. Do not forget to assign the proper state values to the oldstate function before entering the while loop."
+dict[2119] = "Before the loop construct is entered, you can basically copy the previous code that describes the two time increments. Do not forget to assign the proper state values to the oldstate function before entering the while loop.";
+dict[222] = "Think about the different sections in the model setup. First you define your system properties, then the mathematical part and finally the numerical part which makes the model ready to solve.";
+dict[224] = "Several useful data frames are described in the documentation.";
+dict[225] = "In order to add a graph to a figure, first the figure is created with the plot() function, thereafter lines() or points() can be used to add data.";
 
 
 
