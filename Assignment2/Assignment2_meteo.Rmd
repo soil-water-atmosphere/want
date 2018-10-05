@@ -26,6 +26,8 @@ The figure below shows a potential temperature profile with height for specific 
 
 <div align="center">
 ![](potentialT_height.png)
+
+Figure 1: Potential temperature with height.
 </div>
 
 # The model setup
@@ -227,6 +229,8 @@ However, for many systems the time that the system needs to adapt to the BCs or 
 <div align="center">
 ![](storageflux0.png)
 ![](storageflux_dt.png)
+
+Figure 2: Storage flux for a stationary (top) and a transient (bottom) situation.
 </div>
 
 A picture of the situation for transient systems is given above.
@@ -563,14 +567,14 @@ while (time < endtime)
 ```
 
 <span class="question">
-19.	Finish the code given above by replacing the lines starting with a @ with proper R-code. In the line where some processing can be done, enter at least an instruction that plots the transient model and add a waiting code line, sys.sleep(0.1), to control the updating of the window. The end time of the model should be 4 hours after the start of the surface cooling.
+19.	Finish the code given above by replacing the lines starting with a @ with proper R-code. In the line where some processing can be done, enter at least an instruction that plots the transient model and add a waiting code line, sys.sleep(0.1), to control the updating of the window. The end time of the model should be 4 hours after the start of the surface cooling. Add echo=False and fig.show='animate' between the curly brackets of your R-code block to prevent the plots from taking inconveniently much space. If the animation does not display in the markdown, open the html in Google Chrome.
 </span>
 
 <button type="button" onclick="showHint(2119)">Show Hint</button>
 <p id="Q2119"> </p>
 
 <span class="answer">
-```{r}
+```{r, fig.show='animate'}
 # Set the time to zero
 time = 0
 

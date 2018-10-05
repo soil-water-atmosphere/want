@@ -15,9 +15,10 @@ output:
 <script src="hints.js"></script>
 
 # Learning Goals
-* Goal 1
-* Goal 2
-* Enz
+* Understand how the model solution changes if external sources/sinks are included.
+* Learn how you can store intermediate states during a model run.
+* Understand when a transient model has reached a stationary state.
+* How and why the model changes if the internal flux function changes from flow type 1 to flow type 2.
 
 # Introduction transient groundwater flow model  
 In this assignment, a transient groundwater system will be studied. As a first example, the development of an extraction cone is examined. A schematic of this process is shown below.
@@ -315,7 +316,7 @@ while(time < end.time)
 }
 ```
 ```{r}
-# Plot the flow over both boundaries as a function of time
+# Plot the flow over both boundaries as a function of time.
 plot(result.store$t,result.store$Qoutleft,
      type="o", col="red", ylab ='Outflow (m2/d)', xlab ='Time (d)',
      main='Outflow to rivers; left (red) and right (blue)')
@@ -342,60 +343,213 @@ grid()
 </div>
 
 <div class="answer">
-In order to answer this question all three the plots that you created above can be used to argue that the model did not reach steady state. The flow over both boundaries is not constant in time. There is still change in the head at the extraction well and the storage flux is not zero yet. In the model the storage flux is used as the criterium for being stationary. This will approach zero, but it will not become exactly zero. This mismatch is called the misfit of the stationary solution.
-<div>
-
-## 1.5. Using the non-linear (type 2) internal flux  
-The internal flux is now not based on an average transmissivity but on the saturated thickness and a constant hydraulic conductivity of $10 m/d$.  
-
-Does this give different results?  
-
-<div class="question">
-*   copy the previous chunk into the chunk below 
-*   create a new function containing the non-linear internal flux just on the of this chunk 
-*   create a new model and call it e.g. trans2model (newFLOW1D,set.BCXX etc) 
-*   replace 'transientmodel' with e.g. trans2model in the chunk 
-*   replace result.store with e.g. result2.store 
-*   run this chunk  
+In order to answer this question all three the plots that you created above can be used to argue that the model did not reach a steady state. The flow over both boundaries is not constant in time. There is still change in the head at the extraction well and the storage flux is not zero yet. In the model the storage flux is used as the criterium for being stationary. This will approach zero, but it will not become exactly zero. This mismatch is called the misfit of the stationary solution.
 </div>
 
+## 1.5. Using the non-linear (type 2) internal flux
+In the previous questions we have used an average transmissivity in the internal flux function which is defined as flow of type 1. Now, this type 1 flow will be replaced with type 2 flow. This means that the transmissivity is based on the saturated thickness at a specific location. The hydraulic conductivity, $10 m/d$, is contant.
 
+<div class="question">
+11.Solve the new transient model and use the same approach as in the first transient model. Plot the intermediate result for comparison.
+
+<button type="button" onclick="showHint(2211)">Show Hint</button>
+<p id="Q2211"> </p>
+
+*   Define the system flux function with the new flow type.
+*   Create a new model and call it trans2model.
+*   Setup the model. i.e. mathematical and numerical part equal to 'transientmodel'.
+*   Solve your trans2model with a loop construct, use the initial conditions of 'startmodel'.
+*   Make sure that you use unique parameter names to prevent overwriting data of other models.
+
+</div>
+
+<div class="answer">
 ```{r}
-##insert your code here
+# System flux function of type 2
+k = 10.0 
+kH.flux = function(x,state,gradstate)
+{
+  return(-k*state*gradstate)
+}
+
+# Setup of the new transient model.
+trans2model = newFLOW1D(domain=domain, systemfluxfunction=kH.flux) 
+set.BC.fixedstate(trans2model, 'left', 5) 
+set.BC.fixedstate(trans2model, 'right', 5)
+add.spatialflux(trans2model, 0.001, "recharge")
+add.spatialflux(trans2model, storage.flux, "storagechange")
+add.pointflux(trans2model, at=90, value=-0.25, "extraction well")
+set.name(trans2model, "transient type2")
+set.discretisation(trans2model, nodes, method='FV') 
+
+# Data container for intermediate result, make sure that you use a different name here!
+result2.store = data.frame()
+
+# Time contraints
+begin.time=0
+end.time = 30
+
+# Initialize the model with states of the startmodel.
+oldstate.fun = state.fun(startmodel)
+do.initialize(trans2model,oldstate.fun)
+
+time = begin.time + dt
+while(time < end.time)
+{
+  # Solve
+  control=solve.steps(trans2model)
+  
+  # Store the intermediate results.
+  curresult = dataframe.states(trans2model)
+  curboundaries = dataframe.boundaries(trans2model)
+  wbal = dataframe.balance(trans2model)
+  result2.store=rbind(result2.store,
+                     data.frame("t"=time,
+                                "Hatwell"=curresult$state[9],
+                                "Qoutleft"=curboundaries[1,4],
+                                "Qoutright="=curboundaries[2,4],
+                                "Qstorage="=wbal[2,2]))
+  # Prepare for the next time step.
+  time = time + dt
+  oldstate.fun = state.fun(trans2model)
+}
 ```
+```{r}
+# Plot the flow over both boundaries as a function of time.
+plot(result2.store$t, result2.store$Qoutleft,
+     type="o", col="red", ylab='Outflow (m2/d)', xlab = 'Time (d)',
+     main='Outflow to rivers; left (red) and right (blue)')
+lines(result2.store$t, result2.store$Qoutright,
+      type="o", col="blue")
+grid()
 
+# Plot the heads at the location of the well as a function of time.
+plot(result2.store$t, result2.store$Hatwell, type='o',
+     col='red', ylab = 'Head (m)', xlab = "Time (d)",
+     main='Head at well')
+grid()
 
+# Plot the storage flux as a function of time.
+plot(result2.store$t, result2.store$Qstorage, type="o",
+     col='green', ylab='Storage change (m2/d)', xlab = 'Time (d)',
+     main='Storage change')
+grid()
+```
+</div>
 
+<div class="question">
+12.Compare the intermediate results of both transient models by graphs and numbers. How does the change from type 1 to type 2 flow change your model results?
+</div>  
 
-<div class="question"> Now compare both result data frames by graphs and or numbers</div>  
+<div class="answer">
+In this case, the model moves a bit faster towards its equilibrium if the non linear internal flux, type 2 flow, is applied. 
+```{r}
+# Boundary flow
+plot(result.store$t, result.store$Qoutleft, type='o', col='red', ylab = 'Outflow (m2/d)', xlab = 'Time (d)',
+     main='Outflow to rivers, dashed non-linear')
+lines(result2.store$t, result2.store$Qoutleft, lty="dashed",col='red')
+lines(result.store$t, result.store$Qoutright., type='o',col='blue')
+lines(result2.store$t, result2.store$Qoutright., lty='dashed',col='blue')
+grid()
 
+# State at well
+plot(result.store$t, result.store$Hatwell,type='o',col='red', ylab='Head (m)', xlab="Time (d)",
+     main='Head at well, dashed non-linear')
+lines(result2.store$t, result2.store$Hatwell, lty='dashed', col='red')
+grid()
 
+# Storage change
+plot(result.store$t, result.store$Qstorage, type="o",col='green', ylab ='Storage change (m2/d)', xlab='Time (d)',
+     main='Storage change, dashed non-linear')
+lines(result2.store$t, result2.store$Qstorage, lty="dashed", col='green')
+grid()
+
+#Differences by numbers
+print(summary(result.store - result2.store))
+```
+</div>
 
 ## 1.6. Adding a recharge pattern to the model  
-In this last assignment a non constant recharge pattern need to be applied to the model.  
-The data comes from the meteorological station Hupsel located near Eijbergen and in the catchment area of the brook Hupsel.
-
-Data is shown in the next chunk and graph.  
+In this last question a non constant recharge pattern will be applied to the non linear transient model, 'trans2model'. The recharge data that we will use comes from a meteorological station located near Eijbergen in the catchment area of the brook Hupsel. The recharge data is shown in the code chunk below: 
 
 ```{r}
+# Load data from file.
 hupsel = read.table(file='hupsel.dat')
-plot(hupsel$V1,hupsel$V2,type='l',col='red',xlab='time (d)',ylab='recharge/evap (cm/d)',ylim=c(-0.25,1.0),
-     main = 'Precipitation (red), Evopatranspiration (black), Recharge (blue)')
-lines(hupsel$V1,hupsel$V3)
+
+# Plot the precepitation.
+plot(hupsel$V1, hupsel$V2, type='l', col='red', xlab='time (d)', ylab='recharge/evap (cm/d)', ylim=c(-0.25,1.0),                main='Precipitation (red), Evapotranspiration (black), Recharge (blue)')
+
+# Add the evapotranspiration.
+lines(hupsel$V1, hupsel$V3, col='black')
+
+# calculate the net recharge.
 net.rch = hupsel$V2 - hupsel$V3
-net.rch = cbind(hupsel$V1,0.01*net.rch)
-lines(net.rch[,1],100*net.rch[,2],col='blue')
+net.rch = cbind(hupsel$V1, 0.01*net.rch)
+
+# Add the net recharge
+lines(net.rch[,1], 100*net.rch[,2], col='blue')
 grid()
 ```
 
-First the old recharge flux (just a fixed value of 1mm/d) need to be removed by the model using the FVFE1D command; **rem.spatiaflux(model;, nameofspatialflux)**.  
-Now you can add a new recharge flux by simply using a variable name.  
-See the next two lines of code for this and have also a look in the help on this.  
-**rch = 0.001**  
-**add.spatialflux(themodel,'rch','recharge')**  
-It is assumed that the time stepping remains to be one day ($\Delta t=1$). If not, a function should be made from the recharge vector  
+<div class="question">
+13.Add the recharge from Hupsel and call your new model 'trans3model'. Solve the model in the same way as you did for 'trans2model'. Make an animation of the model simulating half a year, open the html in Google Chrome if the animation will not display.
+</div>  
 
-<div class="question">Copy the previous chunk into the new chunk below and add the recharge from hupsel.</div>  
+<button type="button" onclick="showHint(2213)">Show Hint</button>
+<p id="Q2213"> </p>
 
+```{r animation3, echo=FALSE, fig.show='animate', aniopts='controls', interval=0.1}
+# New model initialization.
+trans3model = copy.model(trans2model)
+set.name(trans3model, newname="trans3model")
 
-This finalizes the second "hydro" assignment
+# Remove the old recharge flux and assign a new one by variable name.
+rem.spatialflux(trans3model,'recharge')
+rch = 0.001
+add.spatialflux(trans3model, rch, 'recharge')
+
+# The time resolution of the recharge data is 1 day, without linearly interpolating between the known times, this is the smallest time step we can solve for.
+dt = 1.0
+
+# Time contraints
+begin.time=0
+end.time = 180
+
+# Initial conditions
+oldstate.fun = state.fun(startmodel)
+do.initialize(trans3model, oldstate.fun)
+
+# Advance one time step before entering the time loop.
+time = begin.time + dt
+daycount = 1
+while(time < end.time)
+  {
+  # New net recharge
+  rch = net.rch[daycount, 2]
+  daycount = daycount+1
+  
+  # Solve
+  control = solve.steps(trans3model)
+  
+  # Store current results
+  curresult = dataframe.states(trans3model)
+  
+  # Create the animation
+  title = paste("time=", formatC(time, digits=3, width=6, format="f"))
+  # startmodel
+  plot(dataframe.states(startmodel), type="o", col="red",
+       main = title, ylim=c(4.5,5.5))
+  # endmodel
+  lines(dataframe.states(endmodel), type="o", col="blue")
+  # current states
+  lines(curresult$x, curresult$state,
+       main=paste("time=",time), type="o")
+  Sys.sleep(0.1)
+  
+  # Prepare for next time step.
+  time = time + dt
+  oldstate.fun = state.fun(trans3model)
+  }
+```
+
+**This finalizes the hydro part of assignment 2**

@@ -9,7 +9,8 @@ dict[2119] = "Before the loop construct is entered, you can basically copy the p
 dict[222] = "Think about the different sections in the model setup. First you define your system properties, then the mathematical part and finally the numerical part which makes the model ready to solve.";
 dict[224] = "Several useful data frames are described in the documentation.";
 dict[225] = "In order to add a graph to a figure, first the figure is created with the plot() function, thereafter lines() or points() can be used to add data.";
-
+dict[2211] = "What are the obligatory arguments in the system flux function? Which of these can be used for the saturated thickness?";
+dict[2213] = "What is the time resolution of your recharge data?";
 
 
 // returns the hint for the corresponding question_number in the corresponding paragraph field in the Rmd file.
