@@ -1,9 +1,9 @@
 h1 {
-    font-size: 16pt;
+    font-size: 20pt;
 }
 
-p {
-	color: grey;
+h2 {
+    font-size: 16pt;
 }
 
 .answer {
@@ -15,5 +15,9 @@ p {
 }
 
 .question {
+    color: blue;
+}
+
+.exercise {
     color: blue;
 }
