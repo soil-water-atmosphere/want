@@ -1,0 +1,384 @@
+---
+title: "Assignment 4 - Exercises on two dimensional modelling"
+author: "G. Bier, R. Ronda, P.J.J.F. Torfs & edited by The Want Team"
+date: "9-10-2018"
+output:
+  html_document:
+    code_folding: show
+    css: want.css
+    toc: yes
+  html_notebook:
+    css: want.css
+    toc: yes
+---
+
+<!-- include the hint.js -->
+<script src="hints.js"></script>
+
+# Learning Goals
+* Goal 1
+* Goal 2
+* enz
+
+# Introduction
+In these exercise the basic steps of two dimensional groundwater flow models with the Finite Volume method and Finite Element method as implemented in the FVFE2D package will be reviewed. These exercises do not provide a complete overview of the functionality of the package, but several important functionalities will be discussed. You can use the built-in help for more information on this package. In many questions a R-code block is given and needs to be edited by adding your answers. Editing is only necessery at locations indicated with 'XXXX', unless explicitly stated otherwise. After completing the R-code block, remove the 'eval=FALSE' statement in the header of the R-code so that the snippet is evaluated in the markdown.
+
+```{r, include=FALSE}
+# Clear the environment.
+rm(list=ls())
+# Load the FVFE2D package.
+library(FVFE2D)
+```
+
+# Construct the mathematical part of the two dimensional model
+The first step in making a two dimensional model is defining the domain. In figure 1 below an example of such a domain is given on a cartesian grid.
+
+![Figure 1: Two dimensional model domain.](domain2D.png)
+
+<div class="question">
+1.Edit the R-code block below such that the model domain is defined as illustrated in figure 1.
+```{r, eval=FALSE}
+domain = XXXX
+print(domain)
+plot(domain, xlab="x", ylab="y", xlim=c(0,2000), ylim=c(0,2000))
+grid()
+polygon(domain, col=rgb(0.5,0.9,0.9,0.2))
+```
+</div>
+
+<button type="button" onclick="showHint(41)">Show Hint</button>
+<p id="Q41"> </p>
+
+<div class="answer">
+```{r}
+# The domain is defined by a matrix with 2 columns.
+domain = matrix(c(300,200,
+                  900,100,
+                  1800,450,
+                  1900,1900,
+                  900,1850,
+                  100,1400),ncol=2,byrow=TRUE)
+print(domain)
+# Plot your domain on a cartesian grid.
+plot(domain,xlab="x",ylab="y",xlim=c(0,2000),ylim=c(0,2000))
+grid()
+polygon(domain,col=rgb(0.5,0.9,0.9,0.2))
+```
+</div>
+
+To complete the mathematical part of the model the internal flux, the boundary conditions and an external flux have to be defined. The following information has to be added to the two dimensional model:
+
+* A Darcy flux of $kD=60\frac{m^2}{d}$.
+* The western and eastern boundary have a constant head of 0 and 1 $m$, respectively.
+* An uniform, spatially and temporal, rainfall amount of 1 $mm$.
+
+<div class="question">
+2.Complete the mathematical part of the two dimensional model by editing the R-code block below.
+```{r, eval=FALSE}
+# Define the internal flux.
+grad.flux = function(x, y, state, grad)
+{
+  return(XXXX)
+}
+
+# Construct the model.
+TwoDModel = newFLOW2D(domain, grad.flux) 
+set.name(TwoDModel, "My first 2D model")
+
+# Add external flux.
+add.spatialflux(TwoDModel, XXXX, "rain")
+
+# Setting the boundary conditions.
+plot.BC.id(TwoDModel)
+
+XXXX # western boundary
+XXXX # eastern boundary
+
+summary(TwoDModel)
+```
+</div>
+
+<button type="button" onclick="showHint(42)">Show Hint</button>
+<p id="Q42"> </p>
+
+<div class="answer">
+```{r}
+# Define the internal flux. Note the extra argument in the internal flux function.
+kD = 60
+grad.flux = function(x, y, state, grad)
+{
+  return(-kD*grad)
+}
+
+# Construct the model.
+TwoDModel = newFLOW2D(domain, grad.flux) 
+set.name(TwoDModel, "My first 2D model")
+
+# Add external flux.
+add.spatialflux(TwoDModel, 0.001, "rain")
+
+# Makes a plot of the domain containing the boundary segment identifiers which can be used as arguments for the set.BC functions.
+plot.BC.id(TwoDModel)
+
+# Setting the boundary conditions
+set.BC.fixedstate(TwoDModel, "W", 0)
+set.BC.fixedstate(TwoDModel, "E", 1)
+
+summary(TwoDModel)
+```
+</div>
+
+# Construct the numerical part of the two dimensional model
+The next step in the two dimensional model construction is to make the model discrete by choosing nodes and a numerical technique, either FV or FE. In the R-code block below the function geogendemo() is defined. This function illustrates some techniques built in the FVFE2D package to generate nodes. If you run the script you will see a first example being plotted. The plot shows the resulting Voronoi cells randomly coloured. Changing the argument of the geogendem() function in the last line and running the script again shows a second example. There are 10 different examples defined.
+
+```{r}
+dummyflux = function(x, y, s, grads)
+{
+  return(-1)
+}
+
+# "distance x not equal to distance y"
+# "distance increasing in y-direction"
+# "distance increasing in x-direction"
+# "distance smaller near (5,5)"
+# "distance larger near (5,5)"
+# "distance order of 1, some prefixed node at lower center"
+# "distance order of 0.3"
+# "distance smaller near line"
+descr = c()
+
+descr[1] = "distance order of 1, graph-verbose"
+descr[2] = "distance order of 1, non-grap-verbose"
+descr[3] = "XXXX"
+descr[4] = "XXXX"
+descr[5] = "XXXX"
+descr[6] = "XXXX"
+descr[7] = "XXXX"
+descr[8] = "XXXX"
+descr[9] = "XXXX"
+descr[10] = "XXXX"
+
+geogendemo = function(case=Inf)
+{ 
+  casedescriptions = list(
+    "constant (rather large) distance ",
+    "constant (large) distance, non-graphverbose",
+    "constant (large) distance, with initial nodes",
+    "constant (somewhat smaller) distance", #XXXXXXX
+    "constant distance, ytoxratio = 4",   #XXXXXXXx
+    "distance increasing in x-direction",  
+    "distance increasing in y-direction",   # xxxxxxx
+    "distance smaller near (5,5)",
+    "distance smaller near (5,5)",
+    "distance larger near (5,5)"
+    )
+  
+  if(case > 10)
+  {
+    print(paste("demo with case number",case," does not exist"))
+  }
+  if(case==1)
+  {
+    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
+    model = newFLOW2D(domain,dummyflux)
+    set.name(model,descr[1])
+    optdist = function(p){return(1.0)}
+    set.discretisation(model,
+                       nodes=list(type="geomgen",optdist=optdist,verbose=TRUE),method="FV")
+    plot(model,fill="random")
+  } else if(case==2)
+  {
+    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
+    model = newFLOW2D(domain,dummyflux)
+    set.name(model,descr[2])
+    optdist = function(p){return(1.0)}
+    set.discretisation(model,
+                       nodes=list(type="geomgen",optdist=optdist,verbose=FALSE),method="FV")
+    plot(model,fill="random")
+  } else if(case==3)
+  {
+    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
+    model = newFLOW2D(domain,dummyflux)
+    set.name(model,descr[3])
+    optdist = function(p){return(1)}
+    startnodes = cbind(rep(5,length=8),seq(2,4,length=8))
+    set.discretisation(model,
+                       nodes=list(type="geomgen",optdist=optdist,
+                                  startnodes = startnodes,
+                                  maxiter=20,stopcrit=0.005,
+                                  verbose=TRUE,sleeptime=0.1),method="FV")
+    plot(model,fill="random")
+  }else if(case==4)
+  {
+    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
+    model = newFLOW2D(domain,dummyflux)
+    set.name(model,descr[4])
+    optdist = function(p){return(0.3)}
+    set.discretisation(model,
+                       nodes=list(type="geomgen",optdist=optdist,
+                                  maxiter=20,stopcrit=0.005,
+                                  verbose=TRUE,sleeptime=0.05),method="FV")
+    plot(model,fill="random")
+  } else if(case==5)
+  {
+    domain = matrix(c(0,0,10,0,10,1,5,2,0,1),byrow=TRUE,ncol=2)
+    model = newFLOW2D(domain,dummyflux)
+    set.name(model,descr[5])
+    optdist = function(p){return(0.7)}
+    set.discretisation(model,
+                       nodes=list(type="geomgen",optdist=optdist,
+                                  maxiter=20,stopcrit=0.005,
+                                  ytoxratio=4,
+                                  verbose=TRUE,sleeptime=0.1),method="FV")
+    set.name(model,"notice the aspect ratio in the plot!")
+    plot(model,fill="random")
+  } else if(case==6)
+  {
+    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
+    model = newFLOW2D(domain,dummyflux)
+    set.name(model,descr[6])
+    optdist = function(p){return(0.2+p[1]/15)}
+    set.discretisation(model,
+                       nodes=list(type="geomgen",optdist=optdist,
+                                  maxiter=20,stopcrit=0.005,
+                                  verbose=TRUE),method="FV")
+    plot(model,fill="random")
+  } else if(case==7)
+  {
+    print(casedescriptions[[case]])
+    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
+    model = newFLOW2D(domain,dummyflux)
+    set.name(model,descr[7])
+    optdist = function(p){return(0.2+p[2]/15)}
+    set.discretisation(model,
+                       nodes=list(type="geomgen",optdist=optdist,
+                                  maxiter=20,stopcrit=0.005,
+                                  verbose=TRUE,sleeptime=0.05),method="FV")
+    plot(model,fill="random")
+  } else if(case==8)
+  {
+    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
+    model = newFLOW2D(domain,dummyflux)
+    set.name(model,descr[8])
+    optdist = func.dist.to.point(c(5,5),4,0.2,0.6)
+    set.discretisation(model,
+                       nodes=list(type="geomgen",optdist=optdist,
+                                  maxiter=20,stopcrit=0.005,
+                                  verbose=TRUE,sleeptime=0.05),method="FV")
+    plot(model,fill="random")
+  } else if(case==9)
+  {
+    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
+    model = newFLOW2D(domain,dummyflux)
+    set.name(model,descr[9])
+    optdist = func.dist.to.point(c(5,5),4,0.5,0.3)
+    set.discretisation(model,
+                       nodes=list(type="geomgen",optdist=optdist,
+                                  maxiter=20,stopcrit=0.005,
+                                  verbose=TRUE,sleeptime=0.05),method="FV")
+    plot(model,fill="random")
+  }  else if(case==10)
+  {
+    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
+    model = newFLOW2D(domain,dummyflux)
+    set.name(model,descr[10])
+    line = matrix(c(3,3,5,5,5,7),ncol=2,byrow=TRUE)
+    optdist = func.dist.to.line(line,1,0.3,0.6)
+    set.discretisation(model,
+                       nodes=list(type="geomgen",optdist=optdist,
+                                  maxiter=20,stopcrit=0.005,
+                                  verbose=TRUE,sleeptime=0.05),method="FV")
+    plot(model,fill="random")
+  } 
+}
+
+geogendemo(1)
+```
+
+<div class="question">
+3.The descriptions for example 3-10 in the geodendemo() function are missing. Give each case the proper description, suggestions are given above the first if-statement of the geodendemo() function.
+</div>
+
+<div class="answer">
+1. descr[1] = "distance order of 1, graph-verbose"
+2. descr[2] = "distance order of 1, non-grap-verbose"
+3. descr[3] = "distance order of 1, some prefixed node at lower center"
+4. descr[4] = "distance order of 0.3"
+5. descr[5] = "distance x not equal to distance y"
+6. descr[6] = "distance increasing in x-direction
+7. descr[7] = "distance increasing in y-direction"
+8. descr[8] = "distance smaller near (5,5)"
+9. descr[9] = "distance larger near (5,5)"
+10. descr[10] = "distance smaller near line"
+</div>
+
+<div class="question">
+4.Change the geodendemo() function such that it generates nodes for the Finite Elements method by changing every "FV" into "FE" in the function definition.
+</div>
+
+Now, we will construct our two dimensional model, the following information is given in order to complete the numerical part:
+
+* Discretise with an opdist of 100 and use the Finite Volumes method
+* Use the solve.steps() function to solve the model
+* To view the result, a plotting line: plot(TwoDModel, fill="state", fill.3D=True) has to be added which produces both a 2D and 3D plot
+
+<div class="question">
+5.Create a new R-code block. Finalize the numerical part, solve the model and create a plot in both 2D and 3D. 
+</div>
+
+<div class="answer">
+```{r}
+# Discretisation
+set.discretisation(TwoDModel, nodes=list(type="geomgen", optdist=100, verbose=TRUE), method="FV")
+
+# plot Voronoi cells with random colors.
+plot(TwoDModel, fill="random")
+
+# Solve 
+solve.steps(TwoDModel)
+
+# Plot states
+plot(TwoDModel,fill="state", fill.3D=TRUE)
+```
+</div>
+
+There are many other postprocessing and plotting possibilities built in the FVFE2D package. Some suggestions are given:
+
+* Printing the first 10 rows of the x, y and state values of the model
+* Creating a 2D plot with contour lines for the values 1 to 8
+* Creating a 1D plot of a cross secton through the domain
+
+<div class="question">
+6.Use the help function to carry out the postprocessing and plotting suggestions, as given above.
+</div>
+
+<div class="answer">
+```{r}
+# list of x, y and state
+print(head(dataframe.states(model=TwoDModel), 10))
+
+# 2D plot with contour lines for the values 1 to 8.
+plot(TwoDModel, fill="state", fill.contours = seq(0,8,by=1))
+
+# 1D plot of a cross section that you can define ypurself.
+plot(TwoDModel, fill="state", linesection=c(500,500,1500,1500))
+```
+</div>
+
+Now that it is clear how the two dimensional model looks if it is solved using the Finite Volumes method, we will investigate the model solution when the Finite Elements method is used.
+
+<div class="question">
+7.Change the numercal part of the two dimensional such that it solves using the Finite Elements method. Also, make a contour plot of the new situation.
+</div>
+
+<div class="answer">
+```{r}
+#NOT YET ANSWERED
+```
+</div>
+
+
+
+
+
+
