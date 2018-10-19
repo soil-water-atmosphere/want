@@ -1,21 +1,24 @@
 ---
-title: "Template for practicals"
-author: "The WANT team"
-date: "24/08/2018"
+title: "Local sensitivity analysis"
+author: "Lieke Melsen"
+date: "24/09/2018"
 output:
   html_document:
     css: want.css
 ---
+```{r}
+require('raster')
+```
 
 <!-- include the hint.js -->
 <script src="hints.js"></script>
 
 # Learning goals
 * Understand the concept of local sensitivity analysis
-* Understand the imlications and limitations of local sensitivity analysis 
+* Understand the implications and limitations of local sensitivity analysis 
 
 # Introduction
-In this assignment, we will manually work out the local sensitivity at several places for several functions. The idea is that you can do these calculations by hand (or support by R). 
+In this assignment, we will manually work out the local sensitivity at several places for several functions. The idea is that you can do these calculations by hand (or, at least, supported by basic R). 
 
 # Assignment 1
 We have a linear function $y = ax + b$, with parameters $a$ and $b$. 
@@ -44,9 +47,12 @@ This is a linear function, where $a$ is the slope of the function and $b$ the in
 </span>
 
 <span class="question">
-Determine the sensitivity of y for $a$ and $b$ with the given base-values and for x=[0:10]. You can do this manually, or use R as calculator.  
+We have observations from from variable y at x from 0 to 10 available:
+```{r}
+y_obs = c(7.195,10.203, 13.167, 16.228, 19.211, 22.222, 25.201, 28.167, 31.204, 34.162, 37.226)
+```
+Determine the sensitivity of y for $a$ and $b$ with the given base-values and observations. You can do this manually, or use R as calculator.  
 </span>
-
 
 <!-- HINT 1 -->
 <button type="button" onclick="showHint(1)">Hint 1</button>
@@ -62,37 +68,43 @@ Determine the sensitivity of y for $a$ and $b$ with the given base-values and fo
 
 <span class="answer">
 ```{r}
-# y of base values from previous assignment
-x = seq(0,10,1)
-a = 3
-b = 7
-y_base = a*x + b
+# define sums of squares
+SSE <-function(obs,mod){
+  SSE = sum((obs-mod)^2)
+  return(SSE)}
+
+# define y 
+y <- function(x,a,b){
+  y = a*x + b
+  return (y)}
+
+# define base values
+x     = seq(0,10,1)
+a     = 3
+b     = 7
+delta = 0.1 
+
+# y of base values 
+SS_base = SSE(y_obs,y(x,a,b))
 
 # sensitivity for a
-a_change = 3.1 
-b = 7
-y_change = a_change*x + b
-SS_a = sum((y_base-y_change)^2)
-# so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
-LSA_a = SS_a / (a_change-a)
-print(LSA_a)
+SS_a = SSE(y_obs,y(x,a+delta,b))
+LSA_a = (SS_a-SS_base) / delta
 
 # sensitivity for b
-a = 3 
-b_change = 7.1
-y_change = a*x + b_change
-SS_b = sum((y_base-y_change)^2)
-# so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
-LSA_b = SS_b / (b_change-b)
-print(LSA_b)
+SS_b = SSE(y_obs,y(x,a,b+delta))
+LSA_b = (SS_b-SS_base) / delta
 
-# In this particular example, $a$ and $b$ have no units, and we do not specify a scale of variation, because we are not investigating a physical system with clearly defined boundary conditions. Therefore, we can directly interpret the restuls obtained above. This shows that our model $y$ is more sensitive to parameter $a$ than to parameter $b$, given that we evaluate $y$ based on the SS-metric. 
+tot = abs(LSA_a) + abs(LSA_b)
 
+print(paste('sensitivity SSE to a: ',abs(round(LSA_a*100)/100),' and to b: ',abs(round(LSA_b*100)/100),sep=" "))
+print(paste('relative contribution of a: ',round(abs(LSA_a)/tot*100),'% and of b: ',round(abs(LSA_b)/tot*100),'%',sep=""))
 ```
+In this particular example, $a$ and $b$ have no units, and we do not specify a scale of variation, because we are not investigating a physical system with clearly defined boundary conditions. Therefore, we can directly interpret the restuls obtained above. This shows that our model $y$ is more sensitive to parameter $a$ than to parameter $b$, given that we evaluate $y$ based on the SSE-metric. 
 </span>
 
 <span class="question">
-Same as above, but now use base values 0.5 and 60 respectively for  $a$ and $b$. Do you expect that this will influence the sensitivity and why (not)? 
+Repeat the procedure, but adapt the basevalues slightly (you can choose some yourself). Do you expect that this will influence the sensitivity and why (not)? 
 </span>
 
 
@@ -101,34 +113,16 @@ Same as above, but now use base values 0.5 and 60 respectively for  $a$ and $b$.
 ```
 
 <span class="answer">
-```{r}
-# In this particular case, we know that different base values will not lead to a different sensitivity, because it is a linear function. Over linear functions, the sensitivity is constant over the complete function. We can simply check this with repeating the calculation: 
+For the examples discussed in the lectures, the sensitivity would not change in a linear model, because the local slope is everywhere the same. This is only true if we evaluate sensitivity directly on the model output (y for the examples above). In this particular case, however, we are not evaluating the sensitivity for the model output directly, but the sensitivity to the model performance. Therefore, sensitivity might change for different base values. Different base values can be filled out in the script from the previous assignment to check the results. 
+</span>
 
-# y of base values 
-x = seq(0,10,1)
-a = 0.5
-b = 60
-y_base = a*x + b
 
-# sensitivity for a
-a_change = 0.6 
-b = 60
-y_change = a_change*x + b
-SS_a = sum((y_base-y_change)^2)
-# so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
-LSA_a = SS_a / (a_change-a)
-print(LSA_a)
+<span class="question">
+Consider the implications of this result for your modelling procedure. When applying local sensitivity analysis, would you do this before or after you calibrated your model? 
+</span>
 
-# sensitivity for b
-a = 0.5 
-b_change = 60.1
-y_change = a*x + b_change
-SS_b = sum((y_base-y_change)^2)
-# so the local sensitivity is (SS from the base value is obviously zero and is therefore not included):
-LSA_b = SS_b / (b_change-b)
-print(LSA_b)
-
-```
+<span class="answer">
+In order to get a realisitic view on the sensitivity of model performance to the parameters based on local sensitivity analysis, it is important that the base parameters approach their optimal value. This means that you first calibrate your model to identify the optimal parameter values, and then do a local sensitivity analysis. 
 </span>
 
 
@@ -137,7 +131,7 @@ Most systems in environmental sciences behave non-linear. We will now evaluate a
 $y = ax^6+bx$
 
 <span class="question">
-Plot the function $y = ax^6+bx$ for the domain $x = [0, 10]$ in the code chunk below. Base values for $a$ and $b$ are 3 and 7. Which parameter do you expect to be of more influence on y? 
+Plot the function $y = ax^2+bx$ for the domain $x = [0, 10]$ in the code chunk below. For now, we estimate the base values for $a$ and $b$ at 3 and 7, respectively. Which parameter do you expect to be of more influence on y?
 </span>
 
 ```{r}
@@ -149,7 +143,7 @@ Plot the function $y = ax^6+bx$ for the domain $x = [0, 10]$ in the code chunk b
 x = seq(0,10,1)
 a = 3
 b = 7
-y = a*x^6 + b*x
+y = a*x^2 + b*x
 plot(x,y,type="o")
 ```
 Generally, we would expect y to be more sensitive to a, because this parameter relates to x squared. 
@@ -157,7 +151,11 @@ Generally, we would expect y to be more sensitive to a, because this parameter r
 
 
 <span class="question">
-For the function $y = ax^3+bx$ for the domain $x = [0, 10]$, calculate the sensitivity of $y$ for $a$ and $b$ for 1) base values of 3 and 7 respectively, and 2) base values of 0.5 and 60 respectively. Does the base value influence the sensitivity? 
+Also for this model, we have observations.
+```{r}
+y_obs_nonlin = c(0.002,9.524,26.006,49.490,79.974,117.546,162.030,213.510,271.999,337.543,410.049)
+```
+Determine the sensitivity of y for $a$ and $b$ with the given base-values and observations. Also try other base-values and evaluate the effect. 
 </span>
 
 
@@ -167,62 +165,47 @@ For the function $y = ax^3+bx$ for the domain $x = [0, 10]$, calculate the sensi
 
 <span class="answer">
 ```{r}
-# 1) base values
-x = seq(0,10,1)
-a = 3
-b = 7
-y_base = a*x^6 + b*x
+# define sums of squares
+SSE <-function(obs,mod){
+  SSE = sum((obs-mod)^2)
+  return(SSE)}
 
-a_change = 3.1
-b        = 7
-y_a      = a_change*x^6 + b*x
-SS_a     = sum((y_base-y_a)^2)
-LSA_a1   = SS_a / (a_change-a)
+# define y 
+y <- function(x,a,b){
+  y = a*x^2 + b*x
+  return (y)}
 
-a        = 3
-b_change = 7.1
-y_b      = a*x^6 + b_change*x
-SS_b     = sum((y_base-y_b)^2)
-LSA_b1   = SS_b / (b_change-b)
+# define base values
+x     = seq(0,10,1)
+a     = 3
+b     = 7
+delta = 0.1 
 
-# 2) base values
-x = seq(0,10,1)
-a = 0.5
-b = 60
-y_base = a*x^6 + b*x
+# y of base values 
+SS_base = SSE(y_obs_nonlin,y(x,a,b))
 
-a_change = 0.6
-b        = 60
-y_a      = a_change*x^6 + b*x
-SS_a     = sum((y_base-y_a)^2)
-LSA_a2   = SS_a / (a_change-a)
+# sensitivity for a
+SS_a = SSE(y_obs_nonlin,y(x,a+delta,b))
+LSA_a = (SS_a-SS_base) / delta
 
-a        = 0.5
-b_change = 60.1
-y_b      = a*x^6 + b_change*x
-SS_b     = sum((y_base-y_b)^2)
-LSA_b2   = SS_b / (b_change-b)
+# sensitivity for b
+SS_b = SSE(y_obs_nonlin,y(x,a,b+delta))
+LSA_b = (SS_b-SS_base) / delta
 
-# change in a:
-LSA_a1-LSA_a2
-# change in b:
-LSA_b1-LSA_b2
-```
-So, the sensitivity for parameter $a$ changed with different base values, while the sensitivity for parameter $b$ did not change. This can be understood from the equation; $b$ is only linearly related to x, and we've seen that for linear equations the sensitivity does not change. Parameter $a$, however, is related to the square root of x, thereby being not linear and as such, sensitivity changes for different base values. This implies that, even though the sensitivity for $b$ in itself does not change, the ratio of sensitivity between $b$ and $a$ changes:
+tot = abs(LSA_a) + abs(LSA_b)
 
-
-```{r}
-par(mfrow=c(2,1))
-pie(c(LSA_a1,LSA_b1),labels=c('a','b'),col=c("red","blue"))
-pie(c(LSA_a2,LSA_b2),labels=c('a','b'),col=c("red","blue"))
+print(paste('sensitivity SSE to a: ',abs(round(LSA_a*100)/100),' and to b: ',abs(round(LSA_b*100)/100),sep=" "))
+print(paste('relative contribution of a: ',round(abs(LSA_a)/tot*100),'% and of b: ',round(abs(LSA_b)/tot*100),'%',sep=""))
 
 ```
-
-Since most systems in environmental sciences behave non-linearly, choosing the base values carefully is therefore very important.  
 </span>
 
 # Extra assignment
-Run over all values for a and b between 0.1 and 20 and plot how the relative sensitivity changes. 
+We can use the calculation of model performance to create a complete response surface. That means that we calculate model performance for all combinations of parameter a and b. This response surface can also provide insights in parameter sensitivity. 
+
+<span class="question">
+Obtain the response surface of the non-linear model $y = ax^2+bx$ from the previous question, given the observations $y_obs_nonlin$ from the previous question, for $a$ in the range 2 to 4, and $b$ in the range 5 to 8. This means you have to store the SSE-values in a matrix where the rows and columns represent different values for a and b. You can plot the results using plot(raster(your_matrix)). You can also retrieve the optimal values of a and b.
+</span>
 
 <!-- HINT 3 -->
 <button type="button" onclick="showHint(3)">Hint 3</button>
@@ -234,44 +217,40 @@ Run over all values for a and b between 0.1 and 20 and plot how the relative sen
 
 <span class="answer">
 ```{r}
-# vector with all parameter values that will be checked
+
+# define sums of squares
+SSE <-function(obs,mod){
+  SSE = sum((obs-mod)^2)
+  return(SSE)}
+
+# define y 
+y <- function(x,a,b){
+  y = a*x^2 + b*x
+  return (y)}
+
+# vector with all parameter values that will be evaluated
 stepsize   = 0.1
-par_sample = seq(0.1,20,stepsize) 
-LSA_a      = matrix(nrow=length(par_sample),ncol=length(par_sample))
-LSA_b      = matrix(nrow=length(par_sample),ncol=length(par_sample))
-x = seq(0,10,1)
+sample_a   = seq(2,4,stepsize)
+sample_b   = seq(5,8,stepsize)
+res        = matrix(nrow=length(sample_a),ncol=length(sample_b))
 
-for (j in 1:length(par_sample)){
-  for (i in 1:length(par_sample)){
-        
-        # Sensitivity of a
-        # assign base values
-        a_base  = par_sample[j]
-        b_base  = par_sample[i]
-     
-        # calculate base y
-        y_base = a_base*x^3+b_base*x
-     
-        # calculate perturbed y
-        y_a    = (a_base+0.1)*x^3 + b_base*x
-
-        # calculate SS
-        SS_a   = sum((y_base-y_a)^2)
-
-        # calculate LSA and store in vector
-        LSA_a[i,j]   = SS_a / stepsize 
-     }
+for (i in 1:length(sample_a)){
+  for (j in 1:length(sample_b)){
+    a = sample_a[i] # assign sample value to a
+    b = sample_b[j] # assign sample value to b
+    res[i,j] = SSE(y_obs_nonlin,y(x,a,b))
+  }
 }
-plot(raster(LSA_a))
+
+# plot the results
+plot(raster(res), xaxt="n",yaxt="n",ylab="a-values",xlab="b-values")
+
+# find the optimal value for the parameters (so the lowest SSE)
+loc = which(res == min(res), arr.ind=TRUE)
+sample_a[loc[1]]
+sample_b[loc[2]]
 
 ```
+So, the optimal values of $a$ and $b$ are 3.5 and 6 respectively. Basically, we conducted an expensive calibration by using brute force to calculate model performance for all parameter values. Now that we know the optimal values of $a$ and $b$, we can redo the local sensitivity analysis to get realisitc insights in the local sensitivity. But also the response surface provides insights. We see for example that the model performance varies much more along parameter $a$ than along parameter $b$, which indicates that the model is more sensitive to $a$. Here we take a more global perspective on sensitivity, we look over the full parameter range. Furthermore, we see that there is some interaction between both parameters, given the stratification in the results. This makes sense: both parameters relate to x, which means that the parameters can compensate to some extend for each other. 
+</span>
 
-
-
-
-
-
-
-
-
-This is the end. My only friend, the end. 
