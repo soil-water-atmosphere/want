@@ -1,5 +1,6 @@
 ---
-title: "FVFE practical 3 - Finite volumes, 1D steady and transient"
+title: "FVFE practical 3 - Flow in the unsaturated zone"
+subtitle: "Finite volumes, 1D steady and transient"
 date: "24/08/2018"
 output:
   html_document:
@@ -10,12 +11,9 @@ output:
 <script src="hints.js"></script>
 
 ## Learning goals
-* Understand unsaturated flow state variables and formulas *(Introduction)*
+* Understand the setup of an unsaturated zone model (dimensions, flow type, boundary conditions) *(Introduction, exercise 3,5)*
 * Understand the importance of non-linear hydraulic relationships *(Exercise 1)*
-* Understand the setup of an unsaturated zone model (dimensions, flow type, boundary conditions) *(Introduction, exercise 3,5)*  
 * Understand the concept of equilibrium moisture profiles *(Exercise 2)*
-* Set up a stationary and transient unsaturated flow model *(Exercise 3,5)*
-* Apply initialisation in a model run *(Exercise 3)*
 * Understand the effect of soil type, groundwater level and numerical method (FV vs FE) on the results of the transient unsaturated zone model *(Exercise 4,5,6)* 
 * Understand the value of the simple unsaturated flow models in terms of water management (ponding, capillary rise, recharge to groundwater, plant water use)	*(Exercise 4)*
 * Apply different top forcing functions *(Exercise 5,6)*
@@ -39,10 +37,10 @@ In these assignments we will choose $\psi(z)$ as state variable.
 Using the Darcy formula, the internal flux in the unsaturated zone can now be expressed in terms of the pressure and the hydraulic conductivity.
 
 <div class="exercise"> 
-Write down the formula for unsaturated Darcy flux.
+1. Write down the formula for unsaturated Darcy flux.
 </div>
 
-<div class="answer">
+<div class="student_answer">
 Fill in your answer here...
 </div>
 
@@ -51,7 +49,7 @@ $q(z)=-k(\psi) \left ( \frac{d\psi}{dz}+1 \right )$
 </div>
 
 <div class="exercise">
-Cleaning the workspace and loading the FVFE1D package:
+2. Cleaning the workspace and loading the FVFE1D package:
 ```{r}
 rm(list = ls())
 library(FVFE1D)
@@ -62,9 +60,9 @@ load(file='Staring.Rdata')
 Before constructing models for flow in the unsaturated zone an overview of the units would be practical.
 
 <div class="exercise">
-Fill out the table.
+3. Fill out the table.
 
-quantitiy | unit 
+quantity | unit 
 ----|----
 $\psi$ | 
 $\theta$ | 
@@ -87,7 +85,7 @@ internal flux | $cm/d$
 external flux | $\int (/d)dx$ 
 </div> 
 
-# Exercise 1: Exploring the hydraulic relations  
+## 1. Exploring the hydraulic relations  
 
 Not all the quantities cited above are independent.
 For each soil there are unique relations between $\theta$ , $\psi$ and $k$.  
@@ -102,7 +100,7 @@ You will look in more detail at the following soil types:
 *   Sandy Peat B16/O16  
 
 <div class="exercise">
-Using the plots created by `soilprofiles.R`, answer the following questions (by clicking the wheel in the upper left you can change the soil type).
+4. Using the plots created by `soilprofiles.R`, answer the following questions (by clicking the wheel in the upper left you can change the soil type).
 
 *   Which of the four soil types can store most water?  
 *   Which soil has most water available for the vegetation? 
@@ -140,21 +138,21 @@ for (n in list.soilcode)
 The coarse sand has the highest transport capacity.
 </div>
 
-## Exercise 2: Exploring the equilibrium profiles 
+## 2. Exploring the equilibrium profiles 
 Even the situation where there is no flow through the soil is interesting. The corresponding profiles of $\psi$ and $\theta$ are called equilibrium profiles. 
 
 The code chunk below is mostly preprogrammed. It illustrates the pressure and moisture content profile at equilibrium with the groundwater for a certain soil.   
 The surface level is set to 0.0 cm. Assume that the groundwater table is at 1 m (100 cm) depth. The internal flow is defined to be positive upwards.
 
 <div class="exercise">
-2.1 What are the boundary conditions at the lower(left) and upper (right) end of the domain? Fill out AA and BB in the chunk.  
-2.2 Derive for the internal flux the differential equation for $\psi$ for the equilibrium situation. Use this to fill out XX and YY in the chunk.  
+5. What are the boundary conditions at the lower(left) and upper (right) end of the domain? Fill out AA and BB in the chunk.  
+6. Derive for the internal flux the differential equation for $\psi$ for the equilibrium situation. Use this to fill out XX and YY in the chunk.  
 </div>
 
 The variable **all.soil.codes** contains all available soil codes. You can also open the `soil.set` list in the environment to see the available information for the different soil types.
 
 <div class="exercise">
-2.3 Select one of the soils to plot the pressure and moisture content profile for the equilibrium situation.  
+7. Select one of the soils to plot the pressure and moisture content profile for the equilibrium situation.  
 You need to remove **eval=FALSE** before the chunk can be run!
 </div>
 
@@ -193,8 +191,8 @@ par(old.par)
 </div>
 
 <div class="answer">
-2.1 The domain runs from -100 cm (the groundwater table) to 0 cm (the ground surface).   
-2.2 Because we have a no flow situation (soil moisture in equilibrium with the groundwater table), we can write $q(z)=-k(\psi) \left ( \frac{d\psi}{dz}+1 \right )=0$     
+5. The domain runs from -100 cm (the groundwater table) to 0 cm (the ground surface).   
+6. Because we have a no-flow situation (soil moisture in equilibrium with the groundwater table), we can write $q(z)=-k(\psi) \left ( \frac{d\psi}{dz}+1 \right )=0$     
 That means $\frac{d\psi}{dz}+1=0$       
 and $\frac{d\psi}{dz}=-1$   
 To describe the equilibrium profile for the pressure head $\psi$, we still need one boundary condition. This is given by the groundwater table: at x=-100 cm, $\psi$ is 0 cm.
@@ -230,7 +228,9 @@ par(old.par)
 ```
 </div>  
 
-<div class="exercise"> 2.4 The pressure profile is the same for all soils. Can you explain why? </div> 
+<div class="exercise"> 
+8. The pressure profile is the same for all soils. Can you explain why? 
+</div> 
 
 <div class="student_answer"> 
 Fill in your answer here...
@@ -241,7 +241,7 @@ As determined earlier, when $q(z)=0$, $\frac{d\psi}{dz}=-1$ which is just a cons
 </div>
 
 <div class="exercise">
-2.5 What is the difference between an equilibrium situation and a stationary flow situation, for the unsaturated zone case?
+9. What is the difference between an equilibrium situation and a stationary flow situation, for the unsaturated zone case?
 </div>
 
 <div class="answer">
@@ -252,11 +252,11 @@ A stationary flow situation occurs when the state variable (pressure or storage 
 The stationary models we built make use of this concept of inflow=outflow and storage change=0. However, also in transient models there may be temporary stationary conditions, for example when the inflow is constant for a while. For shallow groundwater tables the incoming flux and outgoing flux will then be the same (except for the sign) relatively fast. For large unsaturated zones stationary conditions may take much longer to develop, due to attenuation and delay. If the net inflow at the surface is zero, the transient model may also reach an equilibrium situation.
 </div>
 
-## Exercise 3: Stationary unsaturated zone model  
+## 3. Stationary unsaturated zone model  
 We start by building a stationary model for flow in the unsaturated zone. The following code chunk is partly preprogrammed but still needs to be finished.  
 
 <div class="exercise">
-3.1     
+10.     
 *   fill out the missing parts (XXXX) in the chunk     
 *   remove **eval=FALSE** from the header of the chunk      
 *   run the chunk and analyse the results.  
@@ -395,7 +395,7 @@ Here we are clearly not in a no-flow situation any more: the $\psi$ profile dive
 The output shows also that iterations are needed: because of the moisture-dependent conductivity, the flow functions are not linear and cannot be solved in one step.
 </div>
 
-## Exercise 4: Application of the model
+## 4. Application of the model
 As mentioned earlier, the unsaturated zone can be seen as an interface between the regional saturated groundwater system and the meteorological and ecological forcings at the surface. The water flow in the unsaturated zone determines how rainfall will separate between infiltration and runoff; how much water is available for evapotranspiration; and how much water will recharge to the saturated groundwater.
 
 The amount of water available in the unsaturated zone depends on:   
@@ -407,7 +407,7 @@ The amount of water available in the unsaturated zone depends on:
 Three typical classifications in an eco-hydrological and water management context are the sensitivity to **ponding** (NL:plasvorming); the capacity for **capillary rise**; and the total **water storage capacity**.
 
 <div class="exercise">
-4.1 Ponding occurs when the maximum downward flow capacity of the soil is exceeded, so that the soil is saturated to the surface.    
+11. Ponding occurs when the maximum downward flow capacity of the soil is exceeded, so that the soil is saturated to the surface.    
 Fill out the following table. You can use the above code chunk. 
 
 <button type="button" onclick="showHint(2)">Show Hint</button>
@@ -427,7 +427,7 @@ max. q water table at 2 m |  52.92 | 12.98 | 4.53 | 6.79 |
 </div>
 
 <div class="exercise">
-4.2 Fill in the maximum capillary rise per soil type.
+12. Fill in the maximum capillary rise per soil type.
 
 <button type="button" onclick="showHint(3)">Show Hint</button>
 <p id="Q3"> </p>
@@ -446,7 +446,7 @@ max. q, water table at 2 m | 0.001 | 0.4125 | 0.0075 | 0.03|
 </div>
 
 <div class="exercise"> 
-4.3 Calculate the total amount of water stored in the unsaturated zone, with a groundwater table at 1m below surface, for a situation with precipitation and for a situation with evapotranspiration excess.
+13. Calculate the total amount of water stored in the unsaturated zone, with a groundwater table at 1m below surface, for a situation with precipitation and for a situation with evapotranspiration excess.
 
 <button type="button" onclick="showHint(4)">Show Hint</button>
 <p id="Q4"> </p>
@@ -473,12 +473,12 @@ precipitation 1 mm/d | 19.47 | 39.03 | 57.85 | 72.12 |
 evapotranspiration 1 mm/d | 17.59 | 38.76 | 48.68 | 67.70 |      
 </div>
 
-## Exercise 5: Transient unsaturated zone model
+## 5. Transient unsaturated zone model
 One of the key aspects of a transient model is the introduction of a **storage term** in the simulations. Similar to the previous transient models you built, storage change takes place between the previous and current time step. Now the change in storage can directly be calculated by the difference in moisture content per timestep.  
 The chunk below contains a script for running a transient unsaturated zone model. A few aspects still need to be implemented by yourself.
 
 <div class="exercise"> 
-5.1     
+14.     
 * Add headings or comments at the lines starting with ##  
 * Finish the *changeinstorage* function  
 * The top forcing (precipitation surplus) is initially set at 0 (line 477). Later on (from line 491), a time dependent top forcing is created. This function results in precipitation for the time until T1, followed by evaporation between T1 and T2, and zero top forcing from T2 to the end.  
@@ -598,7 +598,6 @@ while(time < end.time)
        xlim=c(Soil$theta.res,Soil$theta.sat))
   grid()
   par(old.par)
- 
   
   Sys.sleep(0.1)
   time = time+delt
@@ -776,12 +775,12 @@ if (Soil$soiltype == "B11")
 </div>
 
 <div class= "exercise">    
-5.2    Change the soil type. How does the soil moisture behaviour change?      
-5.3    Change the method into Finite Elements. What is the most significant change you observe? 
+15.    Change the soil type. How does the soil moisture behaviour change?      
+16.    Change the method into Finite Elements. What is the most significant change you observe? 
 </div>
 
 <div class="answer">
-5.2 This chunk runs the model with soil B11, heavy clay.
+15. This chunk runs the model with soil B11, heavy clay.
 ```{r animation2, echo=FALSE, fig.show='animate', aniopts='controls'}
 ###Running with another soil type: B11 heavy clay
 UnsatTransClay=copy.model(UnsatTrans)
@@ -856,19 +855,19 @@ if (Soil$soiltype == "B11")
 }
 ```
 
-5.2 With the same top forcing, the clay soil (B11) takes more time to reach equilibrium than the coarse sand soil (B5). This happens because downward drainage of the excess water is slower in clay. You can see this if you plot the `savepercolation.B5` and `savepercolation.B11` vectors: clay has a much lower percolation.     
+With the same top forcing, the clay soil (B11) takes more time to reach equilibrium than the coarse sand soil (B5). This happens because downward drainage of the excess water is slower in clay. You can see this if you plot the `savepercolation.B5` and `savepercolation.B11` vectors: clay has a much lower percolation.     
 ![](Ex6Answer.png)
 
 
-5.3 If you run the model using finite elements (not shown in the chunks), the dynamics of the soil moisture profile change very little. However, if you look at the fluxes or storage changes that happen in each in timestep (using one of the dataframes that are saved during the while loop), small differences are visible.
+16. If you run the model using finite elements (not shown in the chunks), the dynamics of the soil moisture profile change very little. However, if you look at the fluxes or storage changes that happen in each in timestep (using one of the dataframes that are saved during the while loop), small differences are visible.
 </div>
 
-## Exercise 6: Changed top forcing function
+## 6. Changed top forcing function
 
 Now you will implement a more 'realistic' top forcing. The R-file `topforcing.R` creates an artificial rainfall-evaporation pattern with the functions 'rainfun' and 'evapfun'.  Reset the soiltype to B5.   
 
 <div class="exercise">
-6.1   Create a separate chunk for making a plot of the precipitation, evapotranspiration and net input (rainfall surplus) provided by `topforcing.R`.
+17.   Create a separate chunk for making a plot of the precipitation, evapotranspiration and net input (rainfall surplus) provided by `topforcing.R`.
 </div>
 
 <div class="answer">
@@ -898,7 +897,7 @@ grid()
 </div>
 
 <div class="exercise">
-6.2 Run the transient model with this top forcing. You can comment the lines of the first forcing function and uncomment those of the second one; either make a new chunk or reuse the previous one.      
+18. Run the transient model with this top forcing. You can comment the lines of the first forcing function and uncomment those of the second one; either make a new chunk or reuse the previous one.      
 What is the highest and lowest pressure at the surface? Set the groundwater table at 1.00 m below surface. Are the highest and lowest pressures at the surface different now? 
 </div>
 
@@ -1043,7 +1042,7 @@ If you plot `psi.atsurface.50cm` and `psi.atsurface.100cm`, you see that when th
 
 </div>
 
-## Exercise 7: Actual evapotranspiration
+## 7. Actual evapotranspiration
 Evapotranspiration is an important environmental condition for processes near the soil surface, such as the development of vegetation. In the previous exercise, we used evaporation/evapotranspiration as a given flux. In reality, the evapotranspiration depends on the actual soil moisture levels at the surface.    
 The vegetation can only transpire optimally when there is sufficient moisture in the soil which is 'easily' available for the vegetation. The drier a soil becomes, the harder the vegetation can extract water from it, since the roots have to overcome a large negative pressure.  This process can be simulated with the so called Feddes (retired Prof. from WUR) function.  
 
@@ -1071,13 +1070,13 @@ $\text{extraction}(z,\psi)_{roots}= - \text{roots.fun}(z)*\text{Feddes.fun}(z,\p
 Here, the _roots.fun_ describes the proportion of the roots growing at a certain depth. The _max. root extraction rate_ is equal to the **potential evapotranspiration** and is extracted along the total rooting depth for this vegetation. 
 
 <div class="exercise">
-7.1 Complete the following chunk of code implementing the actual evapotranspiration.     
+19. Complete the following chunk of code implementing the actual evapotranspiration.     
 *   Use a potential evapotranspiration of 0.3 cm/d.    
 *   Calculate the max.root.rate.       
 *   Finish the roots extraction function (**roots**) to simulate the actual evapotranspiration.      
 *   First simulate a situation with with no precipitation starting with an equilibrium situation.   
 
-7.2 Evaluate the effect of the actual evapotranspiration. What happens if you change the Feddes function? For example, change the `Feddes.h` vector to `c(0,-10,-40,-16000)` (which would be a very wet-loving plant) or adapt the rooting depth.
+20. Evaluate the effect of the actual evapotranspiration. What happens if you change the Feddes function? For example, change the `Feddes.h` vector to `c(0,-10,-40,-16000)` (which would be a very wet-loving plant) or adapt the rooting depth.
 </div>
 
 ```{r eval=FALSE}
@@ -1156,7 +1155,7 @@ grid()
 ```
 
 <div class="answer">
-7.1 The code chunk below implements the actual evapotranspiration function.  
+19. The code chunk below implements the actual evapotranspiration function.  
 
 ```{r echo=FALSE}
 UnsatFeddes=copy.model(UnsatTrans)
@@ -1233,13 +1232,12 @@ grid()
 </div>
 
 <div class="answer">
-7.2 As can be seen in the fluxes graph, the evapotranspiration for the original Feddes function is about 0.12 cm/d, so it is limited compared to the potential flux of 0.3 cm/d. This happens because the soil is wetter than optimal (h>-100). The evapotranspiration is first drawn from the storage (positive storage flux, so water extracted from storage).As the soil becomes drier, the evapotranspiration increases as it comes closer to its optimal range. Finally, evapotranspiration is balanced by capillary rise. 
+20. As can be seen in the fluxes graph, the evapotranspiration for the original Feddes function is about 0.1 cm/d, so it is limited compared to the potential flux of 0.3 cm/d. This happens because the soil is wetter than optimal (h>-100). The evapotranspiration is first drawn from the storage (positive storage flux, so water extracted from storage). As the soil becomes drier, the evapotranspiration increases as soil moisture comes closer to the vegetation's optimal range. Finally, evapotranspiration is balanced by capillary rise. 
 
 When another Feddes function is implemented for a more wet-loving vegetation, the evapotranspiration flux is higher. However, the flux decreases over time, as the soil becomes too dry.
 </div>
 
 ## Notes for WANT team
-Exercise 4 is very nice for the applied track. Maybe for the in-depth track we can replace this by a more modelling-related question?
-In 5.3 it is asked to run with FE and look at the differences. This is interesting to go some deeper into (for in depth track?): does FV or FE really matter for your results, except for smoothness? In which cases does it matter?
-The term recharge and infiltration were used a bit confusingly, I made sur infiltration was only inflow at the surface, and used recharge and percolation for flows to the groundwater. 
-Do we wannt to add some meteo in the last question(s)? How?
+* Section 4 is very nice for the applied track. Maybe for the in-depth track we can replace this by a more modelling-related question?
+* In section 5, question 16 it is asked to run with FE and look at the differences. This is interesting to go some deeper into (for in depth track?): does FV or FE really matter for your results, except for smoothness? In which cases does it matter?
+* Do we want to add some meteo in the last question(s)? How?
