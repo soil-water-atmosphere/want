@@ -1073,8 +1073,8 @@ Here, the _roots.fun_ describes the proportion of the roots growing at a certain
 19. Complete the following chunk of code implementing the actual evapotranspiration.     
 *   Use a potential evapotranspiration of 0.3 cm/d.    
 *   Calculate the max.root.rate.       
-*   Finish the roots extraction function (**roots**) to simulate the actual evapotranspiration.      
-*   First simulate a situation with with no precipitation starting with an equilibrium situation.   
+*   Finish the roots extraction function (**roots**) to simulate the actual evapotranspiration.   
+*   First simulate a situation with with no precipitation starting with an equilibrium situation.
 
 20. Evaluate the effect of the actual evapotranspiration. What happens if you change the Feddes function? For example, change the `Feddes.h` vector to `c(0,-10,-40,-16000)` (which would be a very wet-loving plant) or adapt the rooting depth.
 </div>
@@ -1237,7 +1237,9 @@ grid()
 When another Feddes function is implemented for a more wet-loving vegetation, the evapotranspiration flux is higher. However, the flux decreases over time, as the soil becomes too dry.
 </div>
 
-## Notes for WANT team
+<div class="comment">
+Comments:
 * Section 4 is very nice for the applied track. Maybe for the in-depth track we can replace this by a more modelling-related question?
 * In section 5, question 16 it is asked to run with FE and look at the differences. This is interesting to go some deeper into (for in depth track?): does FV or FE really matter for your results, except for smoothness? In which cases does it matter?
 * Do we want to add some meteo in the last question(s)? How?
+</div>
