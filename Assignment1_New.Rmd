@@ -546,7 +546,11 @@ Internal flux       | K*m/s
 External flux       | K/s             
 Boundary conditions | m               
 Space  (scale)      | m                    
-(Is this reasoning correct? - Esther) The unit of the internal flux can be derived from the formulas: as $u_*$ is a 'velocity' in m/s, the eddy diffusivity K has units $m^2/s$. The internal flux $Q$ is then in $m^2/s*K/m=K*m/s$.
+The unit of the internal flux can be derived from the formulas: as $u_*$ is a 'velocity' in m/s, the eddy diffusivity K has units $m^2/s$. The internal flux $Q$ is then in $m^2/s*K/m=K*m/s$.
+</div>
+
+<div class="comment">
+Comment: I added the last part of the answer, is this reasoning in the answer correct?
 </div>
 
 ## 2.2 Building the model
@@ -781,6 +785,10 @@ The model with a sink predicts lower temperatures, as it has an additional loss 
 The internal fluxes were constant for the zero external flux model. For the radiative sink model, the downward flux becomes larger going upward. (...) 
 </div>
 
+<div class="comment">
+Comment: some extra explanation needed in answer here!
+</div>
+
 The `dataframe.balance` function can calculate the balance (of water, heat, or anything else) of the model domain. It can also calculate the balance over specific parts of the domain. 
 
 <div class="exercise">
@@ -853,10 +861,12 @@ dataframe.balance(oneDmodel_robin)
 The external fluxes still equal the boundary fluxes, while the net internal fluxes are zero, as they should be in this steady-state model.
 </div>
 
-## Notes for WANT team
+<div class="comment">
+Comments:
 * Section 2.4 needs some background info, in a link or in the hint. 
 * In the answer to part 2, question 8 there should be some explanation about why you see these differences in internal fluxes. I didn't really know how to explain this, anyone? 
 * The whole thing should maybe still be shorter. I would say it is more valuable to build fewer model variations, and go some deeper into the variants that you do build (real-world application for the applied track, how-does-the-model-work for the in-depth track). Also some more explanation in the answers could be nice.
 I already skipped some hydro stuff (quite a bit about sensitivities and two more varying kD fields). I also left out two variants of the meteo model. And I'm not sure if section 2.3 is necessary?
 * For the in-depth track, section 1.8 could be nice to look further into: how does the model solve linear and nonlinear internal flow? And why are iterations needed in the second case?
 * I think the hydrological theory in this practical is understandable for everyone (unless people may not know Darcy or what transmissivity is?). The meteo part seems quite feasible for non-meteo people. There are some terms that are probably new to some people, maybe we could add links to web pages here and there?
+</div>
