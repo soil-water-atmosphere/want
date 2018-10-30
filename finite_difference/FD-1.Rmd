@@ -204,7 +204,7 @@ $$f(x) = f(a) + \frac{f'(a)}{1!}(x-a) + \frac{f''(a)}{2!}(x-a)^{2} + \frac{f'''(
 
 Translating this formula in the terminology and context of exercise 1:
 
-*maybe the hard track can this themselves*
+<span class="comment">maybe the hard track can this themselves</span>
 
 $$s(t + \Delta t) = s(t) + \Delta t \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{8}$$
 In simple words explained, this formula represents the exponential decay from a specified time 't'. If enough derivatives are used in this way, one formula would suffice to evaluate the emptying reservoir. The example of the emptying reservoir has a mathematical solution, so these derivatives can actually be calculated. In most real world cases however, the mathematical solution does not exist or to complex to work with and approximations have to be used. 
@@ -220,26 +220,31 @@ $$ \dfrac{ds}{dt} \approx \frac{s(t+\Delta t)-s(t-\Delta t)}{2\Delta t} \tag{12}
 
 These together are the differencing methods and are respectively called "forward", "backward" and "central" method. For time integration the "forward" method is the most intuitive since it calculates the future based on current information. Later in this course, when we are looking not only at time but also  at space-integration, the others are going to be used. 
 
-<span class="comment">*insert graph that visualises all three plus real derivative*</span>
+Equations 10 to 12 can be quite intuitively understood with the following graphs:
+
+![Alt](forward.png){width=800px, height=500}
+![](backward.png){width=800px, height=500}
+![](central.png){width=800px, height=500}
+These graphs show the tangent line for the black point calculated by taking two points on the graph.
 
 Turning back to the taylor series, and it can be quickly seen that these methods are indeed an approximation and that the error for the approximation is rather easily calculatable with the taylor series. Taking the "forward" method as a first example:
 
 $$s(t + \Delta t) = s(t) + \frac{\Delta t}{1!} \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{13}$$
 Reworking this equation:
 
-<span class="comment">*might also be done by the advanced group*</span>
+<span class="comment">might also be done by the advanced group</span>
 
 $$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{14}$$
 Comparing this with the implementation in exercise 1 leads to the quantification of the error:
 
 $$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + error    \tag{15}$$
 $$ error = \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{16}$$
-## exercise 2.1
+
+##Exercise 2.1
 <span class="question">
-<span class="comment">
-advanced question:
-</span>
-use the R-functions expression() and D() (derivative) and eval() to implement the first four terms of equation 13 incremently in chunk5 and plot this result on top of the existing plot. Note down the error at the first time step every time a term is added.
+<span class="comment">advanced question:</span>
+
+use the R-functions *expression()*, *D()* (derivative) and *eval()* to implement the first four terms of equation 13 incremently in chunk5 and plot this result on top of the existing plot. Note down the error every time a term is added.
 
 terms | error 
 ----- | ----- 
@@ -295,9 +300,12 @@ title(main=paste('Numerical and analytical solution compared. Error: ',error))
       
 grid()
 ```
+
 </span>
+
 <span class="answer">
 answer hard question
+
 ```{r chunk5_answer}
 # Initial parameter values
 begin.time = 0     # usually this variable is set to 0
@@ -322,7 +330,7 @@ while(time < end.time)
 }
 
 # Taylor series approximation
-f = expression((-0.75 + 0.1875 * DT^(1)/2 - 0.046875 * DT^(2)/6) * DT + 3)   # constant by integration and evaluation (function D() and eval())
+f = expression((-0.75 + 0.1875 * DT^(1)/2 - 0.046875 * DT^(2)/6) * DT + 3)   # constants obtained by integration and evaluation (function D() and eval())
 
 DT = c(0,time.sequence) # list of evaluation times
 p  = eval(f)            # list of results of the implemented funtion
@@ -344,12 +352,18 @@ title(main=paste('Numerical and analytical solution compared. Error: ',error))
       
 grid()
 ```
-<span>
 
+terms | error 
+----- | ----- 
+1 | 1.609 
+2 | 0.242 
+3 | 0.063 
+4 | 0.013 
+5 | 0.002 
 
+The error rapidly decreases every time the next term of the taylor series is added.
 
-
-
+</span>
 
 <span class="question">
 <span class="comment">
@@ -463,6 +477,62 @@ terms | error
 5 | 0.002 
 
 </span>
+
+##Exercise 2.2
+The approach so far has be to combine two different equations for the same derivative. By combining them, the next time step can be approximated. The first equation is an approximation of the derivative by taking the first term of the taylor series belonging to the function that describes the system (this can be done even without precisely knowing the exact function). An example is given in equation 10. By removing the error term, which is proportional to the time step itself, this equation gives an approximation of the derivative. The second equation needed, is the equation that describes the balance within a system. This equation is an objective function, but it's value in reality is determined by the quality of the input data rather than the function in and on itself. We will come back to this later on. An example of this function is equation 9. Combining these functions you end up with one equation that can be used in a computer model:
+
+$$
+\begin{matrix}
+\dfrac{s(t+\Delta t) - s(t)}{\Delta t} &=& \dfrac{ds(t)}{dt}\\
+\dfrac{ds(t)}{dt} &=& Q_{in} - Q_{out}\\
+\dfrac{s(t+\Delta t) - s(t)}{\Delta t} &=& Q_{in} - Q_{out}\\
+s(t+\Delta t) &=& s(t) + \Delta t(Q_{in} - Q_{out})\\
+\tag{17}
+\end{matrix}
+$$
+This method is called a forward differencing scheme.
+
+Previously it was stated that beside a forward scheme, more options exist. These options are represented by figures after equation 12. Another way to understand what happens here is by turning back to the taylor series of equation 13 and 14. The backward differencing scheme is optained by replace $\Delta t$ by $-\Delta t$.
+
+<span class="question">
+<span class="comment">hard question</span>
+Replace $\Delta t$ with $-\Delta t$ in equation 13. Describe why for time integration this solution is not really workable.
+</span>
+
+<span class="answer">
+$$s(t - \Delta t) = s(t) - \frac{\Delta t}{1!} \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} - \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} - \ ...     \tag{18}$$
+leading to:
+$$\dfrac{s(t - \Delta t) - s(t)}{\Delta t} = - \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} - \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} - \ ...     \tag{19}$$
+multiplying both sides by -1:
+$$\dfrac{s(t) - s(t - \Delta t)}{\Delta t} = \frac{ds}{dt} \bigg\rvert_{t} - \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} - \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{20}$$
+which leads back to equation 11:
+$$\dfrac{s(t) - s(t - \Delta t)}{\Delta t} \approx \frac{ds}{dt} \bigg\rvert_{t} + error    \tag{21}$$
+</span>
+
+The last integration scheme discussed here is the central scheme. This is optained by substracting equation 18 from equation 13:
+
+$$
+\begin{matrix}
+
+s(t + \Delta t) &=& s(t) + \dfrac{\Delta t}{1!} \dfrac{ds}{dt} \bigg\rvert_{t} + \dfrac{\Delta t^{2}}{2!} \dfrac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \dfrac{\Delta t^{3}}{3!} \dfrac{d^{3}s}{dt^{3}} \bigg\rvert_{t} +\dfrac{\Delta t^{4}}{4!} \dfrac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \\    
+
+
+s(t - \Delta t) &=& s(t) - \dfrac{\Delta t}{1!} \dfrac{ds}{dt} \bigg\rvert_{t} + \dfrac{\Delta t^{2}}{2!} \dfrac{d^{2}s}{dt^{2}} \bigg\rvert_{t} - \dfrac{\Delta t^{3}}{3!} \dfrac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \dfrac{\Delta t^{4}}{4!} \dfrac{d^{4}s}{dt^{4}} \bigg\rvert_{t} - \ ...  \\
+
+\hline \\
+
+s(t + \Delta t) - s(t - \Delta t) &=& 2\dfrac{\Delta t}{1!}\dfrac{ds}{dt} + 2\dfrac{\Delta t^{3}}{3!} \dfrac{d^{3}s}{dt^{3}}
+
+\tag{22}
+\end{matrix}
+$$
+Reworking this equation to approximation of the first order derivative:
+
+$$ \dfrac{s(t + \Delta t) - s(t - \Delta t)}{2\Delta t} = \dfrac{ds}{dt} + \dfrac{\Delta t^{2}}{3!} \dfrac{d^{3}s}{dt^{3}} + \ ... \tag{23}$$
+I striking difference between this formula and the two previous ones is that the term with the second derivative is cancelled out. This means that the error of the approximation is potentially a lot smaller. However, for time integration you have to use not the current time step but the previous, which is less informative. For space integration, that we will discuss in the following days, these schemes will prove to be rather useful.
+
+#Part 3
+##Integration methods
 
 
 
