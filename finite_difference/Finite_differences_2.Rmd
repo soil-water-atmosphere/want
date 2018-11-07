@@ -1,0 +1,63 @@
+---
+title: "Finite differences 2"
+author: "The WANT team"
+date: "24/09/2018"
+output:
+  html_document:
+    css: ../want.css
+---
+<!-- include the hint.js -->
+<script src="hints.js"></script>
+
+##Exercise 2.2
+The approach so far has be to combine two different equations for the same derivative. By combining them, the next time step can be approximated. The first equation is an approximation of the derivative by taking the first term of the taylor series belonging to the function that describes the system (this can be done even without precisely knowing the exact function). An example is given in equation 10. By removing the error term, which is proportional to the time step itself, this equation gives an approximation of the derivative. The second equation needed, is the equation that describes the balance within a system. This equation is an objective function, but it's value in reality is determined by the quality of the input data rather than the function in and on itself. We will come back to this later on. An example of this function is equation 9. Combining these functions you end up with one equation that can be used in a computer model:
+
+$$
+\begin{align}
+\dfrac{s(t+\Delta t) - s(t)}{\Delta t} &= \dfrac{ds(t)}{dt}\\
+\dfrac{ds(t)}{dt} &= Q_{in} - Q_{out}\\
+\dfrac{s(t+\Delta t) - s(t)}{\Delta t} &= Q_{in} - Q_{out}\\
+s(t+\Delta t) &= s(t) + \Delta t(Q_{in} - Q_{out})\\
+\tag{14}
+\end{align}
+$$
+This method is called a forward differencing scheme.
+
+Previously it was stated that beside a forward scheme, more options exist. These options are represented by figures after equation 12. Another way to understand what happens here is by turning back to the taylor series of equation 13 and 14. The backward differencing scheme is optained by replace $\Delta t$ by $-\Delta t$.
+
+<span class="question">
+<span class="comment">hard question</span>
+Replace $\Delta t$ with $-\Delta t$ in equation 13. Describe why for time integration this solution is not really workable.
+</span>
+
+<span class="answer">
+$$s(t - \Delta t) = s(t) - \frac{\Delta t}{1!} \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} - \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} - \ ...     \tag{18}$$
+leading to:
+$$\dfrac{s(t - \Delta t) - s(t)}{\Delta t} = - \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} - \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} - \ ...     \tag{19}$$
+multiplying both sides by -1:
+$$\dfrac{s(t) - s(t - \Delta t)}{\Delta t} = \frac{ds}{dt} \bigg\rvert_{t} - \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} - \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{20}$$
+which leads back to equation 11:
+$$\dfrac{s(t) - s(t - \Delta t)}{\Delta t} \approx \frac{ds}{dt} \bigg\rvert_{t} + error    \tag{21}$$
+</span>
+
+The last integration scheme discussed here is the central scheme. This is optained by substracting equation 18 from equation 13:
+
+$$
+\begin{matrix}
+
+s(t + \Delta t) &=& s(t) + \dfrac{\Delta t}{1!} \dfrac{ds}{dt} \bigg\rvert_{t} + \dfrac{\Delta t^{2}}{2!} \dfrac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \dfrac{\Delta t^{3}}{3!} \dfrac{d^{3}s}{dt^{3}} \bigg\rvert_{t} +\dfrac{\Delta t^{4}}{4!} \dfrac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \\    
+
+
+s(t - \Delta t) &=& s(t) - \dfrac{\Delta t}{1!} \dfrac{ds}{dt} \bigg\rvert_{t} + \dfrac{\Delta t^{2}}{2!} \dfrac{d^{2}s}{dt^{2}} \bigg\rvert_{t} - \dfrac{\Delta t^{3}}{3!} \dfrac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \dfrac{\Delta t^{4}}{4!} \dfrac{d^{4}s}{dt^{4}} \bigg\rvert_{t} - \ ...  \\
+
+\hline \\
+
+s(t + \Delta t) - s(t - \Delta t) &=& 2\dfrac{\Delta t}{1!}\dfrac{ds}{dt} + 2\dfrac{\Delta t^{3}}{3!} \dfrac{d^{3}s}{dt^{3}}
+
+\tag{22}
+\end{matrix}
+$$
+Reworking this equation to approximation of the first order derivative:
+
+$$ \dfrac{s(t + \Delta t) - s(t - \Delta t)}{2\Delta t} = \dfrac{ds}{dt} + \dfrac{\Delta t^{2}}{3!} \dfrac{d^{3}s}{dt^{3}} + \ ... \tag{23}$$
+I striking difference between this formula and the two previous ones is that the term with the second derivative is cancelled out. This means that the error of the approximation is potentially a lot smaller. However, for time integration you have to use not the current time step but the previous, which is less informative. For space integration, that we will discuss in the following days, these schemes will prove to be rather useful.
