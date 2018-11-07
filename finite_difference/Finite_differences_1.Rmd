@@ -1,0 +1,1043 @@
+---
+title: "Finite differences 1"
+author: "The WANT team"
+date: "24/09/2018"
+output:
+  html_document:
+    css: ../want.css
+    toc: yes
+    toc_depth: 2
+---
+<!-- include the hint.js -->
+<script src="hints.js"></script>
+
+# Learning goals
+* Understand the use of Taylor series
+* Understand the mathematics of Taylor series
+* Be able to calculate Taylor series for arbitrary functions
+* Derive approximations for first derivatives from Taylor series
+
+# Introduction
+With this markdown you are going to to analyse the effect of properties and numerical schemes on the behavior of the solutions for simple 0D models, known as bucket or reservoir models (leaving out the spatial dimensions). The differential equations that need to be solved are simple ordinary differential equations. 
+
+# Part 1 - ODE
+## Section 1.1 - Introduction ordinary differential equations
+As the first example of a simple ordinary differential equation (ODE) an emptying reservoir is considered. It is an illustrative example because the exact solution is known so different methods can be compared to the real answer.
+
+physical example of the emptying reservoir (or emptying bucket) model
+
+![](reservoir_properties.png) 
+
+
+
+This system can be represented by the following ODE:
+$$ \dfrac{ds}{dt} = -\alpha s(t) \tag{1}$$
+
+The mathematical definition of the time derivative of the function $s(t)$ is as follows
+
+$$ \dfrac{ds}{dt} = \lim_{\Delta t\to\ 0}\frac{s(t+\Delta t)-s(t)}{\Delta t} \tag{2}$$
+
+This function can be approximated to be able to implement it in a computer. The simplest way of doing this is by taking a small $\Delta t$ instead of having a limit to 0:
+
+$$ \dfrac{ds}{dt} \approx \frac{s(t+\Delta t)-s(t)}{\Delta t} \tag{3}$$
+
+<span class="question">
+1.1.1 Combine these functions to make a discretisation for the next time-step ($s(t+\Delta t)$)
+</span>
+
+<span class="student_answer">
+$$ s(t+\Delta t) = s(t) - \alpha  s(t) \Delta t \tag{4}$$
+$$ s(t+\Delta t) = s(t)(1-\alpha \Delta t) \tag{5}$$
+</span>
+
+For extended track; go to question 1 in Finite_differences_1_extended.Rmd file.
+
+## Section 1.2 - Implementing emptying bucket model
+Implement the formula derived in question 1.1 in the following script to set up to simulation
+
+<span class="student_answer">
+```{r chunk1_question}
+sys.fun = function(state)
+{
+  newstate = ...
+  return(newstate)
+}
+```
+</span>
+
+<span class="answer">
+```{r chunk1_answer}
+sys.fun = function(state)
+{
+  newstate = state*(1-alpha*dt)
+  return(newstate)
+}
+```
+</span>
+
+Run the following chunk to perform the actual simulation and visualise it.
+```{r chunk3}
+# Initial parameter values
+begin.time = 0     # usually this variable is set to 0
+end.time   = 50    # end time of the simulation (50)
+dt         = 0.1   # delta t; time discretisation (0.1)
+init.state = 3     # state of the system at the beginning of the simulation (3)
+alpha      = 0.25  # decay constant (0.25)
+
+# Simulation initialisation
+time = begin.time
+result.state= c(init.state)
+result.time = c(time)
+current.state = init.state
+
+# Simulation
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+# Plotting
+plot(result.time,result.state,type='o',xlab="time",ylab="state")
+title(main='Emptying reservoir')
+grid()
+```
+
+<span class="question">
+1.2.1 Vary the 'dt' parameter between 0.001 and 25. Are there any numerical problems arising beyond a certain value for dt? What are the problems occurring when choosing a value for 'dt' close the high or low end of this range?
+</span>
+
+<span class="answer">
+In the low end of the spectrum run-time will be significantly higher and can become impractically slow (although the result is very accurate). On the high side; first you will notice that already in the first step the state of the reservoir will be lower than 0, which is physically incorrect. Secondly, when choosing a 'dt' that is even higher, the numerical approximation does not converge and can even go to positive/negative infinity.
+</span>
+
+<span class="question">
+1.2.2 Reset dt to 0.1 and vary alpha between 0.25 and 25. Describe for alpha 0.25, 5, 10, 15, 20, 25 if the simulation is physically correct, converging and stable and explain why with the help of the equation that calculates the next state.
+
+$\alpha$ | physically correct | convergent | stability | explanation 
+---------| ------------------ | ---------- | --------- | ----------- 
+0.25 | | | |  
+5 | |  | | 
+10 | | | |  
+15 | | | |  
+20 | | | |  
+25 | | | |  
+
+</span>
+
+<span class="answer">
+
+$\alpha$ | physically correct | convergent | stability | explanation 
+---------| ------------------ | ---------- | --------- | ----------- 
+0.25 | correct | converging | stable |  
+5 | correct |  converging | stable | 
+10 | correct |  converging | stable |  
+15 | incorrect |  converging | stable | solution becomes negative because alpha*dt goes under 1 
+20 | incorrect | not converging | (un)stable | solution does not go to zero as it should be continues jumping between -3 and 3
+25 | incorrect | not converging | unstable | solution goes to infinity 
+
+</span>
+
+
+<span class="question">
+1.2.3 The exact solution. Two options are available here; either unfold chunk4 and run the code or go to question 2 in the extended tutorial. 
+</span>
+
+<button type="button" onclick="toggle('Q1')">Show chunk</button>
+<div id="Q1" style="display: none">
+```{r chunk4}
+# Initial parameter values
+begin.time = 0     # usually this variable is set to 0
+end.time   = 50    # end time of the simulation (50)
+dt         = 5     # delta t; time discretisation (0.25)
+init.state = 3     # state of the system at the beginning of the simulation (3)
+alpha      = 0.25  # decay constant (0.25)
+
+# Simulation initialisation
+time = begin.time
+result.state= c(init.state)
+result.time = c(time)
+current.state = init.state
+
+# Simulation
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+# Plotting
+plot(result.time,result.state,type='o', xlab="time",ylab="state")
+time.sequence = seq(begin.time,end.time,by=0.1)
+analyt.state=init.state * exp(-time.sequence*alpha)
+lines(time.sequence,analyt.state,col='blue',lwd=2)
+title(main='Numerical and analytical solution compared')
+grid()
+```
+</div>
+
+</br>
+
+<span class="question">
+1.2.4 At which 'dt' do the numerical approximation and analytical solution start to agree fairly reasonably?
+</span>
+
+<span class="answer">
+Around dt = 1 the analytical solution and the numerical approximation come quite close to each other.
+</span>
+
+# Part 2 - Taylor series
+## Section 2.1 - Introduction Taylor Series 
+The former exercise can also be done in a more formal way. For that we need Taylor series.
+
+The principle of the Taylor series is to construct an infinite series that can replace the original regular function without losing any information. It's use lies in the fact that it can make complex functions easier to work with like making it easier to calculate derivatives. The finite differences methodology is based on these principles. 
+TIP: if you are unfamiliar with this topic or you simply want a refresher you can watch the following video by 3Blue1Brown; https://www.youtube.com/watch?v=3d6DsjIBzJ4
+
+The formula to expand a function to it's (infinite) Taylor series is as follows:
+$$f(x) = \sum_{n=0}^{\infty} \frac{f^{n}(a)}{n!}(x-a)^{n} \tag{6}$$
+
+Expanding this function:
+
+$$f(x) = f(a) + \frac{f'(a)}{1!}(x-a) + \frac{f''(a)}{2!}(x-a)^{2} + \frac{f'''(a)}{3!}(x-a)^{3} + \frac{f''''(a)}{4!}(x-a)^{4} + \ ... \tag{7}$$
+
+Translating this formula in the terminology and context of exercise 1:
+
+$$s(t + \Delta t) = s(t) + \Delta t \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{8}$$
+In simple words explained, this formula represents the exponential decay, starting from a specified time $t$ a specific time-step into the future '$\Delta t$. If enough terms of the above equation are taken into account, only that equation would be needed  to evaluate the whole period of the emptying bucket. However, in a practical situation, only the first two terms are taken into account, because it is easier to work with and because it is most of the time impossible to derive the other terms. 
+
+A finite difference approximation of an ordinary differential equations can be set up by using the same principles. The first step is done by defining the balances in the system and determining the physical formulae needed to solve them. A simple example is the bucket model showed above. The first derivative, the rate of change, is simply the amount (water might be a good way to visualise this) going into the system minus the amount leaving it:
+$$\frac{ds}{dt} = Q_{in} - Q_{out} \tag{9}$$
+In the example above the term $Q_{in}$ is zero. $Q_{out}$ is replaced by it's physical interpretation $-at$, which is simply an exponential decay constant multiplied by the time that the system has a flux going out. The next step in defining the finite difference scheme is an approximation of the derivative for which the Taylor series is used. 
+
+Advanced track can go to exercise 3 of the other file. The rest can unfold the derivation.
+
+<button type="button" onclick="toggle('Q2')">Show derivation</button>
+<div id="Q2" style="display: none">
+
+Starting from equation 8:
+$$s(t + \Delta t) = s(t) + \frac{\Delta t}{1!} \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{10}$$
+Rearranging this equation:
+
+$$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{11}$$
+Comparing this with the implementation in exercise 1 leads to the quantification of the error:
+
+$$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + error    \tag{12}$$
+$$ error = \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{13}$$
+</div>
+
+##Section 2.2 - Error of estimation
+The hard track goes to exercise 4 in the other file. The rest goes with the following exercise.
+
+<span class="question">
+2.1.1 The variable called "taylor" in chunk5 determines how many terms of equation 10 are taken into account. Write down the error between the Taylor series implementation and the true emptying bucket.
+
+terms | error 
+----- | ----- 
+1 |  
+2 |
+3 |
+4 | 
+5 | 
+6 |
+
+```{r chunk5}
+rm(list=ls())
+error = function(taylor){
+  # Taylor series parameter
+  #taylor     = 15
+  
+  # System function
+  sys.fun = function(state)
+  {
+    newstate = state*(1-alpha*dt)
+    return(newstate)
+  }
+  
+  # Initial parameter values
+  begin.time = 0     # usually this variable is set to 0
+  end.time   = 50    # end time of the simulation (50)
+  dt         = 5     # delta t; time discretisation (0.25)
+  init.state = 3     # state of the system at the beginning of the simulation (3)
+  alpha      = 0.25  # decay constant (0.25)
+  
+  # Simulation initialisation
+  time = begin.time
+  result.state= c(init.state)
+  result.time = c(time)
+  current.state = init.state
+  
+  # Simulation
+  while(time < end.time)
+  {
+    current.state = sys.fun(current.state)
+    result.state = c(result.state,current.state)
+    time = time + dt
+    result.time = c(result.time,time)
+  }
+  
+  # Taylor series approximation
+  derivative.list = c(paste(toString(init.state),"*DT^0"))
+  f = expression(init.state*exp(-alpha*t))
+  t = 0
+  if(taylor>1){
+    for(i in 1:(taylor-1)){
+      f = D(f,'t')
+      derivative.list = c(derivative.list,paste(toString(eval(f)),"*DT^",toString(i),"/",toString(factorial(i))))
+      print(f)
+    }
+  }
+  g = parse(text = substitute(expression(f),list(f=paste(derivative.list,collapse = "+"))))
+  
+  
+  DT = seq(begin.time,end.time,by=0.1)
+  p  = eval(g)
+  
+  # Plotting
+  plot(result.time,result.state,type='o', xlab="time",ylab="state")
+  time.sequence = seq(begin.time,end.time,by=0.1)
+  analyt.state=init.state * exp(-time.sequence*alpha)
+  lines(time.sequence,analyt.state,col='blue',lwd=2)
+  lines(DT,p, lwd=2, col="green")
+  
+  DT = dt
+  correct.state = init.state*exp(-dt*alpha)
+  error = round(abs(correct.state-eval(g)),3)
+  points(dt,eval(g),col="green",pch=19)
+  points(dt,correct.state,pch=19)
+  segments(dt,correct.state,dt,eval(g),col="red",lwd=2)
+  title(main=paste('Numerical and analytical solution compared. Error: ',error))
+  
+  grid()
+}
+
+#########################################
+ui <- fluidPage(
+  
+  # App title ----
+  titlePanel("Calculate the error"),
+  
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
+    
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+      
+      numericInput("taylor", label  = "Terms of the taylor series:" , value=1, min = 1, max = 40, step = 1)
+      
+    ),
+    
+    # Main panel for displaying outputs ----
+    mainPanel(
+      
+      # Output: Plot of the requested variable against mpg ----
+      plotOutput("p")
+      
+      
+      
+    )
+  )
+)
+
+server <- function(input, output) {
+  output$p = renderPlot({error(input$taylor)})
+}
+
+shinyApp(ui, server)
+```
+
+</span
+
+<span class="answer">
+
+terms | error 
+----- | ----- 
+1 | 2.140
+2 | 1.609 
+3 | 0.242 
+4 | 0.063 
+5 | 0.013 
+6 | 0.002 
+
+</span>
+
+#Part 3 - Input and output
+##Section 3.1 - Introducing input
+In this part of the assignments on the finite differences method, an input will be introduced into the simulations. The numerical approximations (methods) discussed during the lectures will be implemented and are assessed for their performance.
+
+A simple, but effective input could be a $sin(time)+1$ function representing for example the daily varying latent heat flux or an undulating precipitation pattern:
+
+```{r chunk6}
+time = seq(begin.time,end.time,by=0.5)
+plot(time,sin(time)+1,type='o', xlab="time",ylab="state")
+
+```
+
+Coming back the the mathematics of the implementation. The first was to set up the balance equations in the system. For an emptying bucket with a variable input: 
+
+$$\frac{dV}{dt} = Q_{in} - Q_{out} \tag{14}$$
+Said simply, the change in the volume inside the bucket is the amount going in the bucket minus the amount leaving the bucket. The volume of the bucket, $V$, can be replaced by the area times the height: $A*s(t)$. $Q_{out}$ is still the reservoir constant times the height of the volume in the bucket $a*s(t)$. The situation we dealt with in Part 1 and 2 was more or less the same except that $Q_{in}$ was equal to 0 and and A was 1. 
+
+<span class="question">
+3.1.1 Replace $Q_{in}$ and $Q_{out}$ with their physical counterparts and derive the finite difference approximation.
+</span>
+
+<span class="answer">
+$$
+\begin{matrix}
+\dfrac {dV}{dt} &=& Q_{in} - Q_{out}\\
+Q_{in} &=& \sin(t) + 1 \\
+Q_{out} &=& a*s(t) \\
+V &=& A*s(t) \\
+A\dfrac{ds}{dt} &=& {(\sin(t)+1)} - as(t) \\
+\dfrac {s(t+\Delta t)-s(t)} {\Delta t} &=& \dfrac 1 A((\sin(t)+1) - as(t)) \\
+s(t+\Delta t) &=& s(t) + \dfrac{\Delta t}{A} ((\sin(t)+1) - as(t))
+\end{matrix}
+$$
+</span>
+
+<span class="question"> 
+3.1.2 Copy chunk three here and add a new, updated **sys.fun** reflecting the equation derived in question 3.1.1, using these parameter values:
+
+```{r chunk7}
+rm(list=ls())
+# Initial parameter values
+begin.time = 0     # usually this variable is set to 0
+end.time   = 50    # end time of the simulation
+dt         = 0.1   # delta t; time discretisation
+init.state = 3     # state of the system at the beginning of the simulation
+alpha      = 1     # decay constant
+A          = 4     # surface of the bucket
+```
+</span>
+
+<span class="answer">
+```{r chunk8}
+# Simulation initialisation
+time             = begin.time
+result.state     = c(init.state)
+result.time      = c(time)
+current.state    = init.state
+
+# System function
+sys.fun = function(state)
+{
+  newstate = state + dt/A*((sin(time)+1)-alpha*state)
+  return(newstate)
+}
+
+# Simulation
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+# Plotting
+plot(result.time,result.state,type='o',xlab="time",ylab="state")
+title(main='Emptying reservoir with input')
+grid()
+```
+</span>
+
+This system is technically still analytically solvable but this is far from trivial. For simplicity we will not go into details here and use another way to compare the quality of the simulation with the "real" solution. For that we basically run the last simulation twice with different values for 'dt'.
+
+<span class="question">
+3.1.3 Copy the last chunk here. Then copy the following lines of code into the end of the chunk.
+
+```{}
+dt = 2.0 # a new dt value to evaluate current scheme
+time = begin.time
+result.state= c(init.state)
+result.time =c(time)
+current.state = init.state
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+lines(result.time,result.state,type='o',col='blue')
+```
+
+Replace the already existing plot command with the line:
+```{}
+plot(result.time,result.state,type='l', col="grey",lwd=2,xlab="time",ylab="state")
+```
+</span>
+
+<span class="answer">
+```{r Explicit}
+rm(list=ls())
+#Initial parameter values
+begin.time = 0     # usually this variable is set to 0
+end.time   = 50    # end time of the simulation
+dt         = 0.1   # delta t; time discretisation
+init.state = 3     # state of the system at the beginning of the simulation
+alpha      = 1     # decay constant
+A          = 4     # surface of the bucket
+
+# Simulation initialisation
+time             = begin.time
+result.state     = c(init.state)
+result.time      = c(time)
+current.state    = init.state
+
+# System function
+sys.fun = function(state)
+{
+  newstate = state + dt/A*((sin(time)+1)-alpha*state)
+  return(newstate)
+}
+
+# Simulation
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+# Plotting
+plot(result.time,result.state,type='l', col="grey",lwd=2,xlab="time",ylab="state")
+title(main='Emptying reservoir with input, Explicit')
+grid()
+
+dt = 2.0 # a new dt value to evaluate current scheme
+time = begin.time
+result.state= c(init.state)
+result.time =c(time)
+current.state = init.state
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+lines(result.time,result.state,type='o',col='blue')
+```
+</span>
+
+If everything went as it it was supposed to happen there are two plots overlaying each other. The grey line is the 'true' solution and the blue line is the approximation. The 'true' solution here is the same finite differences approximation but with a low 'dt', coming fairly close to the analytical solution. Play a bit around with the second 'dt' variable to see how well the approximation is doing for a slightly more complex system.
+
+# Part 4 - Different integration methods
+So far we have been making use of the so-called explicit integration scheme. This basically means that current values are used to calculate the future as discussed during the lectures. In mathematical terms:
+
+$$\frac{ds(t)}{dt} = f(t)$$
+However, other possibilities do exist. The following subchapters will describe implicit, midpoint and the Runge-Kutta integration methods.
+
+## Section 4.1 - Implicit method
+The implicit integration scheme is based on taking the derivate not with the current information, but with the information from the following timestep. In mathematical formulation it looks like this:
+
+$$\frac{ds(t)}{dt} = f(t+\Delta t)$$
+For the exercise with the emptying bucket with variable input this would become the following equation.
+
+$$\frac{ds(t)}{dt} = \frac{1}{A}(sin(t+\Delta t)+1) - \alpha s(t + \Delta t))$$
+The sense of working this way is explained best with a couple of graphs:
+
+![](vectorfield_explicit.png)
+![](vectorfield_implicit.png)
+The methodologies behave quite differently. The explicit scheme is more unstable and is more likely to give unphysical results. The implicit methodology is a bit more conservative. It is more stable and is more likely to keep within physical limitations. However, it is computationally more expensive to run and a bit harder to implement.
+
+
+<span class="question">
+4.1.1 Derive a new equation for $s(t+\Delta t)$ for the emptying bucket with variable input implementing it with the implicit integration method.
+</span>
+
+<span class="answer">
+$$\begin{matrix}
+\frac{ds(t)}{dt} &=& f(t+\Delta t)\\
+f(t) &=& (sin(t)+1) - \alpha s(t)\\
+\frac{ds(t)}{dt} &=& \frac{1}{A}((sin(t+\Delta t)+1) - \alpha s(t + \Delta t))\\
+\frac{ds(t)}{dt} &=& \dfrac {s(t+\Delta t)-s(t)} {\Delta t}\\
+s(t+\Delta t) &=& s(t) + \frac{\Delta t}{A}(sin(t+\Delta t)+1) - \frac{\Delta t}{A}\alpha s(t + \Delta t))\\
+s(t+\Delta t) + \frac{\Delta t}{A}\alpha s(t + \Delta t)) &=& s(t) + \frac{\Delta t}{A}(sin(t+\Delta t)+1)\\
+s(t+\Delta t)(1 + \alpha\frac{\Delta t}{A}) &=& s(t) + \frac{\Delta t}{A}(sin(t+\Delta t)+1)\\
+s(t+\Delta t) &=& \frac{1}{1 + \alpha\frac{\Delta t}{A}}(s(t) + \frac{\Delta t}{A}(sin(t+\Delta t)+1))\\
+\end{matrix}$$
+</span>
+
+<span class="question"> 
+4.1.1.2 Copy the previous chunck with the explicit scheme and replace the **sys.fun** with the implicit version.
+</span>
+
+<span class="answer">
+```{r Implicit}
+rm(list=ls())
+#Initial parameter values
+begin.time = 0     # usually this variable is set to 0
+end.time   = 50    # end time of the simulation
+dt         = 0.1   # delta t; time discretisation
+init.state = 3     # state of the system at the beginning of the simulation
+alpha      = 1     # decay constant
+A          = 4     # surface of the bucket
+
+# Simulation initialisation
+time             = begin.time
+result.state     = c(init.state)
+result.time      = c(time)
+current.state    = init.state
+
+# System function
+sys.fun = function(state)
+{
+  newstate = 1/(1+alpha*dt/A)*(state + dt/A*(sin(time+dt)+1))
+  return(newstate)
+}
+
+# Simulation
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+# Plotting
+plot(result.time,result.state,type='l', col="grey",lwd=2,xlab="time",ylab="state")
+title(main='Emptying reservoir with input, Implicit')
+grid()
+
+dt = 2.0 # a new dt value to evaluate current scheme
+time = begin.time
+result.state= c(init.state)
+result.time =c(time)
+current.state = init.state
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+lines(result.time,result.state,type='o',col='blue')
+```
+</span>
+
+## Section 4.2 - Midpoint method
+As you can see in the implementation of the both the explicit and the implicit integration scheme, the results look quite good with a low 'dt' but for a higher time-step the results look less fitting. By closely examaning the differences in the the implementation of the explicit and the implicit scheme you can see a phase-shift. The implicit scheme has a tendency to lie slightly to the left of the true solution, while the explicit scheme lies slightly to the right. The midpoint method, discussed here, tries to combine both methods and to keep the good aspects of both. What the midpoint method does is basically to add an extra point to the calculation. Although there are many options, here we will go with the following; the first half a time-step an explicit scheme will be implemented and the second half will have an implicit scheme. In mathematical formulation it looks like this:
+
+$$\tilde{s} = s(t) + \frac{\Delta t}{2} \ f(t,s(t)) $$
+$\tilde{s}$ is the midpoint
+$$s(t+\Delta t) = \tilde{s} + \frac{\Delta t}{2} \ f(t+\frac{\Delta t}{2},\tilde{s})$$
+<span class="comment"> 
+Is this actually correct? I would say that it would be more something like
+$$s(t+\Delta t) = \tilde{s} + \frac{\Delta t}{2} \ f(t+\Delta t,s(t+\Delta t))$$
+<span>
+
+![](vectorfield_midpoint.png)
+In comparison with the implicit and explicit schemes the midpoint methodologie converges faster. It is also about twice as expensive to run since it creates a temporary midpoint for calculation. It is, however, often worth the investment in time and effort.
+
+<span class="question"> 
+4.2.1 Copy the chunk with the implicit scheme here. To make the code more readable the following function can be added to the code (before the while loop). This function is the $f(t,s(t))$ as used above. In the emptying bucket with input this formula looks as follows:
+
+$$ f(t,s(t)) = \frac{(sin(t) + 1) - as}{A}$$
+```{}
+f = function(time, state){
+  return(((sin(time)+1)-alpha*state)/A)
+}
+```
+
+</span>
+
+<span class="question">
+4.2.2 Update the **sys.fun** function to implement the midpoint method. Use the function given in question 4.2.1 as a starting point.
+</span>
+
+<span class="answer">
+```{r Midpoint}
+rm(list=ls())
+#Initial parameter values
+begin.time = 0     # usually this variable is set to 0
+end.time   = 50    # end time of the simulation
+dt         = 0.1   # delta t; time discretisation
+init.state = 3     # state of the system at the beginning of the simulation
+alpha      = 1     # decay constant
+A          = 4     # surface of the bucket
+
+# Simulation initialisation
+time             = begin.time
+result.state     = c(init.state)
+result.time      = c(time)
+current.state    = init.state
+
+# System function
+
+f = function(time, state){
+  return(((sin(time)+1)-alpha*state)/A)
+}
+
+sys.fun = function(state)
+{
+  s.aux    = state + dt/2*f(time,state)
+  newstate = s.aux + dt/2*f(time+dt/2,s.aux)
+  return(newstate)
+}
+
+# Simulation
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+# Plotting
+plot(result.time,result.state,type='l', col="grey",lwd=2,xlab="time",ylab="state")
+title(main='Emptying reservoir with input, Midpoint')
+grid()
+
+dt = 2.0 # a new dt value to evaluate current scheme
+time = begin.time
+result.state= c(init.state)
+result.time =c(time)
+current.state = init.state
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+lines(result.time,result.state,type='o',col='blue')
+```
+</span>
+
+<span class="comment">
+Let the hard track calculate the error on this method (mathematically)
+</span>
+
+## Section 4.3 - Runge-Kutta method
+For many applications, this numerical approximation (the 4th order) is the best compromise between programming, calculation time and numerical accuracy. Instead of calculating one intermediate or auxiliary state value (Midpoint), four intermediate function evaluations are calculated:
+
+$$
+\begin{matrix}
+\kappa_1 &=& \Delta t\:f(t,s(t))\\
+\kappa_2 &=& \Delta t\:f(t + \frac{1}{2} \Delta t,\: s(t) + \frac{1}{2} \kappa_1)\\
+\kappa_3 &=& \Delta t\:f(t + \frac{1}{2} \Delta t,\: s(t) + \frac{1}{2} \kappa_2)\\
+\kappa_4 &=& \Delta t\:f(t + \Delta t,\:s(t) + \kappa_3)\\
+s(t+\Delta t) &=& s(t)+\dfrac{\kappa_1+2\kappa_2+2\kappa_3+\kappa_4}{6}
+\end{matrix}
+$$
+<span class="question">
+4.3.1 Create a new chunk and copy the Midpoint approximation chunk into it
+</span>
+
+<span class="question">
+4.3.2 Rewrite the **sys.fun** with the above intermediate values and states.
+</span>
+
+<span class="answer">
+```{r Runge-Kutta}
+rm(list=ls())
+#Initial parameter values
+begin.time = 0     # usually this variable is set to 0
+end.time   = 50    # end time of the simulation
+dt         = 0.1   # delta t; time discretisation
+init.state = 3     # state of the system at the beginning of the simulation
+alpha      = 1     # decay constant
+A          = 4     # surface of the bucket
+
+# Simulation initialisation
+time             = begin.time
+result.state     = c(init.state)
+result.time      = c(time)
+current.state    = init.state
+
+# System function
+
+f = function(time, state){
+  return(((sin(time)+1)-alpha*state)/A)
+}
+
+sys.fun = function(state)
+{
+  k1       = dt*f(time       , state         )
+  k2       = dt*f(time+0.5*dt, state + 0.5*k1)
+  k3       = dt*f(time+0.5*dt, state + 0.5*k2)
+  k4       = dt*f(time+    dt, state +     k3)
+  newstate = state + (k1 + 2*k2 + 2*k3 + k4)/6
+  return(newstate)
+}
+
+# Simulation
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+# Plotting
+plot(result.time,result.state,type='l', col="grey",lwd=2,xlab="time",ylab="state")
+title(main='Emptying reservoir with input, Runge-Kutta')
+grid()
+
+dt = 2.0 # a new dt value to evaluate current scheme
+time = begin.time
+result.state= c(init.state)
+result.time =c(time)
+current.state = init.state
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+lines(result.time,result.state,type='o',col='blue')
+```
+</span>
+
+<span class="comment">
+The hard track might calculate the error here as well. With a bit of help.
+</span>
+
+<span class="comment">
+We might include WALRUS here to check which integration scheme is implemented. Maybe only for the hard track.
+</span>
+
+# Part 5 - Comparing the different integration schemes
+
+<span class="question">
+5.1 Fill out the folliwing table with the following options:
++ good (g)
++ phase shift (ps)
++ wrong amplitude (wa)
++ oscillates (osc)
++ unstable (uns)
+
+This can be done either by running the applet below or by recycling the code of the different integration methods.
+
+dt|Explicit|Implicit|Midpoint|RungeKutta
+---|---|---|---|---|
+0.1|-|-|-|-|
+1|-|-|-|-|
+2.5|-|-|-|-|
+5|-|-|-|-|
+10|-|-|-|-|
+15|-|-|-|-|
+20|-|-|-|-|
+</span>
+
+```{r Compare_integration_methods,eval=FALSE, echo=FALSE}
+library(shiny)
+compare = function(dt,runge_kutta,midpoint,explicit,implicit){
+  if(!any(runge_kutta,midpoint,explicit,implicit)){
+    plot.new()
+    return()
+  }
+  
+  # Other model parameters
+  begin.time = 0     # usually this variable is set to 0
+  end.time   = 50    # end time of the simulation
+  init.state = 3     # state of the system at the beginning of the simulation
+  alpha      = 1     # decay constant
+  A          = 4     # surface of the bucket
+  l          = c()   # empty list for legend entries
+  lines_l    = c()   # empty list for legend lines
+  
+  f = function(time,state)
+  {
+    return(((sin(time)+1)-alpha*state)/A)
+  }
+  
+  ## Background plot (based on Runge-Kutta)
+  
+  sys.fun = function(state)
+  {
+    k1       = dt*f(time       , state         )
+    k2       = dt*f(time+0.5*dt, state + 0.5*k1)
+    k3       = dt*f(time+0.5*dt, state + 0.5*k2)
+    k4       = dt*f(time+    dt, state +     k3)
+    newstate = state + (k1 + 2*k2 + 2*k3 + k4)/6
+    return(newstate)
+  }
+  
+  time = begin.time
+  result.state= c(init.state)
+  result.time =c(time)
+  current.state = init.state
+  dt_temp = dt
+  dt = 0.1
+  while(time < end.time)
+  {
+    current.state = sys.fun(current.state)
+    result.state = c(result.state,current.state)
+    time = time + dt
+    result.time = c(result.time,time)
+  }
+  
+  plot(result.time,result.state,type='l',col='darkgrey',lwd=3, xlab="time",ylab="state")
+  
+  # resetting dt
+  dt = dt_temp   
+  
+  ##########SETTINGS#############
+  ########Runge Kutta############
+  time = begin.time  
+  result.state= c(init.state)  
+  result.time =c(time)  
+  current.state = init.state  
+  while(time < end.time)  
+  {  
+    current.state = sys.fun(current.state)  
+    result.state = c(result.state,current.state)  
+    time = time + dt  
+    result.time = c(result.time,time)  
+  }  
+  if(runge_kutta){
+    lines(result.time,result.state,type='o',col='black')
+    l       = c(l,'Runge Kutta')
+    lines_l = c(lines_l,"black")
+  }
+  
+  ###########Midpoint##################
+  sys.fun = function(state)
+  {
+    s.aux    = state + dt/2*f(time,state)
+    newstate = s.aux + dt/2*f(time+dt/2,s.aux)
+    return(newstate)
+  }
+  
+  time = begin.time
+  result.state= c(init.state)
+  result.time = c(time)
+  current.state = init.state
+  while(time < end.time)
+  {
+    current.state = sys.fun(current.state)
+    result.state = c(result.state,current.state)
+    time = time + dt
+    result.time = c(result.time,time)
+  }
+  if(midpoint){
+    lines(result.time,result.state,type='o',col='red')
+    l       = c(l,'Midpoint')
+    lines_l = c(lines_l,"red")
+  }
+  
+  ###########Implicit##################
+  sys.fun = function(state)
+  {
+    newstate = 1/(1+alpha*dt/A)*(state + dt/A*(sin(time+dt)+1))
+    return(newstate)
+  }
+  
+  time = begin.time
+  result.state= c(init.state)
+  result.time =c(time)
+  current.state = init.state
+  while(time < end.time)
+  {
+    current.state = sys.fun(current.state)
+    result.state = c(result.state,current.state)
+    time = time + dt
+    result.time = c(result.time,time)
+  }
+  if(implicit){
+    lines(result.time,result.state,type='o',col='blue')
+    l       = c(l,'Implicit')
+    lines_l = c(lines_l,"blue")
+  }
+  
+  ###########Explicit##################
+  sys.fun = function(state)
+  {
+    newstate = state + dt/A*((sin(time)+1)-alpha*state)
+    return(newstate)
+  }
+  
+  time = begin.time
+  result.state= c(init.state)
+  result.time = c(time)
+  current.state = init.state
+  while(time < end.time)
+  {
+    current.state = sys.fun(current.state)
+    result.state = c(result.state,current.state)
+    time = time + dt
+    result.time = c(result.time,time)
+  }
+  if(explicit){
+    lines(result.time,result.state,type='o',col='green')
+    l       = c(l,'Explicit')
+    lines_l = c(lines_l,"green")
+  }
+  
+  lty_l = rep(1  ,length(lines_l))
+  lwd_l = rep(2.5,length(lines_l))
+  
+  legend('topright', l, lty=lty_l, lwd=lwd_l, col=lines_l)
+  title(main=paste("Comparing quality integration schemes,",' dt :' ,dt))
+  
+  grid()
+}
+
+
+
+#########################################
+ui <- fluidPage(
+  
+  # App title ----
+  titlePanel("Compare integration schemes"),
+  
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
+    
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+      
+      sliderInput("dt", label = "dt:",min = 0.2, max = 20, value = 1, step = 0.2),
+      checkboxInput("runge_kutta", "Runge-Kutta", FALSE),
+      checkboxInput("midpoint"   , "Moidpoint"  , FALSE),
+      checkboxInput("explicit"   , "Explicit"   , FALSE),
+      checkboxInput("implicit"   , "Implicit"   , FALSE)
+      
+    ),
+    
+    # Main panel for displaying outputs ----
+    mainPanel(
+      
+      # Output: Plot of the requested variable against mpg ----
+      plotOutput("p")
+      
+    )
+  )
+)
+
+server <- function(input, output) {
+  output$p = renderPlot({compare(input$dt,input$runge_kutta,input$midpoint,input$explicit,input$implicit)})
+}
+
+shinyApp(ui, server)
+```
+
+<span class="comment">
+Maybe it is a nice idea to let the hard track solve the *coupled reservoir* and the *non-linear* reservoir here.
+</span>
+
+# Part 6 - Real world example
+
+
+
+
+
+
+
+
+
+
+
+
