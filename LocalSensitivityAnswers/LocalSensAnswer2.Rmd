@@ -1,0 +1,278 @@
+---
+title: "Answers to local sensitivity exercise 5"
+subtitle: "Changing the epsilon value"
+output:
+   html_document:
+    css: want.css
+    toc: yes
+---
+
+
+```{r}
+rm(list=ls())
+library(FVFE1D)
+```
+
+# 1. Building the model
+
+## The mathematical setup
+First, the 1D groundwater model is built in the same way as the ones you built in earlier practicals.
+The first step is choosing the spatial model domain:
+```{r}
+domain = c(0,500) 
+```
+
+The system (internal) flux will be a simple Dupuit flux, with a transmissivity $kD$ 
+that changes linearly between the left and right side of the domain.
+
+```{r}
+kDl = 55
+kDr = 35
+kD.fun = approxfun(domain,c(kDl,kDr)) #gives a (linear) function for the transmissivity
+# caution: every time you change kDl or kDr you have to reconstruct this function
+internal.flux = function(x,state,gradstate) 
+  {
+  return(-kD.fun(x)*gradstate)
+  }
+```
+
+The chunk below constructs the new model with the name 'base run':  
+```{r}
+GWmodel = newFLOW1D(domain,internal.flux) 
+set.name(GWmodel,"base run")
+```
+
+There is constant recharge flux (rainfall) on top of the model; and an extraction well.  
+The recharge is a spatial flux, the extraction well is a point flux.   
+
+```{r}
+P = 0.001
+add.spatialflux(GWmodel,"P","recharge")
+Qwell = -0.35
+add.pointflux(GWmodel,at = 275, value= 'Qwell',name = 'well')
+```
+
+On the left hand side, the river with a water level of 1 m is used as a boundary condition.
+The right hand side is a water divide: a zero flux boundary, which is already applied as the default in the FVFE1D package.
+
+```{r}
+hl = 1
+set.BC.fixedstate(GWmodel,"left","hl") 
+```
+
+## The numerical setup and base run solution
+The domain is discretized with nodes and a solution technique. Here the Finite Volume technique is used.
+
+```{r}
+nodes = seq(from=domain[1],to=domain[2],length=50) 
+set.discretisation(GWmodel,nodes,"FV")
+```
+
+
+```{r}
+control = solve.steps(GWmodel)
+plot(GWmodel,fluxplot=TRUE) 
+```
+
+## Choice of MRESULT
+
+```{r}
+MRESULT = function()
+{
+  XS = dataframe.states(GWmodel)
+  MH = mean(XS[(XS$x>125)&(XS$x<200),"state"])
+  return(MH)
+}
+```
+
+Store the results of the base run:
+```{r}
+M_base = MRESULT()
+print(M_base)
+state_base = dataframe.states(GWmodel)$state
+```
+
+# 2. Sensitivity analysis 
+
+## 2.1 LSA calculations
+
+The parameter values defined before will form the base values:
+```{r}
+base= list(kDl=kDl,kDr=kDr,P=P,Qwell=Qwell,hl=hl)
+str(base)
+```
+
+The scales of variation (standard deviation) for the parameters have to be provided by the modeller.
+We store these in a list as well:
+
+```{r}
+scale= list(kDl = 1*kDl,
+            kDr = 7.5*kDr,
+            P = 0.25*P,
+            Qwell = -0.4*Qwell,
+            hl = 0.05)
+str(scale)
+```
+
+Below we define the epsilon value `eps`, which is the amount by which we will 'disturb' the parameters.
+
+```{r}
+eps = 10
+```
+
+**Sensitivity with respect to kDl**
+
+```{r,fig.height=4}
+kDl=base$kDl+eps
+kD.fun = approxfun(domain,c(kDl,kDr)) # the kD.fun has to be recreated whenever the kD values are changed
+control = solve.steps(GWmodel)
+kDl=base$kDl
+kD.fun = approxfun(domain,c(kDl,kDr)) 
+dMdkDl  = (MRESULT()-M_base)/eps
+print(paste("dM/dkDl=",dMdkDl))
+dstatedkDl = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedkDl,type="l",lwd=3,col="blue",main="d{state}/d{kDl}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the left value of the kD clearly decreases the groundwater levels over the whole domain.
+The sensitivities are slightly smaller than in the eps=1e-3 situation, but the change is not big.
+
+**Sensitivity with respect to kDr**
+
+```{r,fig.height=4}
+kDr=base$kDr+eps
+kD.fun = approxfun(domain,c(kDl,kDr)) 
+control = solve.steps(GWmodel)
+kDr=base$kDr
+kD.fun = approxfun(domain,c(kDl,kDr)) 
+dMdkDr  = (MRESULT()-M_base)/eps
+print(paste("dM/dkDr=",dMdkDr))
+dstatedkDr = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedkDr,type="l",lwd=3,col="blue",main="d{state}/d{kDr}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the right value of the kD decreases the groundwater levels mainly on the right hand side of the well. Again there is little change compared to the previous result, although the sensitivities are slightly smaller.
+
+**Sensitivity with respect to P**
+
+```{r,fig.height=4}
+P=base$P+eps
+control = solve.steps(GWmodel)
+P=base$P
+dMdP  = (MRESULT()-M_base)/eps
+print(paste("dM/dP=",dMdP))
+dstatedP = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedP,type="l",lwd=3,col="blue",main="d{state}/d{kP}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the rainfall causes groundwater level increases through the whole domain. The increased eps value has no effect on the sensitivity to P.
+
+**Sensitivity with respect to Qwell**
+
+```{r,fig.height=4}
+Qwell=base$Qwell+eps
+control = solve.steps(GWmodel)
+Qwell=base$Qwell
+dMdQwell  = (MRESULT()-M_base)/eps
+print(paste("dM/dQwell=",dMdQwell))
+dstatedQwell = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedQwell,type="l",lwd=3,col="blue",main="d{state}/d{Qwell}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the Qwell (so lowering the extraction rate) causes the groundwater level to increase throughout the whole domain. The sensitivities are the same as with eps=1e-3.
+
+**Sensitivity with respect to hl**
+
+```{r,fig.height=4}
+hl=base$hl+eps
+control = solve.steps(GWmodel)
+hl=base$hl
+dMdhl  = (MRESULT()-M_base)/eps
+print(paste("dM/dhl=",dMdhl))
+dstatedhl = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedhl,type="l",lwd=3,col="blue",main="d{state}/d{hl}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the left boundary condition (river level) causes groundwater levels to increase by the same amount everywhere (dstate/dhl = 1). The fluctuations in dstate/dhl are all numerical roundoff errors; effectively the value is still uniformly 1.
+
+## 2.2 LSA variation analysis
+
+**Contributions to  variance of M**
+
+Partial variances:
+
+```{r}
+varM.kDl   = (scale$kDl*dMdkDl)^2
+varM.kDr   = (scale$kDr*dMdkDr)^2
+varM.P     = (scale$P*dMdP)^2
+varM.Qwell = (scale$Qwell*dMdQwell)^2
+varM.hl    = (scale$hl*dMdhl)^2
+varMtot = varM.kDl+varM.kDr+varM.P+varM.Qwell+varM.hl
+```
+
+Relative contributions with pie chart:
+```{r}
+relvarM = list(kDl = varM.kDl/varMtot,
+             kDr = varM.kDr/varMtot,
+             P  = varM.P/varMtot,
+             Qwell = varM.Qwell/varMtot,
+             hl = varM.hl/varMtot)
+
+str(relvarM)
+pie(as.numeric(relvarM),labels=names(relvarM),
+    main=paste("Standard deviation of M =",round(sqrt(varMtot),4),"m"),
+    col = rainbow(length(relvarM)))
+```
+
+The scale of variation of the mean groundwater level in the nature reserve is still about 60 cm. The largest contribution comes from the variation of the $Qwell$, followed by P and kDl. Changing the eps value has very little effect on the relative contributions. 
+
+**Contributions to variation over the whole domain**
+
+Partial variances:
+
+```{r}
+varState.kDl = (scale$kDl*dstatedkDl)^2
+varState.kDr = (scale$kDr*dstatedkDr)^2
+varState.P  = (scale$P*dstatedP)^2
+varState.Qwell = (scale$Qwell*dstatedQwell)^2
+varState.hl = (scale$hl*dstatedhl)^2
+varStateTot = varState.kDl+varState.kDr+varState.P+varState.Qwell+varState.hl
+```
+
+Plot the scale of variation of the states over the whole domain:
+```{r}
+plot(nodes,sqrt(varStateTot),type="l",col="blue",lwd=3,
+     ylab="standard deviation [m]",xlab="x",main="Total scale of variation of groundwater levels")
+grid(col="black")
+```
+
+The uncertainty still increases from left to right. However, the largest uncertainty at the right boundary has decreased by some 30 cm.
+
+A plot giving an overview of the relative contributions:
+```{r}
+plot(nodes,rep(1,length(nodes)),ylim=c(0,1),type="l",
+     ylab="relative contribution to variance",xlab="x",
+     main="Contribution to scale of variation of groundwater levels")
+
+cols = rainbow(5)
+lines(nodes,varState.kDl/varStateTot,col=cols[1],lwd=2)
+lines(nodes,varState.kDr/varStateTot,col=cols[2],lwd=2)
+lines(nodes,varState.P/varStateTot,col=cols[3],lwd=2)
+lines(nodes,varState.Qwell/varStateTot,col=cols[4],lwd=2)
+lines(nodes,varState.hl/varStateTot,col=cols[5],lwd=2)
+legend("topright", bty="n",
+   legend=c("kDl","kDr","P","Qwell","hl"),lty=1,col=cols,
+   horiz=TRUE)
+```
+
+When viewed over the whole domain, the relative contribution of the parameters to the variation on groundwater levels is unchanged compared to the previous eps.    
