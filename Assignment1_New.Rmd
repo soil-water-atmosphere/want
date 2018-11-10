@@ -13,7 +13,7 @@ output:
 ## Learning goals
 *  Learning the steps to set up a numerical model (stationary, spatial 1D) *(Exercise 1-3,9,10)*
 *	 Understanding the concepts of internal and external fluxes; applying different forms of these fluxes *(Exercise 1,2,8,9,13)*
-*  Understanding the difference between linear and nonlinear system flow functions *(Exercise 8)*
+*  Understanding the difference between linear and nonlinear internal flow functions *(Exercise 8)*
 *  Evaluating the model results by checking convergence, analytical solutions and water/heat balances *(Exercise 4-6,11,13,14)*
 *  Working with spatially varying parameters *(Exercise 7,9)*
 * Test the effect of spatial resolution on model results *(Exercise 11)*
@@ -33,7 +33,7 @@ Figure 1 : 1D stationary saturated groundwater flow towards two rivers
 ***   
 
 The total length of the model is 200 m and both rivers form prescribed head (*Dirichlet*) boundary conditions with a level of 5 m A.M.S.L. (Above Mean Sea Level). The model is discretized with a nodal distance of 10 m.  
-The recharge on top of the model is the only external flux and is $0.001 \, m/d$. The transmissivity $kD$ of the aquifer is $45 \, m^2/d$.  
+The net rainfall (recharge) on top of the model is the only external flux and is $0.001 \, m/d$. The transmissivity $kD$ of the aquifer (hydraulic conductivity * thickness) is $45 \, m^2/d$.  
 The model will calculate the _hydraulic_ or _piezometric_ head which is:  
 
 $$
@@ -50,25 +50,19 @@ $z$: Elevation head (m)
 
 The reference level of the elevation head coincides with the bottom of the aquifer and is in this case $z=0$.  
 
-The graph below illustrates the relation between these variables. Imagine a bucket with a height of 1 meter and filled with water. The reference head (green line) equals 0.0 m at the bottom of the bucket, but the pressure head (red line) equals 1.0 m. The hydraulic head is a constant being 1.0 m (blue line). Suppose you would measure the pressure head at a height 0.20 m from the bottom. This would be 0.80 m (intersection point dashed line and red line). The elevation head is 0.20 m (intersection point dashed line and green line). Summing pressure head and elevation head results in the hydraulic head: $H=\psi+z=0.8+0.2=1.0 \, m$
+The graph below illustrates the relation between these variables. Imagine a bucket with a height of 1 meter and filled with water. The reference head (green line) equals 0.0 m at the bottom of the bucket, but the pressure head (red line) equals 1.0 m. The hydraulic head is a constant being 1.0 m (blue line). Suppose you would measure the pressure head at a height 0.20 m from the bottom. This would be 0.80 m (intersection point dashed line and red line). The elevation head is 0.20 m (intersection point dashed line and green line). Summing pressure head and elevation head results in the hydraulic head: $H=\psi+z=0.8+0.2=1.0 \, m$ over the whole depth.
 
-```{r}
-H = c(0,1)
-z = c(0,1)
-psi = c(1,0)
-plot(c(0,1),z,type="l",col='green',lwd=3,xlab='heads (m)',ylab='z (m)')
-lines(c(0,1),psi,col='red',lwd=3)
-lines(c(1,1),H,col='blue',lwd=3)
-abline(h=0.2,lty='dashed')
-grid()
-```
+![](HydraulicHead.png)
+
+Figure 2: Elevation and pressure heads in a bucket.
 
 ## 1.1 Internal flux
 
-For this model we may distinguish two types of internal fluxes:  
+In this model we apply a Darcy water flux, using the Dupuit assumption - this means we assume the flow in the aquifer to be mainly horizontal and uniform with depth, allowing us to make volume flow simply proportional to the thickness over which it occurs.   
+We may distinguish two types of internal Darcy fluxes:  
 
-* the _linear_ Darcy flux based on the Dupuit assumption with a constant saturated thickness in which the flow occurs (type 1 flux).  
-* the _non-linear_ Darcy flux also based on the Dupuit assumption but with a saturated thickness which is determined by the calculated head (the state) in the model (type 2 flux).
+* the _linear_ Darcy flux. Here we assume the thickness of the aquifer is much larger than the differences in groundwater level in the domain. Therefore we take the thickness over which flow occurs as a constant, the aquifer thickness $D$ (type 1 internal flux).  
+* the _non-linear_ Darcy flux, in which we recognise that the thickness over which flow occurs is smaller when the groundwater level is lower. Here we make the thickness of flow dependent on the calculated groundwater head (the state) at the nodes (type 2 internal flux).
 
 <div class="exercise">
 1. Give the formula for both equations.
@@ -112,6 +106,10 @@ scales and units:
 * external flux: m/d
 </div>
 
+<div class="comment">
+These units are correct right? Jasper thought external flux was in m2/d too but I think m/d is correct (the model will multiply the flux density with the width of the control volume).
+</div>
+
 ## 1.2: Mathematical model setup
 When setting up your model, you can make use of the model template `ModelTemplate1D.Rmd`, which is included in your folder. This document explains all the steps needed in setting up a 1D flow model. The help pages of the FVFE1D package may also be helpful.
 
@@ -125,7 +123,7 @@ library(FVFE1D)
 ```
 
 <div class="exercise"> 
-4. Define the model domain.  
+4. Define the model domain  
 </div>
 
 <div class="student_answer">
@@ -143,7 +141,7 @@ domain = c(0,200)
 <div class="exercise"> 
 5. The internal flux function 
 </div>  
-Create the internal flux function here. It should be the linear Darcy flux function.
+Create the internal flux function here. It should be the linear (type 1) Darcy flux function.
 
 <div class="student_answer">
 ```{r}
@@ -155,7 +153,7 @@ Create the internal flux function here. It should be the linear Darcy flux funct
 ```{r}
 type1.flux = function(x,state,gradstate)  
 {
-  return(-45*gradstate) #45 being the kD and - for the flow direction
+  return(-45*gradstate) #45 being the kD; minus to account for the flow direction
 }
 ```
 </div>
@@ -196,7 +194,7 @@ set.BC.fixedstate(grw_model_1,'right',5)
 </div>
 
 <div class="exercise"> 
-8. Adding recharge 
+8. Adding recharge (net rainfall, or rainfall minus evapotranspiration)
 </div>    
 Create a __spatial flux__ here. 
 
@@ -208,7 +206,7 @@ Create a __spatial flux__ here.
 
 <div class="answer">
 ```{r}
-add.spatialflux(grw_model_1,0.001,"recharge")  #all length units are in meters
+add.spatialflux(grw_model_1,0.001,"recharge")  #1mm/day --> all length units are in meters
 ```
 </div>
 
@@ -225,7 +223,7 @@ You can give the model a specific name. It is not required though.
 
 <div class="answer">
 ```{r}
-set.name(grw_model_1,'type 1 1D groundwater model ')
+set.name(grw_model_1,'Type-1 1D groundwater model ')
 ```
 </div>
 
@@ -304,7 +302,7 @@ The solution given below:
 $$
  H_{analytic}=H_{river}+\frac {R}{2kD}x(L-x)
 $$
-is based on one of the solutions for the calculation of drain spacings of Hooghoudt (a Dutch hydrologist aug.1901 - aug.1953). Here $H_{river}$ is the river or ditch level, $R$ is the recharge, $x$ is the location in space and $L$ is the distance between two rivers. 
+is based on one of the solutions for the calculation of drain spacings of Hooghoudt (a Dutch hydrologist aug.1901 - aug.1953). Here $H_{river}$ is the river or ditch level, $R$ is the recharge (net rainfall), $x$ is the location in space and $L$ is the distance between two rivers. 
 
 <div class="exercise"> 
 12. Calculate the difference between the hydraulic heads in the numerical and the analytical solution. How well does the numerical solution perform? 
@@ -383,7 +381,7 @@ For this, a kD-function is created with `approxfun` in R, as shown in the chunk 
 
 ```{r}
 kD.func = approxfun(c(0,200),c(15,60),rule=2)
-plot(kD.func(0:200),type="o")
+plot(kD.func(0:200),type="o",main="Transmissivity values over the domain",xlab="x",ylab="kD")
 ```
 
 Create a new model which is based on the newly created kD function. A new internal flux function needs to be defined for this model.  
@@ -408,7 +406,7 @@ set.BC.fixedstate(kDvar_model,'left',5)
 set.BC.fixedstate(kDvar_model,'right',5)
 nodes = seq(from=domain[1],to=domain[2],by=10)
 set.discretisation(kDvar_model,nodes,method='FV') 
-set.name(kDvar_model,"varying kD model")
+set.name(kDvar_model,"Varying kD model")
 solve.steps(kDvar_model,verboselevel=1)
 plot(kDvar_model,fluxplot=TRUE)
 ```
@@ -468,7 +466,7 @@ set.BC.fixedstate(type2_model,'left',5)
 set.BC.fixedstate(type2_model,'right',5)
 nodes = seq(from=domain[1],to=domain[2],by=10)
 set.discretisation(type2_model,nodes,method='FV') 
-set.name(type2_model,"nonlinear internal flow")
+set.name(type2_model,"Nonlinear internal flow model")
 solve.steps(type2_model,verbose=TRUE)
 plot(type2_model,fluxplot=TRUE)
 ```
@@ -480,19 +478,47 @@ As the solution technique is now an iterative one, a good initialization may hel
 ```{r}
 do.initialize(type2_model,5)
 solve.steps(type2_model,verbose=TRUE)
-plot(type2_model,fluxplot = TRUE)
 ```
+</div>
+
+<div class="exercise">
+17. The chunk below compares the results of the linear and nonlinear model. At `XLINEARMODELX` and `XNONLINEARMODELX`, fill in your varying-kD linear model and your nonlinear model. Do you see differences?
+</div>
+
+Now look at the effect of the aquifer depth $D$. Our reference level for the elevation head is 0 m, and so $D$ is simply equal to the river level at the boundaries (see figure 1). In the current situation, D=5 m. The linear varying-kD model, with kD between 15 and 60, therefore has the same conductivities over the domain (from 15/5=3 m/d to 60/5=12 m/d) as the nonlinear model.   
+Using this logic, $D$ can be varied by adapting the boundary conditions and kD values of the linear varying-kD model; and adapting the boundary conditions in the nonlinear model.
+
+<div class="student_answer">
+```{r eval=FALSE}
+plot(dataframe.states(XLINEARMODELX),col="black",main=paste("Linear (dots) vs nonlinear model (red); D =",dataframe.boundaries(XLINEARMODELX)[1,3],"m"))
+lines(dataframe.states(XNONLINEARMODELX),col="red")
+```
+</div>
+
+<div class="exercise">
+18. Vary the D value for the two models. What effect does $D$ have on the differences between the linear and nonlinear model?
+</div>
+
+<div class="answer">
+```{r }
+plot(dataframe.states(kDvar_model),col="black",main=paste("Linear (dots) vs nonlinear model (red); D =",dataframe.boundaries(kDvar_model)[1,3],"m"),xlab="x",ylab="groundwater level")
+lines(dataframe.states(type2_model),col="red")
+```
+
+For D=5 m, the linear and nonlinear method give about the same result. When you change D for example to 1 m (see figure below), the linear and nonlinear models start to diverge. When D is small relative to the variation in hydraulic head in the domain, the assumption that groundwater level differences are negligible in determining the flow thickness is no longer valid. A nonlinear internal flux function will then be more appropriate.
+
+![](Answer1.8.png)
 </div>
 
 # Part 2: Turbulent heat transfer in the stable atmospheric boundary layer
 
 ## Introduction
 
-Because the emissivity of the Earth's surface is usually higher than the emissivity f the air layers aloft, the Earth's surface emits more longwave radiation than it receives from the overlying atmosphere. As a result, after sunset, the Earth's surface starts to cool, and this cooling is faster than the cooling of the overlying atmospheric air layers. The enhanced cooling of the surface as compared to the adjacent air layers leads to downward transport heat from the atmosphere to the surface. This downward heat flux extracts energy from the atmosphere implying that subsequently air layers close to ground start to cool as well. The successive cooling of the atmospheric layers lead to profiles of (potential) temperature in the so-called stable boundary layer (SBL) as illustrated below.    
+Because the emissivity of the Earth's surface is usually higher than the emissivity of the air layers aloft, the Earth's surface emits more longwave radiation than it receives from the overlying atmosphere. As a result, after sunset, the Earth's surface starts to cool, and this cooling is faster than the cooling of the overlying atmospheric air layers. The enhanced cooling of the surface as compared to the adjacent air layers leads to downward transport of heat from the atmosphere to the surface. This downward heat flux extracts energy from the atmosphere, implying that subsequently air layers close to ground start to cool as well. The successive cooling of the atmospheric layers lead to profiles of (potential) temperature in the so-called stable boundary layer (SBL) as illustrated below.    
 ![](potentialT_height.png)   
-Figure 2: profiles of potential temperature in the Atmospheric Boundary Layer.
+Figure 3: profiles of potential temperature in the Atmospheric Boundary Layer.
 
-The transport of heat through the atmosphere toward the surface can be modelled in a similar way as the groundwater system. You will build a 1D, stationary model to simulate *vertical* flow. Here, the potential temperature $\theta$ is the state variable. 
+The transport of heat through the atmosphere towards the surface can be modelled in a similar way as the groundwater system. You will build a 1D, stationary model to simulate vertical heat flow. Here, the potential temperature $\theta$ is the state variable. 
 
 ## 2.1 Model setup
 
@@ -555,7 +581,7 @@ Comment: I added the last part of the answer, is this reasoning in the answer co
 
 ## 2.2 Building the model
 
-In the chunk below, set up the mathematical part of the stationary heat flow model. Specify the domain, the system flux function and the boundary conditions as given above. Note that 'left' now refers to the lower BC and 'right' refers to the upper BC, as upwards flow is defined positive. Use the first external flux option (external flux=0).
+In the chunk below, set up the mathematical part of the stationary heat flow model. Specify the domain, the system flux function and the boundary conditions as given above. Note that upwards flow is defined positive, so **'left' now refers to the lower BC and 'right' refers to the upper BC**. Use the first external flux option (external flux=0).
 
 <div class="student_answer">
 ```{r}
@@ -577,8 +603,8 @@ tempflux = function(x,state,gradstate)
 #create the model
 oneDTempModel = newFLOW1D(domain=domain,systemfluxfunction = tempflux)
 #set boundary conditions
-set.BC.fixedstate(oneDTempModel,'left',291.7) 
-set.BC.fixedstate(oneDTempModel,'right',295.)
+set.BC.fixedstate(oneDTempModel,'left',291.7) #left=lower boundary condition
+set.BC.fixedstate(oneDTempModel,'right',295.) # right=upper boundary condition
 #add external flux
 add.spatialflux(oneDTempModel,0.,'RDzero')  #we add this 'empty' flux just to differentiate with the models we make later
 ```
@@ -604,7 +630,7 @@ set.discretisation(oneDTempModel,nodes,'FV')
 #solve and plot
 solve.steps(oneDTempModel)
 oneDstates = dataframe.states(oneDTempModel)
-plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]')
+plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]',main="Potential temperature profile, cooling situation")
 ```
 </div>
 
@@ -626,7 +652,7 @@ $$  \theta(x)=290+\frac{(295-290)}{ln(100/0.03)} ln(\frac{x}{0.03}) $$
 #plot analytical solution
 xanalyt = seq(domain[1],domain[2],by=1)
 thanalyt = 290+5.*log(xanalyt/0.03)/log(100./0.03) 
-plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]')
+plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]', main="Numerical (dots) vs analytical solution (red)")
 lines(thanalyt,xanalyt,col='red')
 #make a new, coarser model
 oneDmodelcoarse = copy.model(oneDTempModel)
@@ -635,7 +661,7 @@ set.discretisation(oneDmodelcoarse,nodes,'FV')
 solve.steps(oneDmodelcoarse)
 #and compare with a plot
 oneDstates = dataframe.states(oneDmodelcoarse)
-plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]')
+plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]', main="Numerical vs analytical, coarse resolution")
 lines(thanalyt,xanalyt,col='red')
 ```
 
@@ -655,7 +681,7 @@ where $g$ is the gravitational constant (=9.81 $kg m^2 s^{-1}$), $\theta_{ref}$ 
 <p id="Q2"> </p>
 
 <div class="exercise"> 
-4. Implement the new eddy diffusivity $K_{eddy}$ that depends on the surface heat flux. Use a heat flux of -0.025 $K m s^{-1}$ at the surface (downwards heat flux). 
+4. Implement the new eddy diffusivity $K_{eddy}$ that depends on the surface heat flux. Use a surface heat flux of -0.025 $K m s^{-1}$ (downwards heat flux). 
 </div>
 Define the surface heat flux, MOL and $K_{eddy}$ separately so you can adapt them easily.
 
@@ -687,7 +713,7 @@ set.discretisation(oneDmodelstrat,nodes,'FV')
 solve.steps(oneDmodelstrat)
 ##plotting
 oneDstates = dataframe.states(oneDmodelstrat)
-plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]',main='1D model with stratification')
+plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]',main='Tpot profile, 1D model with stratification')
 ```
 </div>
 
@@ -705,11 +731,11 @@ plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]',main='
 ```{r}
 dataframe.boundaries(oneDmodelstrat)
 ```
-The values are close but not the same. Note that the internal fluxes both at the surface and at the top of the SBL are negative, whereas according to `dataframe.boundaries(oneDmodel)` the flux at the top of the SBL is positive. Negative internal fluxes arise as fluxes are directed downward, whereas the fluxes in `dataframe.boundaries(oneDmodel)` are positive when there is a flux over the boundary into the domain and negative when the flux is going out of the domain. 
+The heat flux at the lower boundary is close to -0.025 Km/s, but not exactly. Note that the internal fluxes both at the surface and at the top of the SBL are negative, whereas according to `dataframe.boundaries(oneDmodel)` the flux at the top of the SBL is positive. Negative internal fluxes arise as fluxes are directed downwards, whereas the fluxes in `dataframe.boundaries(oneDmodel)` are positive when there is a flux over the boundary into the domain and negative when the flux is going out of the domain. 
 </div>
 
 <div class="exercise">	
-6. If the flux at the surface does not equal the prescribed surface heat flux, adapt the boundary conditions at the surface in such a way that the flux of energy at the surface equals the prescribed surface energy flux. 
+6. If the flux at the surface does not equal the prescribed surface heat flux, adapt the boundary conditions at the surface in such a way that the two fluxes are the same. 
 </div>
 
 <div class="student_answer">
@@ -740,7 +766,7 @@ Until now we have considered a situation where the external fluxes are zero (fir
 Here we will apply radiative cooling as a sink over the entire domain (second external flux option).
 
 <div class="exercise"> 
-7. Make a new model which equals the model defined above. You can use the function `copy.model(model)`. Then, create an external flux of the second type: A constant radiative cooling of -1.0E-4 K/s within the entire domain (see introduction). 
+7. Make a new model which equals the model defined above. You can use the function `copy.model(model)`. Then, create an external flux of the second type: a constant radiative cooling of -1.0E-4 K/s within the entire domain (see introduction). 
 </div>
 
 <div class="student_answer">
@@ -775,9 +801,9 @@ fluxesSink = dataframe.internalfluxes(oneDmodelSink)
 solve.steps(oneDmodelstrat)
 statesNoSink = dataframe.states(oneDmodelstrat)
 fluxesNoSink = dataframe.internalfluxes(oneDmodelstrat)
-plot(statesSink$state,statesSink$x,xlab='pot.temp. [K]',ylab='height [m]',main='with (black) and without (red) external sink')
+plot(statesSink$state,statesSink$x,xlab='pot.temp. [K]',ylab='height [m]',main='Tpot profile with (black) and without (red) external sink')
 lines (statesNoSink$state,statesNoSink$x, col='red')
-plot(fluxesSink$intflux,fluxesSink$x,xlab='internal flux [K m/s]',ylab='height [m]',main = 'with (black) and without (red) external sink')
+plot(fluxesSink$intflux,fluxesSink$x,xlab='internal flux [K m/s]',ylab='height [m]',main = 'Heat flux with (black) and without (red) external sink')
 lines (fluxesNoSink$intflux,fluxesNoSink$x, col='red')
 ```
 
@@ -789,7 +815,7 @@ The internal fluxes were constant for the zero external flux model. For the radi
 Comment: some extra explanation needed in answer here!
 </div>
 
-The `dataframe.balance` function can calculate the balance (of water, heat, or anything else) of the model domain. It can also calculate the balance over specific parts of the domain. 
+The `dataframe.balance` function can calculate the balance (of water, heat, or anything else) over the model domain as a whole. It can also calculate the balance over specific parts of the domain. 
 
 <div class="exercise">
 9. Use `dataframe.balance` to calculate the energy balance for the region defined by the volumes (nodes) 14,15 and 16. Check whether the net inflow to this region equals its total external flux.
@@ -839,13 +865,13 @@ solve.steps(oneDmodel_robin)
 oneDstates = dataframe.states(oneDmodel_robin)
 oneDfluxes = dataframe.internalfluxes(oneDmodel_robin)
 
-plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]',main='With Robin boundary')
-plot(oneDfluxes$intflux,oneDfluxes$x,xlab='internal flux [K m/s]',ylab='height [m]',main='With Robin boundary')
+plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]',main='Tpot profile with Robin/Cauchy boundary')
+plot(oneDfluxes$intflux,oneDfluxes$x,xlab='internal flux [K m/s]',ylab='height [m]',main='Tpot profile with Robin/cauchy boundary')
 ```
 </div>
 
 <div class="exercise"> 
-11. Check the balance of the system. Is the net inflow over the boundaries equal to the total external flux? 
+11. Check the balance of the system as a whole. Is the net inflow over the boundaries equal to the total external flux? 
 </div>
 
 <div class="student_answer">
@@ -862,11 +888,11 @@ The external fluxes still equal the boundary fluxes, while the net internal flux
 </div>
 
 <div class="comment">
-Comments:
-* Section 2.4 needs some background info, in a link or in the hint. 
-* In the answer to part 2, question 8 there should be some explanation about why you see these differences in internal fluxes. I didn't really know how to explain this, anyone? 
-* The whole thing should maybe still be shorter. I would say it is more valuable to build fewer model variations, and go some deeper into the variants that you do build (real-world application for the applied track, how-does-the-model-work for the in-depth track). Also some more explanation in the answers could be nice.
-I already skipped some hydro stuff (quite a bit about sensitivities and two more varying kD fields). I also left out two variants of the meteo model. And I'm not sure if section 2.3 is necessary?
-* For the in-depth track, section 1.8 could be nice to look further into: how does the model solve linear and nonlinear internal flow? And why are iterations needed in the second case?
-* I think the hydrological theory in this practical is understandable for everyone (unless people may not know Darcy or what transmissivity is?). The meteo part seems quite feasible for non-meteo people. There are some terms that are probably new to some people, maybe we could add links to web pages here and there?
+Comments:   
+* Section 2.4 needs some background info, in a link or in the hint.    
+* In the answer to part 2, question 8 there should be some explanation about why you see these differences in internal fluxes. I didn't really know how to explain this, anyone?    
+* The whole thing should maybe still be shorter. I would say it is more valuable to build fewer model variations, and go some deeper into the variants that you do build (real-world application for the applied track, how-does-the-model-work for the in-depth track). Also some more explanation in the answers could be nice.    
+I already skipped some hydro stuff (quite a bit about sensitivities and two more varying kD fields). I also left out two variants of the meteo model. And I'm not sure if section 2.3 is necessary? 
+* For the in-depth track, section 1.8 could be nice to look further into: how does the model solve linear and nonlinear internal flow? And why are iterations needed in the second case?   
+* I think the hydrological theory in this practical is understandable for everyone (unless people may not know Darcy or what transmissivity is?). The meteo part seems quite feasible for non-meteo people. There are some terms that are probably new to some people, maybe we could add links to web pages here and there?   
 </div>
