@@ -244,8 +244,9 @@ terms | error
 5 | 
 6 |
 
-```{r chunk5}
+```{r chunk5, eval=FALSE, echo=FALSE}
 rm(list=ls())
+library(shiny)
 error = function(taylor){
   # Taylor series parameter
   #taylor     = 15
@@ -371,9 +372,8 @@ In this part of the assignments on the finite differences method, an input will 
 A simple, but effective input could be a $sin(time)+1$ function representing for example the daily varying latent heat flux or an undulating precipitation pattern:
 
 ```{r chunk6}
-time = seq(begin.time,end.time,by=0.5)
+time = seq(0,50,by=0.5)
 plot(time,sin(time)+1,type='o', xlab="time",ylab="state")
-
 ```
 
 Coming back the the mathematics of the implementation. The first was to set up the balance equations in the system. For an emptying bucket with a variable input: 
@@ -1029,7 +1029,292 @@ Maybe it is a nice idea to let the hard track solve the *coupled reservoir* and 
 </span>
 
 # Part 6 - Real world example
+The reservoir models up till now consider one outlet only. This entails a constant and linear relation between Volume change and state change (for the linear reservoirs).
+For some environmental flow problems a reservoir model having a slow and fast acting component would be more practical.
+Its practical use may be found in meteorology like a reservoir containing thermal energy which can be released at different rates or in rainfall runoff models, simulating base flow and after a storm event a quick discharge (e.g. due to surface runoff).
+In the graph below the principle and workings of such a reservoir model is illustrated: 
 
+![](double_pipe-reservoir.png)
+
+*Double piped reservoir with both outlets active (left) and with lower outlet active (right).*  
+
+***   
+
+Depending on the state of the reservoir, the discharge out of the upper outlet is active or in-active and depends on the datum(reference) of the upper outlet.  
+
+<span class="question">6.1 Setup a new ordinary differential equation including the input flux ($Q_{in}$), Volume change over time and the output fluxes (discharges). Next derive a numerical approximation for the state using the explicit integration scheme</span>  
+
+<span class="answer">
+$$
+\begin{matrix}
+\text{Explicit scheme :}\\
+\dfrac{\partial V}{\partial t} &=& Q_{in}-Q_{out}^{upper}-Q_{out}^{lower}\\[10pt]
+A\dfrac{s(t + \Delta t)-s(t)}{\Delta t} &=& Q_{in}-Q_{out}^{upper}-Q_{out}^{lower}\\[10pt]
+Q_{out}^{upper}&=&\alpha_{res.up}\:(s(t)-level_{res.up})\\[10pt]
+Q_{out}^{lower}&=&\alpha_{res.lw}\:s(t)\\[10pt]
+\dfrac{s(t + \Delta t) -s(t)}{\Delta t} &=& \dfrac{1}{A}\left( Q_{in}-\alpha_{res.up}(s(t)-level_{res.up})-\alpha_{res.lw}\:s(t)\right)\\[20pt]
+s\le level_{res.up}\\
+s(t + \Delta t)&=&s(t)+\dfrac{\Delta t}{A} \left(Q_{in}-\alpha_{res.lw}\:s(t) \right)\\
+s> level_{res.up}\\
+s(t + \Delta t)&=&s(t)+\dfrac{\Delta t}{A} \left(Q_{in}-\alpha_{res.up}(s(t)-level_{res.up})-\alpha_{res.lw}\:s(t) \right)\\
+\end{matrix}
+$$
+</span>
+
+The script below contains different items of this type of reservoir model. With this example the discharge of the Hupselse Beek (Gelderland) is simulated.   
+The input is based on the recharge in the catchment of the Hupselse Beek. 
+The output is observed at the weir downstream of the brook.
+The time series in 'hupsel.dat'  contains 500 days of data (daily time steps)  
+This script creates two different plots containing:   
+
+*   the modeled balance
+*   the observed and calculated discharge of the brook including a statistic on the performance  
+
+
+<span class="question">6.2 Implement the numerical approximation in the __sys.fun__ function and run the model.   
+
+```{R, eval=FALSE}
+##loading input and observed data
+hupsel = read.table(file='hupsel.dat')
+hupsel.time = hupsel$V1
+hupsel.Qin = hupsel$V2
+hupsel.Qobs = hupsel$V3
+#to make data continuous for al dt
+Qin.fun =approxfun(x=hupsel.time,y=hupsel.Qin,rule=2:2) 
+Qobs.fun = approxfun(x=hupsel.time,y=hupsel.Qobs,rule = 2:2)
+
+##time aspects
+begin.time = 0              #begin time of the simulation
+end.time = hupsel.time[length(hupsel.time)] #end time of the simulation
+dt = 0.5                    #1.0#.5 #delta t; time discretisation
+
+#reservoir parameters
+res.alpha.lw = 0.10543215 
+res.alpha.up = 0.75
+res.lvl.up= 0.4             #1.7
+res.A = 1.45 
+
+init.state = 1.4            #the initial state of the linear reservoir
+
+sys.fun = function(state)
+{
+  #
+}
+
+time          = begin.time
+result.state  = c(init.state)
+result.time   = c(time)
+current.state = init.state
+result.Qout1  = c()
+result.Qout2  = c()
+result.Qin    = c()
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state  = c(result.state,current.state)
+  time          = time + dt
+  result.time   = c(result.time,time)
+}
+
+#####Calculation of the Qout fluxes
+##first a function (state.above.up) to determine which states are above the upper outlet
+state.above.up = function()
+{
+  state.up = c()
+  for (i in 1:length(result.time))
+  {
+    this.state = result.state[i]
+   if(this.state>res.lvl.up)
+   {
+     state.up=c(state.up,this.state)
+   }else{
+     state.up=c(state.up,0)
+   }
+  }
+  return(state.up)
+}
+
+
+  state.above =state.above.up()  
+  Qout.up = state.above
+  IQout = which(state.above>0)
+  Qout.up[IQout] = res.alpha.up*(Qout.up[IQout]-res.lvl.up) 
+ 
+  
+#   Qout.up = res.alpha.up*(state.above[state.above>0]-res.lvl.up)
+
+Qout.lw = c()
+Qout.lw = res.alpha.lw*result.state
+# Qout.lw = res.A*res.k.lw*result.state
+
+##balance
+##dV/dt = Qin - Qout.lw - Qout.up
+##dV/dt = state*res.A/dt
+nrsteps = length(result.state)-1
+dVdt = diff(result.state)*res.A/dt
+Qin = Qin.fun(result.time)
+error = Qin[1:nrsteps] - Qout.lw[1:nrsteps] - Qout.up[1:nrsteps] - dVdt
+ 
+plot(result.time,Qin,type = 'l',
+     ylim=c(min(Qin,Qout.lw,Qout.up,dVdt),max(Qin,Qout.lw,Qout.up,dVdt)),
+     ylab = 'L^3/T',xlab = 'time')
+legend('topleft',c('Qin : black',
+                 'Qout.lw : blue',
+                 'Qout.up : green',
+                 'dVdt: red',
+                 'error : dashed'))
+
+     
+lines(result.time[1:nrsteps],dVdt,col='red')
+lines(result.time[1:nrsteps],Qout.lw[1:nrsteps],col='blue')
+lines(result.time[1:nrsteps],Qout.up[1:nrsteps],col='green')
+lines(result.time[1:nrsteps],error,lty='dashed')
+
+##results observed vs computed
+plot(result.time[1:nrsteps],Qobs.fun(result.time[1:nrsteps]),type='l',
+     lwd=2,col='grey',ylim=c(min(hupsel.Qobs,Qout.lw,Qout.up),max(hupsel.Qobs,Qout.lw,Qout.up)),
+     ylab = 'Qout.obs/Qout.calc',xlab = 'time')
+lines(result.time[1:nrsteps],Qout.up[1:nrsteps]+Qout.lw[1:nrsteps],col='blue')
+
+Sumsquares = sum((Qobs.fun(result.time)-(Qout.up+Qout.lw))^2)
+title(main=paste('Observed (grey) vs. calculated discharges ','SS = ',Sumsquares))
+
+
+
+```
+</span>
+
+<span class="answer"> 
+code chunk with if construct evaluating if level is above res.lvl.up;
+```{R}
+##loading input and observed data
+hupsel = read.table(file='hupsel.dat')
+hupsel.time = hupsel$V1
+hupsel.Qin = hupsel$V2
+hupsel.Qobs = hupsel$V3
+#to make data continuous for al dt
+Qin.fun =approxfun(x=hupsel.time,y=hupsel.Qin,rule=2:2) 
+Qobs.fun = approxfun(x=hupsel.time,y=hupsel.Qobs,rule = 2:2)
+
+##time aspects
+begin.time   = 0              #begin time of the simulation
+end.time = hupsel.time[length(hupsel.time)] #end time of the simulation
+dt           = 0.5            #1.0#.5 #delta t; time discretisation
+
+#reservoir parameters
+res.alpha.lw = 0.10543215 
+res.alpha.up = 0.75
+res.lvl.up   = 0.4            #1.7
+res.A        = 1.45 
+
+init.state   = 1.4            #the initial state of the linear reservoir
+
+sys.fun = function(state)
+{
+  if(state<= res.lvl.up)
+  {
+    state = state +dt/res.A*(Qin.fun(time)- res.alpha.lw*state)
+  }else{
+    state = state + dt/res.A*(Qin.fun(time)-res.alpha.up*(state-res.lvl.up)-res.alpha.lw*state)
+  }
+  return(state)
+}
+
+time            = begin.time
+result.state    = c(init.state)
+result.time     = c(time)
+current.state   = init.state
+result.Qout1    = c()
+result.Qout2    = c()
+result.Qin      = c()
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state  = c(result.state,current.state)
+  time          = time + dt
+  result.time   = c(result.time,time)
+}
+
+#####Calculation of the Qout fluxes
+##first a function (state.above.up) to determine which states are above the upper outlet
+state.above.up = function()
+{
+  state.up = c()
+  for (i in 1:length(result.time))
+  {
+    this.state = result.state[i]
+   if(this.state>res.lvl.up)
+   {
+     state.up=c(state.up,this.state)
+   }else{
+     state.up=c(state.up,0)
+   }
+  }
+  return(state.up)
+}
+
+
+  state.above =state.above.up()  
+  Qout.up = state.above
+  IQout = which(state.above>0)
+  Qout.up[IQout] = res.alpha.up*(Qout.up[IQout]-res.lvl.up) 
+ 
+  
+#   Qout.up = res.alpha.up*(state.above[state.above>0]-res.lvl.up)
+
+Qout.lw = c()
+Qout.lw = res.alpha.lw*result.state
+# Qout.lw = res.A*res.k.lw*result.state
+
+##balance
+##dV/dt = Qin - Qout.lw - Qout.up
+##dV/dt = state*res.A/dt
+nrsteps = length(result.state)-1
+dVdt = diff(result.state)*res.A/dt
+Qin = Qin.fun(result.time)
+error = Qin[1:nrsteps] - Qout.lw[1:nrsteps] - Qout.up[1:nrsteps] - dVdt
+ 
+plot(result.time,Qin,type = 'l',
+     ylim=c(min(Qin,Qout.lw,Qout.up,dVdt),max(Qin,Qout.lw,Qout.up,dVdt)),
+     ylab = 'L^3/T',xlab = 'time')
+legend('topleft',c('Qin : black',
+                 'Qout.lw : blue',
+                 'Qout.up : green',
+                 'dVdt: red',
+                 'error : dashed'))
+
+     
+lines(result.time[1:nrsteps],dVdt,col='red')
+lines(result.time[1:nrsteps],Qout.lw[1:nrsteps],col='blue')
+lines(result.time[1:nrsteps],Qout.up[1:nrsteps],col='green')
+lines(result.time[1:nrsteps],error,lty='dashed')
+
+##results observed vs computed
+plot(result.time[1:nrsteps],Qobs.fun(result.time[1:nrsteps]),type='l',
+     lwd=2,col='grey',ylim=c(min(hupsel.Qobs,Qout.lw,Qout.up),max(hupsel.Qobs,Qout.lw,Qout.up)),
+     ylab = 'Qout.obs/Qout.calc',xlab = 'time')
+lines(result.time[1:nrsteps],Qout.up[1:nrsteps]+Qout.lw[1:nrsteps],col='blue')
+
+Sumsquares = sum((Qobs.fun(result.time)-(Qout.up+Qout.lw))^2)
+title(main=paste('Observed (grey) vs. calculated discharges ','SS = ',Sumsquares))
+
+
+
+```
+</span>
+
+<span class="question">6.3  Analyse the effect of the different reservoir parameters on the behaviour of the model.</span>   
+<span class="answer">The four reservoir parameters: 
+
+<span class="answer">
+
+* res.A:  With the area the total volume in the reservoir is controlled. Small A results in less volume of water resulting in a peaky-er discharge.
+* res.alpha.lw:   the lower outlet of the reservoir regulates the dynamics of the discharge; the larger $\alpha$ the directer the discharge occur. Base flow (the tails after the peaks) is reduced.
+* res.alpha.up/res.lvl.up:  the activity is regulated with the height of the upper outlet. If the state is below this level, the upper outlet is inactive. If the state is higher than the upper outlet it acts similar as with res.alpha.lw 
+
+</span>
+
+<span class="question">6.4 What is the lowest sum of squares (SS) you can get? With what combination of reservoir parameter values. *not sure if to include this question*</span>  
 
 
 
