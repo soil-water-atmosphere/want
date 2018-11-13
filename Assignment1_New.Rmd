@@ -28,7 +28,7 @@ The first part of this practical will deal with a hydrological problem: saturate
 In this first example a model will be developed to simulate saturated groundwater flow towards two rivers, left and  right, in a one dimensional domain as shown in the graph below. Here the flow is stationary.
 ![](assignment1_1D_2rivers.png)
 
-Figure 1 : 1D stationary saturated groundwater flow towards two rivers   
+Figure 1 : 1D stationary saturated groundwater flow towards two rivers.   
    
 ***   
 
@@ -110,7 +110,7 @@ scales and units:
 These units are correct right? Jasper thought external flux was in m2/d too but I think m/d is correct (the model will multiply the flux density with the width of the control volume).
 </div>
 
-## 1.2: Mathematical model setup
+## 1.2 Mathematical model setup
 When setting up your model, you can make use of the model template `ModelTemplate1D.Rmd`, which is included in your folder. This document explains all the steps needed in setting up a 1D flow model. The help pages of the FVFE1D package may also be helpful.
 
 <div class="exercise"> 
@@ -229,12 +229,12 @@ set.name(grw_model_1,'Type-1 1D groundwater model ')
 
 ## 1.3 Numerical model setup
 
-The above created the mathematical or conceptual model setup.  
+Above, the mathematical or conceptual model setup is defined.   
 Now the numerical setup needs to be formulated.
 
 <div class="exercise"> 
 10. Making the model discrete  
-</div>        
+</div>
 Use the spatial $\Delta x$ here to define the (number of) nodes.  
 Make the model discrete using these nodes and set the type of numerical approximation.  
 <div class="student_answer">
@@ -296,13 +296,13 @@ plot(grw_model_1,stateplot=TRUE,fluxplot=TRUE, FVstyle=T)
 ## 1.5 Comparing with the analytical solution 
 
 It is interesting to see how well the numerical solution compares with an analytical solution.  
-To come up with an analytical solution is normally only feasible when very homogeneous and uniform conditions are at hand, which is the case in this situation. If the aquifer transmissivity would not be a constant, an analytical solution would be much harder to find.  
+To come up with an analytical solution is normally only feasible when homogeneous and uniform conditions are at hand, which is the case in this situation. If the aquifer transmissivity would not be a constant, an analytical solution would be much harder to find.  
 The solution given below:
 
 $$
  H_{analytic}=H_{river}+\frac {R}{2kD}x(L-x)
 $$
-is based on one of the solutions for the calculation of drain spacings of Hooghoudt (a Dutch hydrologist aug.1901 - aug.1953). Here $H_{river}$ is the river or ditch level, $R$ is the recharge (net rainfall), $x$ is the location in space and $L$ is the distance between two rivers. 
+This formula is based on one of the solutions for the calculation of drain spacings of Hooghoudt (a Dutch hydrologist aug.1901 - aug.1953). Here $H_{river}$ is the river or ditch level, $R$ is the recharge (net rainfall), $x$ is the location in space and $L$ is the distance between two rivers. 
 
 <div class="exercise"> 
 12. Calculate the difference between the hydraulic heads in the numerical and the analytical solution. How well does the numerical solution perform? 
@@ -328,7 +328,7 @@ print(c('difference :',H_anal-H_num))
 ## 1.6 Examining the water balance
 
 A very important tool for a hydrologist is the water balance. With this the flows into and out of the system can be assessed.  
-Use the appropriate function in the FVFE1D package to calculate the model water balance.  
+Use the appropriate function in the FVFE1D package to print the model water balance.  
 
 <div class="student_answer">
 ```{r}
@@ -376,7 +376,7 @@ So $0.1 m^2/d$ leaves the system through the left boundary and $0.1 m^2/d$ throu
 
 ## 1.7 A non-uniform kD field
 
-Up till now the transmissivity of the aquifer has been a constant.  Now we are going to investigate the effect of a gradually increasing transmissivity from left to right in the model.  
+Up till now the transmissivity of the aquifer has been constant. Now we are going to investigate the effect of a gradually increasing transmissivity from left to right in the model.  
 For this, a kD-function is created with `approxfun` in R, as shown in the chunk below. Type `help(approxfun)` at the console prompt to have some insight in the workings of approxfun.  
 
 ```{r}
@@ -413,7 +413,7 @@ plot(kDvar_model,fluxplot=TRUE)
 </div>
 
 <div class="exercise"> 
-15. Make a plot of the fluxes and states of this model and consider the following questions.  
+15. Solve the varying kD model and make a plot of the fluxes and states and consider the following questions.  
 
 *    What can you conclude about the water divide?  
 *    What is the fraction of water draining to the left and the right river?  
@@ -443,7 +443,7 @@ Until now the model was of a type 1 flow: it assumed a constant saturated thickn
 
 <div class="exercise">
 16. Make a model with a type 2 flow (see [Question 1: Internal flux] ) where the k value varies linearly between 3 and 12 from left to right.  
-As the model is non-linear, the solution of the model will take more than one step. Add a verbose argument to the solve.steps call (see help) to count the number of iterations needed.  
+As the model is non-linear, the solution of the model will take more than one step. Add a verbose argument to the solve.steps call (see help) to count the number of iterations needed and plot the solution.
 </div>
 
 <div class="student_answer">
@@ -485,15 +485,15 @@ solve.steps(type2_model,verbose=TRUE)
 17. The chunk below compares the results of the linear and nonlinear model. At `XLINEARMODELX` and `XNONLINEARMODELX`, fill in your varying-kD linear model and your nonlinear model. Do you see differences?
 </div>
 
-Now look at the effect of the aquifer depth $D$. Our reference level for the elevation head is 0 m, and so $D$ is simply equal to the river level at the boundaries (see figure 1). In the current situation, D=5 m. The linear varying-kD model, with kD between 15 and 60, therefore has the same conductivities over the domain (from 15/5=3 m/d to 60/5=12 m/d) as the nonlinear model.   
-Using this logic, $D$ can be varied by adapting the boundary conditions and kD values of the linear varying-kD model; and adapting the boundary conditions in the nonlinear model.
-
 <div class="student_answer">
 ```{r eval=FALSE}
 plot(dataframe.states(XLINEARMODELX),col="black",main=paste("Linear (dots) vs nonlinear model (red); D =",dataframe.boundaries(XLINEARMODELX)[1,3],"m"))
 lines(dataframe.states(XNONLINEARMODELX),col="red")
 ```
 </div>
+
+Now look at the effect of the aquifer depth $D$. Our reference level for the elevation head is 0 m, and so $D$ is simply equal to the river level at the boundaries (see figure 1). In the current situation, D=5 m. The linear varying-kD model, with kD between 15 and 60, therefore has the same conductivities over the domain (from 15/5=3 m/d to 60/5=12 m/d) as the nonlinear model.   
+Using this logic, $D$ can be varied by adapting the boundary conditions and kD values of the linear varying-kD model; and adapting the boundary conditions in the nonlinear model.
 
 <div class="exercise">
 18. Vary the D value for the two models. What effect does $D$ have on the differences between the linear and nonlinear model?
@@ -515,8 +515,11 @@ For D=5 m, the linear and nonlinear method give about the same result. When you 
 ## Introduction
 
 Because the emissivity of the Earth's surface is usually higher than the emissivity of the air layers aloft, the Earth's surface emits more longwave radiation than it receives from the overlying atmosphere. As a result, after sunset, the Earth's surface starts to cool, and this cooling is faster than the cooling of the overlying atmospheric air layers. The enhanced cooling of the surface as compared to the adjacent air layers leads to downward transport of heat from the atmosphere to the surface. This downward heat flux extracts energy from the atmosphere, implying that subsequently air layers close to ground start to cool as well. The successive cooling of the atmospheric layers lead to profiles of (potential) temperature in the so-called stable boundary layer (SBL) as illustrated below.    
+
+<div align="center">
 ![](potentialT_height.png)   
 Figure 3: profiles of potential temperature in the Atmospheric Boundary Layer.
+</div>
 
 The transport of heat through the atmosphere towards the surface can be modelled in a similar way as the groundwater system. You will build a 1D, stationary model to simulate vertical heat flow. Here, the potential temperature $\theta$ is the state variable. 
 
@@ -529,7 +532,7 @@ $$ Q=-K_{eddy} \frac{\partial\theta}{\partial x} $$
 where $Q$ is the internal flux (defined positive upwards), $K_{eddy}$ is the eddy diffusivity and $\frac{\partial\theta}{\partial x}$ is the gradient of the potential temperature.
 The eddy diffusivity can be calculated as: 
 $$ K_{eddy}=ku_* x$$
-where $k$ is the Von Karman constant, $u_*$ is the friction velocity at the surface and $x$ is the location (height above the surface). We will use $k$ is 0.4 and $u_*$ is 0.25 m/s. 
+where $k$ is the Von Karman constant, $u_*$ is the friction velocity at the surface and $x$ is the location (height above the surface). The Von Karman constant equals $k$ is 0.4 and $u_*$ will be 0.25 m/s. 
 
 <div class="exercise"> 
 1. On which quantities does the internal flux depend? 
@@ -540,7 +543,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-As seen from the formulas, the internal heat flow at a specific location depends on the vertical gradient in potential temperature, the height above the surface and the friction velocity.
+As seen from the formulas, the internal heat flow at a specific location depends on the vertical gradient in potential temperature, the height above the surface, the friction velocity and the Von Karman constant.
 </div>
 
 In these exercises we will apply two kinds of **external fluxes**:   
@@ -681,9 +684,8 @@ where $g$ is the gravitational constant (=9.81 $kg m^2 s^{-1}$), $\theta_{ref}$ 
 <p id="Q2"> </p>
 
 <div class="exercise"> 
-4. Implement the new eddy diffusivity $K_{eddy}$ that depends on the surface heat flux. Use a surface heat flux of -0.025 $K m s^{-1}$ (downwards heat flux). 
+4. Create a new model object, implement the new eddy diffusivity $K_{eddy}$ that depends on the surface heat flux. Use a surface heat flux of -0.025 $K m s^{-1}$ (downwards heat flux). Define the surface heat flux, MOL and $K_{eddy}$ separately so you can adapt them easily. Thereafter, solve and plot the model.
 </div>
-Define the surface heat flux, MOL and $K_{eddy}$ separately so you can adapt them easily.
 
 <div class="student_answer">
 ```{r}
@@ -735,7 +737,7 @@ The heat flux at the lower boundary is close to -0.025 Km/s, but not exactly. No
 </div>
 
 <div class="exercise">	
-6. If the flux at the surface does not equal the prescribed surface heat flux, adapt the boundary conditions at the surface in such a way that the two fluxes are the same. 
+6. If the flux at the surface does not equal the prescribed surface heat flux, adapt the boundary conditions at the surface in such a way that the two fluxes are the same. Solve the model and check the boundary fluxes again.
 </div>
 
 <div class="student_answer">
@@ -762,11 +764,11 @@ MOL =50.
 </div>
 
 ## 2.5 Including a radiative cooling sink
-Until now we have considered a situation where the external fluxes are zero (first external flux option). In many conditions however, there are processes that act as sources and sinks to the state variables. Detailed modelling of these processes is beyond the scope of the model. Therefore they should be handled as external fluxes to the system, that may depend on the location and the state. 
+Until now we have considered a situation where the external fluxes are zero (first external flux option). In many conditions however, there are processes that act as sources and sinks to the state variables. (Detailed modelling of these processes is beyond the scope of the model.) Therefore they should be handled as external fluxes to the system, that may depend on the location and the state. 
 Here we will apply radiative cooling as a sink over the entire domain (second external flux option).
 
 <div class="exercise"> 
-7. Make a new model which equals the model defined above. You can use the function `copy.model(model)`. Then, create an external flux of the second type: a constant radiative cooling of -1.0E-4 K/s within the entire domain (see introduction). 
+7. Make a new model which is similar to the model defined above. You can use the function `copy.model(model)`. Then, create an external flux of the second type: a constant radiative cooling of -1.0E-4 K/s within the entire domain (see introduction). 
 </div>
 
 <div class="student_answer">
@@ -807,8 +809,8 @@ plot(fluxesSink$intflux,fluxesSink$x,xlab='internal flux [K m/s]',ylab='height [
 lines (fluxesNoSink$intflux,fluxesNoSink$x, col='red')
 ```
 
-The model with a sink predicts lower temperatures, as it has an additional loss of heat over the domain.   
-The internal fluxes were constant for the zero external flux model. For the radiative sink model, the downward flux becomes larger going upward. (...) 
+The model with a sink predicts lower temperatures, as it has an additional loss of heat over the domain. These differnces remain small due to the top boundary condition which forces the potential temperature to be the same for both models. 
+The internal fluxes are constant for the zero external flux model. For the radiative sink model, the downward flux becomes larger going upward. (...) 
 </div>
 
 <div class="comment">
@@ -842,7 +844,7 @@ where $F_S$ is the heat flux between the surface and the lowest model level; $C_
 This boundary condition is a Cauchy or Robin BC, where the flux is directly coupled to the state of the variable at the boundary. These BCs can be applied using the function `set.BC.fluxstate()`. 
 
 <div class="exercise"> 
-10. Make an R-function that takes the state as an argument and returns the surface heat flux. Use a value for $C_H$ of 1.2E-3 m/s and a value of 289 K for the surface temperature. Adapt your previous model such that this Robin BC is applied as the lower boundary. 
+10. Make an R-function that takes the state as an argument and returns the surface heat flux. Use a value for $C_H$ of 1.2E-3 m/s and a value of 289 K for the surface temperature. Adapt your previous model such that this Robin BC is applied as the lower boundary. Then solve and plot the new model. Plot the potential temperature and internal fluxes in separate plots.
 </div>
 
 <div class="student_answer">
