@@ -8,7 +8,7 @@ dict[417] = "add: welldist = func.dist.to.point(c(1000,1000),200,25,100) and set
 dict[419] = "Check the documentation of the func.dist.to.line() function in the FVFE2D package.";
 dict[420] = "Define domain range: plot(c(0,10), c(0,2), xlab='x', ylab='y', col='white') Plot polygon: polygon(domain, lwd=3, col=rgb(0.7,0.7,0.7,0.3)).";
 dict[422] = "Remember the function plot.BC.id().";
-dict[425] = "The pressure function has 3 arguments: x, y and s. Its body contains one line: a return statement.";
+dict[425] = "The pressure function has 3 arguments: x, y and state. Its body contains one line: a return statement.";
 
 // returns the hint for the corresponding question_number in the corresponding paragraph field in the Rmd file.
 function showHint(question_number) {

@@ -19,3 +19,11 @@ h2 {
 .question {
     color: red;
 }
+
+.exercise {
+    color: red;
+}
+
+.comment {
+    color: grey;
+}
