@@ -1,5 +1,9 @@
 #rm(list=ls())
-library(manipulate)
+
+# This installs the manipulate package if not installed yet, thereafter the package is loaded.
+if(!require(manipulate)) {install.packages("manipulate")
+  library(manipulate)}
+
 load(file='Staring.Rdata')
 
 soiltype = list(type=names(soil.set)) #all soil type into a list soiltype

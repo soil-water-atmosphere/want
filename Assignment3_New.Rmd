@@ -17,7 +17,7 @@ output:
 * Understand the effect of soil type, groundwater level and numerical method (FV vs FE) on the results of the transient unsaturated zone model *(Exercise 4,5,6)* 
 * Understand the value of the simple unsaturated flow models in terms of water management (ponding, capillary rise, recharge to groundwater, plant water use)	*(Exercise 4)*
 * Apply different top forcing functions *(Exercise 5,6)*
-* Apply actual evapotranspiration using a Feddes function and understand the feedbacks involved in this. *(Exercise 7)*
+* Apply actual evapotranspiration using a Feddes function and understand the feedbacks involved in this *(Exercise 7)*
 
 ## Introduction
 
@@ -54,6 +54,7 @@ $q(z)=-k(\psi) \left ( \frac{d\psi}{dz}+1 \right )$
 rm(list = ls())
 library(FVFE1D)
 load(file='Staring.Rdata')
+# No further action needed if the code block runs without complaints.
 ```
 </div>
 
@@ -61,6 +62,9 @@ Before constructing models for flow in the unsaturated zone an overview of the u
 
 <div class="exercise">
 3. Fill out the table.
+</div>
+
+<div class="student_answer">
 
 quantity | unit 
 ----|----
@@ -89,7 +93,7 @@ external flux | $\int (/d)dx$
 
 Not all the quantities cited above are independent.
 For each soil there are unique relations between $\theta$ , $\psi$ and $k$.  
-You can explore these relations by running the R-script called **__soilprofiles.R__** separately. You have to load the file *Staring.Rdata* into the same folder. 
+You can explore these relations by running the R-script called **__soilprofiles.R__** separately. The data for the different soil types that are plotted are loaded from the file *Staring.Rdata*, which should be located in the same folder as the R-script.
 Each soil has a code consisting of a letter (B = topsoil, O = deeper soil), a number and a description.  
 
 You will look in more detail at the following soil types:
@@ -107,7 +111,7 @@ You will look in more detail at the following soil types:
 <button type="button" onclick="showHint(1)">Show Hint</button>
 <p id="Q1"> </p>
 *   Which soil can transport water/nutrients most easily?
-*   Which soil do you expect to enable capillary rise from the groundwater best? You will look further into this in exercise 5.
+*   Which soil is expected to be able to maintain the largest upward flux from the groundwater towards the surface due to capillary rise? You will look further into this in exercise 5.
 </div> 
 
 <div class="student_answer">
@@ -139,13 +143,13 @@ The coarse sand has the highest transport capacity.
 </div>
 
 ## 2. Exploring the equilibrium profiles 
-Even the situation where there is no flow through the soil is interesting. The corresponding profiles of $\psi$ and $\theta$ are called equilibrium profiles. 
+Even the situation at times there is no flow through the soil is interesting. The corresponding profiles of $\psi$ and $\theta$ are called equilibrium profiles. 
 
 The code chunk below is mostly preprogrammed. It illustrates the pressure and moisture content profile at equilibrium with the groundwater for a certain soil.   
 The surface level is set to 0.0 cm. Assume that the groundwater table is at 1 m (100 cm) depth. The internal flow is defined to be positive upwards.
 
 <div class="exercise">
-5. What are the boundary conditions at the lower(left) and upper (right) end of the domain? Fill out AA and BB in the chunk.  
+5. What are the boundary conditions at the lower (left) and upper (right) end of the domain? Fill out AA and BB in the chunk.  
 6. Derive for the internal flux the differential equation for $\psi$ for the equilibrium situation. Use this to fill out XX and YY in the chunk.  
 </div>
 
@@ -391,7 +395,7 @@ par(old.par)
 mtext(paste(Soil$soiltype,"=",Soil$name),side=3,line=1)
 ```
 
-Here we are clearly not in a no-flow situation any more: the $\psi$ profile diverts from the equilibrium profile. The topsoil is wetter than equilibirum, so there is downward flow.
+Here we are clearly not in a no-flow situation any more: the $\psi$ profile diverts from the equilibrium profile. The topsoil is wetter than equilibrium, so there is downward flow.
 The output shows also that iterations are needed: because of the moisture-dependent conductivity, the flow functions are not linear and cannot be solved in one step.
 </div>
 
@@ -399,6 +403,7 @@ The output shows also that iterations are needed: because of the moisture-depend
 As mentioned earlier, the unsaturated zone can be seen as an interface between the regional saturated groundwater system and the meteorological and ecological forcings at the surface. The water flow in the unsaturated zone determines how rainfall will separate between infiltration and runoff; how much water is available for evapotranspiration; and how much water will recharge to the saturated groundwater.
 
 The amount of water available in the unsaturated zone depends on:   
+
 * Evapotranspiration rates, which are determined by radiation, temperature and available moisture content.    
 * Precipitation rates    
 * Soil properties    
@@ -407,11 +412,14 @@ The amount of water available in the unsaturated zone depends on:
 Three typical classifications in an eco-hydrological and water management context are the sensitivity to **ponding** (NL:plasvorming); the capacity for **capillary rise**; and the total **water storage capacity**.
 
 <div class="exercise">
-11. Ponding occurs when the maximum downward flow capacity of the soil is exceeded, so that the soil is saturated to the surface.    
+11. Ponding can occur when the maximum water storage capacity of the soil is exceeded, so that the soil is saturated to the surface.    
 Fill out the following table. You can use the above code chunk. 
+</div>
 
 <button type="button" onclick="showHint(2)">Show Hint</button>
 <p id="Q2"> </p>
+
+<div class="student_answer">
 
 Ponding (B soils) | Coarse sand | Loam | Heavy clay | Sandy peat | 
 ----|----|----|----|----|  
@@ -427,10 +435,13 @@ max. q water table at 2 m |  52.92 | 12.98 | 4.53 | 6.79 |
 </div>
 
 <div class="exercise">
-12. Fill in the maximum capillary rise per soil type.
+12. What is the maximum capillary rise flux the soils can maintain? Complete the table below.
+</div>
 
 <button type="button" onclick="showHint(3)">Show Hint</button>
 <p id="Q3"> </p>
+
+<div class="student_answer">
 
 Capillary rise (O soils)| Coarse sand | Loam | Heavy clay | Sandy peat | 
 ----|----|----|----|----|  
@@ -446,10 +457,13 @@ max. q, water table at 2 m | 0.001 | 0.4125 | 0.0075 | 0.03|
 </div>
 
 <div class="exercise"> 
-13. Calculate the total amount of water stored in the unsaturated zone, with a groundwater table at 1m below surface, for a situation with precipitation and for a situation with evapotranspiration excess.
+13. Calculate the total amount of water stored in the unsaturated zone, with a groundwater table at 1m below surface, for a situation with precipitation, 1 $mm/d$, and for a situation with evapotranspiration, 1 $mm/d$, excess.
+</div>
 
 <button type="button" onclick="showHint(4)">Show Hint</button>
 <p id="Q4"> </p>
+
+<div class="student_answer">
 
 Total stored volume| Coarse sand | Loam | Heavy clay | Sandy peat | 
 ----|----|----|----|----|  
@@ -474,7 +488,7 @@ evapotranspiration 1 mm/d | 17.59 | 38.76 | 48.68 | 67.70 |
 </div>
 
 ## 5. Transient unsaturated zone model
-One of the key aspects of a transient model is the introduction of a **storage term** in the simulations. Similar to the previous transient models you built, storage change takes place between the previous and current time step. Now the change in storage can directly be calculated by the difference in moisture content per timestep.  
+One of the key aspects of a transient model is the introduction of a **storage term** in the simulations. Similar to the previous transient models you built, storage change takes place between the previous and current time step. Now the change in storage can directly be calculated by the difference in moisture content between timesteps.  
 The chunk below contains a script for running a transient unsaturated zone model. A few aspects still need to be implemented by yourself.
 
 <div class="exercise"> 
@@ -483,7 +497,7 @@ The chunk below contains a script for running a transient unsaturated zone model
 * Finish the *changeinstorage* function  
 * The top forcing (precipitation surplus) is initially set at 0 (line 477). Later on (from line 491), a time dependent top forcing is created. This function results in precipitation for the time until T1, followed by evaporation between T1 and T2, and zero top forcing from T2 to the end.  
 
-Remove "eval=FALSE", then you can run the chunk. 
+Remove "eval=FALSE", then you can run the chunk. The clips that will be created will probably not display in the default markdown window. Go to the dirictory where the knitted html-file is saved and open it in Google Chrome.
 </div>
 
 ```{r eval=FALSE}
@@ -864,11 +878,14 @@ With the same top forcing, the clay soil (B11) takes more time to reach equilibr
 
 ## 6. Changed top forcing function
 
-Now you will implement a more 'realistic' top forcing. The R-file `topforcing.R` creates an artificial rainfall-evaporation pattern with the functions 'rainfun' and 'evapfun'.  Reset the soiltype to B5.   
+Now you will implement a more 'realistic' top forcing. The R-file `topforcing.R` creates an artificial rainfall-evaporation pattern with the functions 'rainfun' and 'evapfun'.   
 
 <div class="exercise">
-17.   Create a separate chunk for making a plot of the precipitation, evapotranspiration and net input (rainfall surplus) provided by `topforcing.R`.
+17.   Create a separate chunk and create making a plot of the precipitation, evapotranspiration and net input (rainfall surplus) provided by `topforcing.R`.
 </div>
+
+<button type="button" onclick="showHint(5)">Show Hint</button>
+<p id="Q5"> </p>
 
 <div class="answer">
 The code chunk below creates a plot of the fluxes provided by `topforcing.R`.
@@ -897,7 +914,7 @@ grid()
 </div>
 
 <div class="exercise">
-18. Run the transient model with this top forcing. You can comment the lines of the first forcing function and uncomment those of the second one; either make a new chunk or reuse the previous one.      
+18. Run the transient model with this top forcing. You can comment the lines of the first forcing function and uncomment those of the second one; either make a new chunk or reuse the previous one. Make sure that the soil type B5 is selected.    
 What is the highest and lowest pressure at the surface? Set the groundwater table at 1.00 m below surface. Are the highest and lowest pressures at the surface different now? 
 </div>
 
@@ -1064,15 +1081,16 @@ grid()
 The Feddes function thus relates the root water uptake at a certain depth with the pressure (suction) at that depth. This makes transpiration dependent on the rooting distribution of the vegetation.
 
 Suppose that a vegetation has an evenly distributed rooting system over the first 25 cm.  
-For this the actual evapotranspiration could be calculated with:  
-$\text{extraction}(z,\psi)_{roots}= - \text{roots.fun}(z)*\text{Feddes.fun}(z,\psi)*\text{max.extraction rate}_{roots}$  
+For this the actual evapotranspiration could be calculated with:
+
+$$\text{extraction}(z,\psi)_{roots}= - \text{roots.fun}(z)*\text{Feddes.fun}(z,\psi)*\text{max.extraction rate}_{roots}$$  
 
 Here, the _roots.fun_ describes the proportion of the roots growing at a certain depth. The _max. root extraction rate_ is equal to the **potential evapotranspiration** and is extracted along the total rooting depth for this vegetation. 
 
 <div class="exercise">
 19. Complete the following chunk of code implementing the actual evapotranspiration.     
 *   Use a potential evapotranspiration of 0.3 cm/d.    
-*   Calculate the max.root.rate.       
+*   Calculate the correct value for the max.roots variable.       
 *   Finish the roots extraction function (**roots**) to simulate the actual evapotranspiration.   
 *   First simulate a situation with with no precipitation starting with an equilibrium situation.
 
@@ -1086,7 +1104,7 @@ domain = c(-50,0)
 Feddes.h = c(0,-100,-1000,-16000)
 Feddes.red = c(0,1,1,0)
 Feddes.fun= approxfun(Feddes.h,Feddes.red,rule=2)
-max.roots.rate = XXXX
+max.roots = XXXX
 root.depth = approxfun(c(0,-25,-25.01),c(1,1,0),rule=2)
 
 roots = function(x,state)
