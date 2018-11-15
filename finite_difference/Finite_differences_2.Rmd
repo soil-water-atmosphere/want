@@ -9,55 +9,233 @@ output:
 <!-- include the hint.js -->
 <script src="hints.js"></script>
 
-##Exercise 2.2
-The approach so far has be to combine two different equations for the same derivative. By combining them, the next time step can be approximated. The first equation is an approximation of the derivative by taking the first term of the taylor series belonging to the function that describes the system (this can be done even without precisely knowing the exact function). An example is given in equation 10. By removing the error term, which is proportional to the time step itself, this equation gives an approximation of the derivative. The second equation needed, is the equation that describes the balance within a system. This equation is an objective function, but it's value in reality is determined by the quality of the input data rather than the function in and on itself. We will come back to this later on. An example of this function is equation 9. Combining these functions you end up with one equation that can be used in a computer model:
+# Learning goals
 
-$$
-\begin{align}
-\dfrac{s(t+\Delta t) - s(t)}{\Delta t} &= \dfrac{ds(t)}{dt}\\
-\dfrac{ds(t)}{dt} &= Q_{in} - Q_{out}\\
-\dfrac{s(t+\Delta t) - s(t)}{\Delta t} &= Q_{in} - Q_{out}\\
-s(t+\Delta t) &= s(t) + \Delta t(Q_{in} - Q_{out})\\
-\tag{14}
-\end{align}
-$$
-This method is called a forward differencing scheme.
+# Part 1 - Introduction
+## Section 1.1 - Advection Diffusion Equation 
+The final result of this part of the course, the finite difference approach, is to be able models in a time and space continuum. A very common example is the advection diffusion equation that was presented during the lecture. The formula for this equation is as follows:
 
-Previously it was stated that beside a forward scheme, more options exist. These options are represented by figures after equation 12. Another way to understand what happens here is by turning back to the taylor series of equation 13 and 14. The backward differencing scheme is optained by replace $\Delta t$ by $-\Delta t$.
+$$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 
-<span class="question">
-<span class="comment">hard question</span>
-Replace $\Delta t$ with $-\Delta t$ in equation 13. Describe why for time integration this solution is not really workable.
-</span>
+It describes how a phenomena, such as a wave, moves. This equation looks both at space and time. For this practical we will be looking at a simplification of this equation: the stationary situation ($\frac{\partial s}{\partial t} = 0$):
 
-<span class="answer">
-$$s(t - \Delta t) = s(t) - \frac{\Delta t}{1!} \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} - \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} - \ ...     \tag{18}$$
-leading to:
-$$\dfrac{s(t - \Delta t) - s(t)}{\Delta t} = - \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} - \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} - \ ...     \tag{19}$$
-multiplying both sides by -1:
-$$\dfrac{s(t) - s(t - \Delta t)}{\Delta t} = \frac{ds}{dt} \bigg\rvert_{t} - \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} - \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{20}$$
-which leads back to equation 11:
-$$\dfrac{s(t) - s(t - \Delta t)}{\Delta t} \approx \frac{ds}{dt} \bigg\rvert_{t} + error    \tag{21}$$
-</span>
+$$0 = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 
-The last integration scheme discussed here is the central scheme. This is optained by substracting equation 18 from equation 13:
+In the beginning of this practical we will assume that diffusion is negligable and therefore the second term drops out as well, leaving is us with:
 
-$$
-\begin{matrix}
+$$0 = -u \frac{\partial s}{\partial x}$$
 
-s(t + \Delta t) &=& s(t) + \dfrac{\Delta t}{1!} \dfrac{ds}{dt} \bigg\rvert_{t} + \dfrac{\Delta t^{2}}{2!} \dfrac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \dfrac{\Delta t^{3}}{3!} \dfrac{d^{3}s}{dt^{3}} \bigg\rvert_{t} +\dfrac{\Delta t^{4}}{4!} \dfrac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \\    
+## Section 1.2 - Backward and Central Differencing method
+In the previous practical, we have been working with the following formula:
+$$\dfrac{s(t+\Delta t) - s(t)}{\Delta t} = \dfrac{ds(t)}{dt}$$
+This is called the *forward differencing method*. It calculates the state after a given time-step by using the information of the current state $s(t)$. The methodology to solve equations in space is exactly the same, only the mathematical formulation changes slightly:
+
+$$\dfrac{s(x+\Delta x) - s(x)}{\Delta x} = \dfrac{ds(x)}{dx}$$
+The only change in this equation is that time has been replace by space. By using this formulation you change the dimension, meaning that in time integration you end up with a graph that displays a time - state plot. Here you end up with a space - state plot. The x-axis will be a system, displayed from left to right, with the states on the y-axis. This is a stationary plot, time has no influence. 
+
+There is a however a difference between space and time; time only goes forward but space does not have a direction. Therefore space integration can be approached in different ways than time. Time integration only has a forward differencing scheme, space also has a backward and central scheme that we will discuss here (forward is a slightly confusion convention here, it basically signifies from left to right).
+
+First the mathematical derivation. The forward differencing method was formally derived by using the following taylor series:
+
+$$s(t + \Delta t) = s(t) + \Delta t \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{}$$
+
+In the space dimension this becomes:
+
+$$s(x + \Delta x) = s(x) + \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ...     \tag{}$$
+
+The backward scheme (from right to left) is defined as follows: replace $\Delta x$ with $-\Delta x$.
+
+$$s(x - \Delta x) = s(x) - \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ...     \tag{}$$
+
+Reworking this equation leads to the backward differencing method:
+
+$$\frac{s(x) - s(x  - \Delta x)}{dx} = \frac{ds}{dx}$$
+
+The *central differencing scheme* is created by substracting the taylor series used for the forward and bacward schemes:
 
 
-s(t - \Delta t) &=& s(t) - \dfrac{\Delta t}{1!} \dfrac{ds}{dt} \bigg\rvert_{t} + \dfrac{\Delta t^{2}}{2!} \dfrac{d^{2}s}{dt^{2}} \bigg\rvert_{t} - \dfrac{\Delta t^{3}}{3!} \dfrac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \dfrac{\Delta t^{4}}{4!} \dfrac{d^{4}s}{dt^{4}} \bigg\rvert_{t} - \ ...  \\
+$$\begin{alignat*}{3}
+s(x + \Delta x) &= s(x) + && \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + \dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + &&& \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ... \\    
+
+
+s(x - \Delta x) &= s(x) - && \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + \dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - &&&\dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} - \ ...  \\
 
 \hline \\
 
-s(t + \Delta t) - s(t - \Delta t) &=& 2\dfrac{\Delta t}{1!}\dfrac{ds}{dt} + 2\dfrac{\Delta t^{3}}{3!} \dfrac{d^{3}s}{dt^{3}}
+s(x + \Delta x) - s(x - \Delta x) &=  &&\dfrac{2\Delta x}{1!}\dfrac{ds}{dx} +  &&&\dfrac{2\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}}
 
-\tag{22}
-\end{matrix}
-$$
-Reworking this equation to approximation of the first order derivative:
 
-$$ \dfrac{s(t + \Delta t) - s(t - \Delta t)}{2\Delta t} = \dfrac{ds}{dt} + \dfrac{\Delta t^{2}}{3!} \dfrac{d^{3}s}{dt^{3}} + \ ... \tag{23}$$
-I striking difference between this formula and the two previous ones is that the term with the second derivative is cancelled out. This means that the error of the approximation is potentially a lot smaller. However, for time integration you have to use not the current time step but the previous, which is less informative. For space integration, that we will discuss in the following days, these schemes will prove to be rather useful.
+\end{alignat*}$$
+
+It can be seen quite easily that this is an efficient scheme. The second and fourth derivative are canceled out by substraction, leaving an error term in the final equation that has the third derivative as largest contributor instead of the second. This reduces the error significantly. The final equation to express the first derivative is as follows:
+
+$$\frac{s(x + \Delta x) - s(x - \Delta x)}{2\Delta x} = \frac{ds}{dx}$$
+
+<span class="comment"> maybe equations can be written by the hard track themselves </span>
+
+# Part 2 - standing wave
+For the first example with the three differencing schemes we will examine the simplest wave equation possible, a sinus-function.
+
+```{r}
+# Initial parameter values
+left          = 0     # usually this variable is set to 0
+right         = 10    # end time of the simulation (50)
+dx            = 0.5   # delta t; time discretisation (0.25)
+left.state    = 0     # state of the system at the beginning of the simulation
+
+# Simulation initialisation
+space         = left
+result.state  = c(left.state)
+result.space  = c(left)
+current.state = left.state
+
+sys.fun = function(space,state){
+  return(state + dx*cos(space))
+}
+
+# Simulation
+while(space < right)
+{
+  current.state = sys.fun(space,current.state)
+  result.state  = c(result.state,current.state)
+  space         = space + dx
+  result.space  = c(result.space,space)
+}
+
+# Plotting
+plot(result.space,result.state,type='o', xlab="x (m)",ylab="state (m)", ylim = c(-1.5,1.5), col="blue")
+space.sequence = seq(left,right,by=0.1)
+analyt.state=sin(space.sequence)
+lines(space.sequence,analyt.state,col='grey',lwd=2)
+title(main='Numerical and analytical solution compared')
+grid()
+```
+
+```{r forward}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = 0.5
+left  = 0
+right = 10
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+
+bl    = 0                      # left boundary condition
+V     = c()                    # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 2:(length(xcoor)))
+{
+  M[j,j]   = 1
+  M[j,j-1] = -1
+  V[j]     = dx*cos(xcoor[j-1])
+}
+
+# left boundary condtion
+M[1,1]     = 1
+M[1,2]     = 0
+V[1]       = bl
+
+# solve matrix equation
+invM=solve(M)
+s=invM %*% V
+
+# plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,sin(x_sol),type='l', col="grey",lwd=2)
+title(main='Numerical and analytical solution compared')
+grid()
+```
+
+
+
+```{r backward}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = 0.5
+left  = 0
+right = 10
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+
+bl    = 0                      # left boundary condition
+V     = c()                    # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 2:(length(xcoor)))
+{
+  M[j,j]   = 1
+  M[j,j-1] = -1
+  V[j]     = dx*cos(xcoor[j])
+}
+
+# left boundary condtion
+M[1,1]     = 1
+M[1,2]     = 0
+V[1]       = bl
+
+# solve matrix equation
+invM=solve(M)
+s=invM %*% V
+
+# plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,sin(x_sol),type='l', col="grey",lwd=2)
+title(main='Numerical and analytical solution compared')
+grid()
+```
+
+```{r central}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = 0.5
+left  = 0
+right = 10
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+
+bl    = sin(left)              # left boundary condition
+br    = sin(right)             # right boundary condition
+V     = c()                    # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 2:(length(xcoor)-1))
+{
+  M[j,j-1] = 1
+  M[j,j+1] = -1
+  V[j]     = 2*dx*cos(xcoor[j-1])
+}
+
+# left boundary condtion
+M[1,1]       = 1
+M[1,2]       = 0
+V[1]         = bl
+
+# right boundary condition
+end = length(xcoor)
+M[end,end]   = 1
+M[end,end-1] = 0
+V[end]       = br
+
+# solve matrix equation
+invM  = solve(M)
+s     = invM %*% V
+
+# plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,sin(x_sol),type='l', col="grey",lwd=2)
+title(main='Numerical and analytical solution compared')
+grid()
+```
+
+
+
+
+
+
