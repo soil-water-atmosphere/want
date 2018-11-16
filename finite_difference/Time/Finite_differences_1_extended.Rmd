@@ -1,0 +1,204 @@
+---
+title: "Finite differences 1 - extended questions"
+author: "The WANT team"
+date: "24/09/2018"
+output:
+  html_document:
+    css: ../want.css
+---
+
+## Exercise 1
+<span class="question">
+Derive the exact solution of ordenary differential equation (ODE) of the emptying bucket. 
+$$ \dfrac{ds}{dt} = -\alpha s(t)$$
+</span>
+
+<span class = "answer">
+$$\begin{align}
+ds &= -as \ dt\\
+\dfrac{1}{-as} ds &= dt\\
+\int \dfrac{1}{-as} ds &= \int dt\\
+\dfrac{1}{-a} \int \dfrac{1}{s} ds &= \int dt\\
+\dfrac{ln(s)}{-a} &= t + C_{1}\\
+ln(s) &= -at + C_{2}\\
+s &= \mathrm{e}^{-at + C_{2}}\\
+s &= C_{3}\mathrm{e}^{-at}\\
+s(t) &= s_{init}\mathrm{e}^{-at}
+\end{align}$$
+
+
+</span>
+
+## Exercise 2
+<span class="question">
+Add the analytical solution of equation to chunk3.
+</span>
+
+<span class = "answer">
+```{r eval=FALSE}
+time.sequence = seq(begin.time,end.time,by=0.1)
+analyt.state=init.state * exp(-time.sequence*alpha)
+lines(time.sequence,analyt.state,col='blue',lwd=2)
+```
+</span>
+
+## Exercise 3
+<span class="question">
+Set up an equation to calculate the error. Use equations 3 and 8.
+</span>
+
+<span class = "answer">
+Starting from equation 8:
+$$s(t + \Delta t) = s(t) + \frac{\Delta t}{1!} \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{10}$$
+Rearranging this equation:
+
+$$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{11}$$
+Comparing this with the implementation in exercise 1 leads to the quantification of the error:
+
+$$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + error    \tag{12}$$
+
+$$ error = \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{13}$$
+</span>
+
+## Exercise 4
+<span class="question">
+
+use the R-functions *expression()*, *D()* (derivative) and *eval()* to implement the first six terms of equation 10 incremently in chunk5 below and plot this result on top of the existing plot. Note down the error every time a term is added.
+
+terms | error 
+----- | ----- 
+1 |
+2 |  
+3 |
+4 |
+5 | 
+6 | 
+
+```{r chunk5_question, eval=FALSE}
+# Initial parameter values
+begin.time = 0     # usually this variable is set to 0
+end.time   = 50    # end time of the simulation (50)
+dt         = 5     # delta t; time discretisation (0.25)
+init.state = 3     # state of the system at the beginning of the simulation (3)
+alpha      = 0.25  # decay constant (0.25)
+
+# System function
+sys.fun = function(state)
+{
+  newstate = state*(1-alpha*dt)
+  return(newstate)
+}
+
+# Simulation initialisation
+time = begin.time
+result.state= c(init.state)
+result.time = c(time)
+current.state = init.state
+
+# Simulation
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+# Taylor series approximation
+f  = ...                 
+
+DT = seq(begin.time,end.time,by=0.1) # list of evaluation times
+p  = eval(f)                         # list of results of the implemented funtion
+
+# Plotting
+plot(result.time,result.state,type='o', xlab="time",ylab="state")
+time.sequence = seq(begin.time,end.time,by=0.1)
+analyt.state=init.state * exp(-time.sequence*alpha)
+lines(time.sequence,analyt.state,col='blue',lwd=2)
+lines(DT,p, lwd=2, col="green")
+
+DT = dt
+correct.state = ...     # state at 1 step (dt)
+error = ...             # determine the distance between the correct.state and the value calculated with the taylor series 
+points(dt,eval(g),col="green",pch=19)
+points(dt,correct.state,pch=19)
+segments(dt,correct.state,dt,eval(g),col="red",lwd=2)
+title(main=paste('Numerical and analytical solution compared. Error: ',error))
+      
+grid()
+```
+
+</span>
+
+<span class="answer">
+answer hard question
+
+```{r chunk5_answer}
+rm(list=ls())
+# Initial parameter values
+begin.time = 0     # usually this variable is set to 0
+end.time   = 50    # end time of the simulation (50)
+dt         = 5     # delta t; time discretisation (0.25)
+init.state = 3     # state of the system at the beginning of the simulation (3)
+alpha      = 0.25  # decay constant (0.25)
+
+# System function
+sys.fun = function(state)
+{
+  newstate = state*(1-alpha*dt)
+  return(newstate)
+}
+
+# Simulation initialisation
+time = begin.time
+result.state= c(init.state)
+result.time = c(time)
+current.state = init.state
+
+# Simulation
+while(time < end.time)
+{
+  current.state = sys.fun(current.state)
+  result.state = c(result.state,current.state)
+  time = time + dt
+  result.time = c(result.time,time)
+}
+
+# Taylor series approximation
+
+f = expression((-0.75 + 0.1875 * DT^(1)/2 - 0.046875*DT^(2)/6) * DT + 3)   
+# constants obtained by integration and evaluation (function D() and eval())
+
+DT = seq(begin.time,end.time,by=0.1)  # list of evaluation times
+p  = eval(f)                          # list of results of the implemented funtion
+
+# Plotting
+plot(result.time,result.state,type='o', xlab="time",ylab="state")
+time.sequence = seq(begin.time,end.time,by=0.1)
+analyt.state=init.state * exp(-time.sequence*alpha)
+lines(time.sequence,analyt.state,col='blue',lwd=2)
+lines(DT,p, lwd=2, col="green")
+
+DT = dt
+correct.state = init.state*exp(-dt*alpha)
+error = round(abs(correct.state-eval(f)),3)
+points(dt,eval(f),col="green",pch=19)
+points(dt,correct.state,pch=19)
+segments(dt,correct.state,dt,eval(f),col="red",lwd=2)
+title(main=paste('Numerical and analytical solution compared. Error: ',error))
+
+grid()
+```
+
+terms | error 
+----- | ----- 
+1 | 2.140
+2 | 1.609 
+3 | 0.242 
+4 | 0.063 
+5 | 0.013 
+6 | 0.002 
+
+The error rapidly decreases every time the next term of the taylor series is added.
+
+</span>
