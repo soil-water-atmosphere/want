@@ -30,7 +30,7 @@ domain = c()
 ```
 
 ## Define the system flux function/ internal flux function
-Here you implement the expression for the flux of water, energy or something else between the nodes or volumes in the model.To calculate the internal flow the model needs the specific location (x), the state at (x) and the gradient of that state at (x).   
+Here you implement the expression for the flux of water, energy or something else between the nodes or volumes in the model. To calculate the internal flow the model needs the specific location (x), the state at (x) and the gradient of that state at (x).   
 The `return()` argument holds the actual flux-equation, so what is on the right hand side of the flux equation. 
 
 ```{r eval=FALSE}
@@ -65,7 +65,8 @@ with arguments:
 `name`  : optional; to give the point flux a specific name   
 
 ```{r eval=FALSE}
-add.spatialflux(oneDmodel,0.1,name='constant inflow')
+flux=0.1
+add.spatialflux(oneDmodel,flux,name='constant inflow')
 ```
 
 ## Set the boundary conditions
@@ -87,8 +88,10 @@ Omitting a boundary condition at the boundary will be interpreted as a no-flow b
 In case of vertical flow the 'left' boundary condition is actually the BOTTOM boundary condition. The 'right' boundary condition is interpreted as the TOP boundary condition.
 
 ```{r eval=FALSE}
-set.BC.fixedstate(oneDmodel,'left',???) 
-set.BC.fixedstate(oneDmodel,'right',???)
+BCleft=???
+BCright=???
+set.BC.fixedstate(oneDmodel,'left',BCleft) 
+set.BC.fixedstate(oneDmodel,'right',BCright)
 ```
 
 ## Model name
