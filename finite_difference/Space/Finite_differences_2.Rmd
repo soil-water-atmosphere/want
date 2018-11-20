@@ -4,10 +4,12 @@ author: "The WANT team"
 date: "24/09/2018"
 output:
   html_document:
-    css: ../want.css
+    css: ../../want.css
+    toc: yes
+    toc_depth: 2
 ---
 <!-- include the hint.js -->
-<script src="hints.js"></script>
+<script src="../../hints.js"></script>
 
 # Learning goals
 
@@ -92,7 +94,7 @@ s(x+\Delta x) &=& s(x) + \Delta x cos(x)
 \end{matrix}
 $$
 
-To implement this equation a boundary state should be set. In this case 0 is a logical choice. This is equivalent to setting an initial state for time integration. For ease if visualisation the right side coordinates (end.time in previous) is set to 2?? and dx to ??/6.  
+To implement this equation a boundary state should be set. In this case 0 is a logical choice. This is equivalent to setting an initial state for time integration. For ease if visualisation the right side coordinates (end.time in previous) is set to $2\pi$ and dx to $\frac{\pi}{6}$.  
 
 ```{r simple_forward}
 # Initial parameter values
@@ -356,7 +358,246 @@ grid()
 ```
 </span>
 
+# Part 4 - Advection diffusion continued 
+## Section 4.1 - Boundary conditions
+Part three handled only the simplest of differential equations but some useful insights might be obtained. The first and most important one is that there are two different ways of solving the equations; one after the other (method used in the previous practical) and one levaraging the power and simplicity of matrix algebra. The more comlex the equations become, the harder it becomes to implement the first methodology while the solution based on matrix algebra does not get much more difficult. Especially in the next practical, when we will be looking at both time and space integration at the same time, the matrix solution become much more straightforward. The other important message is that boundary conditions are important to solve ODEs. In the "time" practical this was present in an initial state and in the chunks above left and right boundary conditions had to be implemented. So far we have only implemented one type of boundary condition; the dirichlet boundary condition. This method assumes a fixed state on one or all boundaries. If the state directly next to this border has (more or less) the same state, it means that no flux goes over the boundary while a large difference leads to a high flux. Another option is to implement a fixed flux boundary condition (Neumann boundary condition) that does not specify the state but only the flux. This can be very usefull as will be shown in the next sections but at the same time it can be problematic. If all boundaries are fixed flux boundaries, the system is not solvable. If only fluxes are defined the solution will be relative and no absolute solution *can* exist. To account for this a Dirichlet boundary is needed to anchor the solution. It works as a reference for all other values. The last type of boundary condition is the Cauchy/Robin boundary condition. It specifies both the state and the flux. Summarising;
+
+* Dirichlet (fixed state)
+* Neumann (fixed flux)
+* Cauchy/Robin (fixed state and fixed flux)
+
+## Section 4.2 - Second order derivative
+In order to be able to solve the *static* advection diffusion equation one other thing remains to be explained; how to solve the second order derivative in the equation:
+
+$$0 = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
+
+This can be done by going back to the taylor series of the forward and backward method. What needs to be done is come to a solution that does not include the first order derivative anymore. The simplest way to do this is by adding the equations up in the following way:
+
+$$\begin{alignat*}{3}
+s(x + \Delta x) &= &&s(x) + \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + &&&\dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + &&&&\dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ... \\    
+
+
+s(x - \Delta x) &= &&s(x) - \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + &&&\dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + &&&&\dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} - \ ...  \\
+
+\hline +\\
+
+s(x + \Delta x) + s(x - \Delta x) &=  &&2s(x) + &&&\dfrac{2\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + &&&&\dfrac{2\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x}
+
+
+\end{alignat*}$$
+
+This leads to the following approximation for the second derivate (also called a Central scheme):
+
+$$\dfrac{ s(x + \Delta x) - 2s(x) + s(x - \Delta x)}{\Delta x^2} = \dfrac{d^{2}s}{dx^{2}}$$
+
+Implementing the central scheme for both the first and second order derivative in the advection diffusion equation lead to the following equation:
+
+<span class="comment"> Maybe the hard track can figure this out themselves </span>
+
+<span class="answer">
+$$0 = -u \frac{s(x+\Delta x) - s(x - \Delta x)}{2\Delta x} + D\frac{s(x + \Delta x) - 2s(x) + s(x-\Delta x)}{\Delta x^{2}} \tag{4.1}$$
+</span>
+
+## Section 4.3 - Implementation
+
+<span class="question">
+4.3.1 Implement equation 4.1 with with 5 nodes (n=5) and two Dirichlet boundaries (left=0 and right=1) in the following notation:
+
+$$
+\begin{bmatrix}
+M_{1,1}&.&.&.&M_{1,n}\\
+.&.&.&.&.\\
+.&.&.&.&.\\
+.&.&.&.&.\\
+M_{n,1}&.&.&.&M_{n,n}\\
+\end{bmatrix} * 
+\begin{bmatrix}
+s[0]\\
+s[1]\\
+s[2]\\
+s[3]\\
+s[4]\\
+\end{bmatrix} = 
+\begin{bmatrix}
+V_0\\
+V_1\\
+V_2\\
+V_3\\
+V_4\\
+\end{bmatrix}
+$$
+</span>
+
+<span class="question">
+If you want to go deeper into the subject go to exercise 1 of the Finite_differences_2_extra.Rmd and skip the two following exercises here.
+</span>
+
+<span class="question">
+4.3.2 Implement $\Delta x = 5$, $D=5$ and $u=5$ in the answer of the previous question and check if the following chunk yields the same answer.
+
+```{R}
+dx    = 5    # step size
+D     = 5    # diffusion coefficient
+u     = 5    # advectio coefficient
+bl    = 0    # left boundary
+br    = 1    # right boundary
+n     = 5    # amount of nodes
+
+left  = 0    # left coordinate
+xcoor = seq(left,dx*(n-1), by=dx)
+
+V     = c()  # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
+
+for(j in 2:(length(xcoor)-1))
+{
+  M[j,j-1] = -u/(2*dx) - D/(dx^2)
+  M[j,j  ] = 2*D/(dx^2)
+  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  V[j]     = 0
+}
+
+# Left boundary
+M[1,1] = 1
+V[1]   = bl
+
+# Right boundary
+M[n,n] = 1
+V[n]   = br
+
+# Solve the system
+s = solve(M,V)
+
+print(M)
+```
+</span>
+
+<span class="question">
+Run the following chunck to see the quality of the solution:
+```{R}
+dx    = 5    # step size
+D     = 5    # diffusion coefficient
+u     = 5    # advectio coefficient
+bl    = 0    # left boundary
+br    = 1    # right boundary
+n     = 5    # amount of nodes
+
+left  = 0    # left coordinate
+xcoor = seq(left,dx*(n-1), by=dx)
+
+V     = c()  # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
+
+for(j in 2:(length(xcoor)-1))
+{
+  M[j,j-1] = -u/(2*dx) - D/(dx^2)
+  M[j,j  ] = 2*D/(dx^2)
+  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  V[j]     = 0
+}
+
+# Left boundary
+M[1,1] = 1
+V[1]   = bl
+
+# Right boundary
+M[n,n] = 1
+V[n]   = br
+
+# Solve the system
+s = solve(M,V)
+
+# Plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
+title(main='Advection Diffusion Equation')
+grid()
+
+# Calculate and plot the analytical solution
+L = dx*(n-1)
+xcooranalyt = seq(0,L, by=0.01)
+sanalyt = c()
+Danalyt = D
+uanalyt = u
+Peanalyt = uanalyt*L/Danalyt
+
+for(j in 1:(length(xcooranalyt)))
+{
+  sanalyt[j] = bl+(exp(xcooranalyt[j]*Peanalyt/L)-1.)/(exp(Peanalyt)-1.)*(br-bl)
+}
+
+lines(xcooranalyt,sanalyt,col="grey",lwd=2) # analytical solution
+legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,1), pch = c(-1,-1))
+```
+</span>
+
+<span class="question"> 
+The following chunk is the same system as analysed in the previous question. The only difference is that the domain is fixed from x=0 to x=50. Change dx from 5 to 1 in steps of 1 and compare the results. What is the highest value of dx for which the solution is stable?
+
+```{R}
+dx    = 10   # step size
+D     = 5    # diffusion coefficient
+u     = 5    # advectio coefficient
+bl    = 0    # left boundary
+br    = 1    # right boundary
+
+left  = 0    # left coordinate
+right = 50
+xcoor = seq(left,right, by=dx)
+
+V     = c()  # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
+
+for(j in 2:(length(xcoor)-1))
+{
+  M[j,j-1] = -u/(2*dx) - D/(dx^2)
+  M[j,j  ] = 2*D/(dx^2)
+  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  V[j]     = 0
+}
+
+# Left boundary
+M[1,1] = 1
+V[1]   = bl
+
+# Right boundary
+n = length(xcoor)
+M[n,n] = 1
+V[n]   = br
+
+# Solve the system
+s = solve(M,V)
+
+# Plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
+title(main='Advection Diffusion Equation')
+grid()
+
+# Calculate and plot the analytical solution
+L = dx*(n-1)
+xcooranalyt = seq(0,L, by=0.01)
+sanalyt = c()
+Danalyt = D
+uanalyt = u
+Peanalyt = uanalyt*L/Danalyt
+
+for(j in 1:(length(xcooranalyt)))
+{
+  sanalyt[j] = bl+(exp(xcooranalyt[j]*Peanalyt/L)-1.)/(exp(Peanalyt)-1.)*(br-bl)
+}
+
+lines(xcooranalyt,sanalyt,col="grey",lwd=2) # analytical solution
+legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,1), pch = c(-1,-1))
+```
+
+<span class="answer">
+The solution becomes stable starting from dx=2
+</span>
+
+implementing the other boundary conditions as well
 
 
 
 
+<span class="comment">
+Do we want to implement the FDS/BDS and the UBS here as well?
+</span>
