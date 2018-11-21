@@ -137,7 +137,6 @@ summary(GWModel2D)
 </div>
 
 # 2. Construct the numerical part of the two dimensional model
-<<<<<<< HEAD
 The next step in the two dimensional model construction is to make the model discrete by choosing nodes and a numerical technique, either FV or FE. In a separate file called 'geogendemo.R' the function geogendemo() is defined. This function illustrates some techniques built in the FVFE2D package to generate nodes. If you run the script you will see a first example being plotted. The plot shows the resulting Voronoi cells randomly coloured. Changing the argument of the geogendem() function in the last line and running the script again shows a second example. There are 10 different examples defined.
 
 <div class="question">
@@ -146,176 +145,6 @@ The next step in the two dimensional model construction is to make the model dis
 
 <div class="student_answer">
 Fill in your answer here...
-=======
-The next step in the two dimensional model construction is to make the model discrete by choosing nodes and a numerical technique, either FV or FE. In the R-code block below the function geogendemo() is defined. This function illustrates some techniques built in the FVFE2D package to generate nodes. If you run the script you will see a first example being plotted. The plot shows the resulting Voronoi cells randomly coloured. Changing the argument of the geogendem() function in the last line and running the script again shows a second example. There are 10 different examples defined.
-
-```{r}
-dummyflux = function(x, y, s, grads)
-{
-  return(-1)
-}
-
-# "distance x not equal to distance y"
-# "distance increasing in y-direction"
-# "distance increasing in x-direction"
-# "distance smaller near (5,5)"
-# "distance larger near (5,5)"
-# "distance order of 1, some prefixed node at lower center"
-# "distance order of 0.3"
-# "distance smaller near line"
-descr = c()
-
-descr[1] = "distance order of 1, graph-verbose"
-descr[2] = "distance order of 1, non-graph-verbose"
-descr[3] = "XXXX"
-descr[4] = "XXXX"
-descr[5] = "XXXX"
-descr[6] = "XXXX"
-descr[7] = "XXXX"
-descr[8] = "XXXX"
-descr[9] = "XXXX"
-descr[10] = "XXXX"
-
-geogendemo = function(case=Inf)
-{ 
-  casedescriptions = list(
-    "constant (rather large) distance ",
-    "constant (large) distance, non-graph verbose",
-    "constant (large) distance, with initial nodes",
-    "constant (somewhat smaller) distance", #XXXXXXX
-    "constant distance, ytoxratio = 4",   #XXXXXXXx
-    "distance increasing in x-direction",  
-    "distance increasing in y-direction",   # xxxxxxx
-    "distance smaller near (5,5)",
-    "distance smaller near (5,5)",
-    "distance larger near (5,5)"
-    )
-  
-  if(case > 10)
-  {
-    print(paste("demo with case number",case," does not exist"))
-  }
-  if(case==1)
-  {
-    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
-    model = newFLOW2D(domain,dummyflux)
-    set.name(model,descr[1])
-    optdist = function(p){return(1.0)}
-    set.discretisation(model,
-                       nodes=list(type="geomgen",optdist=optdist,verbose=TRUE),method="FV")
-    plot(model,fill="random")
-  } else if(case==2)
-  {
-    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
-    model = newFLOW2D(domain,dummyflux)
-    set.name(model,descr[2])
-    optdist = function(p){return(1.0)}
-    set.discretisation(model,
-                       nodes=list(type="geomgen",optdist=optdist,verbose=FALSE),method="FV")
-    plot(model,fill="random")
-  } else if(case==3)
-  {
-    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
-    model = newFLOW2D(domain,dummyflux)
-    set.name(model,descr[3])
-    optdist = function(p){return(1)}
-    startnodes = cbind(rep(5,length=8),seq(2,4,length=8))
-    set.discretisation(model,
-                       nodes=list(type="geomgen",optdist=optdist,
-                                  startnodes = startnodes,
-                                  maxiter=20,stopcrit=0.005,
-                                  verbose=TRUE,sleeptime=0.1),method="FV")
-    plot(model,fill="random")
-  }else if(case==4)
-  {
-    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
-    model = newFLOW2D(domain,dummyflux)
-    set.name(model,descr[4])
-    optdist = function(p){return(0.3)}
-    set.discretisation(model,
-                       nodes=list(type="geomgen",optdist=optdist,
-                                  maxiter=20,stopcrit=0.005,
-                                  verbose=TRUE,sleeptime=0.05),method="FV")
-    plot(model,fill="random")
-  } else if(case==5)
-  {
-    domain = matrix(c(0,0,10,0,10,1,5,2,0,1),byrow=TRUE,ncol=2)
-    model = newFLOW2D(domain,dummyflux)
-    set.name(model,descr[5])
-    optdist = function(p){return(0.7)}
-    set.discretisation(model,
-                       nodes=list(type="geomgen",optdist=optdist,
-                                  maxiter=20,stopcrit=0.005,
-                                  ytoxratio=4,
-                                  verbose=TRUE,sleeptime=0.1),method="FV")
-    set.name(model,"notice the aspect ratio in the plot!")
-    plot(model,fill="random")
-  } else if(case==6)
-  {
-    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
-    model = newFLOW2D(domain,dummyflux)
-    set.name(model,descr[6])
-    optdist = function(p){return(0.2+p[1]/15)}
-    set.discretisation(model,
-                       nodes=list(type="geomgen",optdist=optdist,
-                                  maxiter=20,stopcrit=0.005,
-                                  verbose=TRUE),method="FV")
-    plot(model,fill="random")
-  } else if(case==7)
-  {
-    print(casedescriptions[[case]])
-    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
-    model = newFLOW2D(domain,dummyflux)
-    set.name(model,descr[7])
-    optdist = function(p){return(0.2+p[2]/15)}
-    set.discretisation(model,
-                       nodes=list(type="geomgen",optdist=optdist,
-                                  maxiter=20,stopcrit=0.005,
-                                  verbose=TRUE,sleeptime=0.05),method="FV")
-    plot(model,fill="random")
-  } else if(case==8)
-  {
-    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
-    model = newFLOW2D(domain,dummyflux)
-    set.name(model,descr[8])
-    optdist = func.dist.to.point(c(5,5),4,0.2,0.6)
-    set.discretisation(model,
-                       nodes=list(type="geomgen",optdist=optdist,
-                                  maxiter=20,stopcrit=0.005,
-                                  verbose=TRUE,sleeptime=0.05),method="FV")
-    plot(model,fill="random")
-  } else if(case==9)
-  {
-    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
-    model = newFLOW2D(domain,dummyflux)
-    set.name(model,descr[9])
-    optdist = func.dist.to.point(c(5,5),4,0.5,0.3)
-    set.discretisation(model,
-                       nodes=list(type="geomgen",optdist=optdist,
-                                  maxiter=20,stopcrit=0.005,
-                                  verbose=TRUE,sleeptime=0.05),method="FV")
-    plot(model,fill="random")
-  }  else if(case==10)
-  {
-    domain = matrix(c(1,2,6,1,9,7,4,9),ncol=2,byrow=TRUE)
-    model = newFLOW2D(domain,dummyflux)
-    set.name(model,descr[10])
-    line = matrix(c(3,3,5,5,5,7),ncol=2,byrow=TRUE)
-    optdist = func.dist.to.line(line,1,0.3,0.6)
-    set.discretisation(model,
-                       nodes=list(type="geomgen",optdist=optdist,
-                                  maxiter=20,stopcrit=0.005,
-                                  verbose=TRUE,sleeptime=0.05),method="FV")
-    plot(model,fill="random")
-  } 
-}
-
-geogendemo(1)
-```
-
-<div class="exercise">
-3.The descriptions for example 3-10 in the geodendemo() function are missing. Give to each case its proper description, suggestions are given above the first if-statement of the geodendemo() function.
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
 </div>
 
 <div class="answer">
@@ -331,7 +160,6 @@ geogendemo(1)
 10. descr[10] = "distance smaller near line"
 </div>
 
-<<<<<<< HEAD
 <div class="question">
 4.Change the geodendemo() function such that it generates nodes for the Finite Elements method. Observe the differences with the Finite Volumes method. What are the main differences observed between these methods?
 </div>
@@ -343,10 +171,6 @@ Fill in your answer here...
 <div class="answer">
 The shapes of the control volumes are clearly different. The control volumes from the finite volume method have a variable amount of vertices, in contrary to the control volumes produced by the finite elements method which are all triangles.
 Besides, the control volumes at the boundaries of the domain look differently. The control volumes from the finite volume method are cut in half, while the control volumes from the finite elements method are not and look equal to those generated anywhere else in the domain. Finally, there exists only one descretization solution to a given nodal configuration if one applies the finite volume method. Using the finite elements method there exist at least two different configuration solutions to a certain nodal configuration (the triangles can be drawn mirrored in this case). 
-=======
-<div class="exercise">
-4.Change the `geodendemo()` function such that it generates nodes for the Finite Elements method by changing every "FV" into "FE" in the function definition.
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
 </div>
 
 Now, we will construct our two dimensional model. The following information is given in order to complete the numerical part:
@@ -359,7 +183,6 @@ Now, we will construct our two dimensional model. The following information is g
 5.Create a new R-code block. Finalize the numerical part, solve the model and create a plot in both 2D and 3D. To make sure that each three dimensional plot is created in a new window, add: 'new_dev = open3d()' before the 3D plotting command.
 </div>
 
-<<<<<<< HEAD
 <button type="button" onclick="showHint(45)">Show Hint</button>
 <p id="Q45"> </p>
 
@@ -370,13 +193,7 @@ Fill in your answer here...
 <div class="answer">
 ```{r}
 # Discretisation
-set.discretisation(TwoDModel, nodes=list(type="geomgen", optdist=100, verbose=FALSE), method="FV")
-=======
-<div class="answer">
-```{r}
-# Discretisation
 set.discretisation(GWModel2D, nodes=list(type="geomgen", optdist=100, verbose=FALSE), method="FV")
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
 
 # plot Voronoi cells with random colors.
 plot(GWModel2D, fill="random")
@@ -386,17 +203,13 @@ solve.steps(GWModel2D)
 
 # Plot states
 new_dev = open3d()
-<<<<<<< HEAD
-plot(TwoDModel,fill="state", fill.3D=TRUE, main.title = "TwoDModel - FV")
+plot(GWModel2D,fill="state", fill.3D=TRUE, main.title = "2D groundwater model - FV")
 
 # This adds a title to the 3D plot
 bgplot3d({
   plot.new()
   title(main = "Q5", line = 3)
 })
-=======
-plot(GWModel2D,fill="state", fill.3D=TRUE, main.title = "2D groundwater model - FV")
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
 ```
 </div>
 
@@ -406,40 +219,24 @@ There are many other postprocessing and plotting possibilities built in the FVFE
 * Creating a 2D plot with contour lines for the values 1 to 8
 * Creating a 1D plot of a cross section through the domain
 
-<<<<<<< HEAD
-<div class="question">
+<div class="exercise">
 6.Use the help function to carry out the postprocessing and plotting suggestions, as given above. Describe the results of the plots.
 </div>
 
 <div class="student_answer">
 Fill in your answer here...
-=======
-<div class="exercise">
-6.Use the help function to carry out the postprocessing and plotting suggestions, as given above.
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
 </div>
 
 <div class="answer">
 ```{r}
-<<<<<<< HEAD
 # list of x, y and state of the first ten rows.
-print(head(dataframe.states(model=TwoDModel), 10))
-
-# 2D plot with contour lines for the values 1 to 8. Note that the contour lines cannot cross through a control volume since they have a constant value over the complete section.
-plot(TwoDModel, fill="state", fill.contours = seq(0,8,by=1))
-
-# 1D plot of a cross section that you can define yourself. Note the step behavior due to the constant values of the control volumes produced by the finite volumes method.
-plot(TwoDModel, fill="state", linesection=c(500,500,1500,1500))
-=======
-# list of x, y and state
 print(head(dataframe.states(model=GWModel2D), 10))
 
-# 2D plot with contour lines for the values 1 to 8.
+# 2D plot with contour lines for the values 1 to 8. Note that the contour lines cannot cross through a control volume since they have a constant value over the complete section.
 plot(GWModel2D, fill="state", fill.contours = seq(0,8,by=1))
 
-# 1D plot of a cross section that you can define yourself.
+# 1D plot of a cross section that you can define yourself. Note the step behavior due to the constant values of the control volumes produced by the finite volumes method.
 plot(GWModel2D, fill="state", linesection=c(500,500,1500,1500))
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
 ```
 </div>
 
@@ -458,22 +255,14 @@ In the Finite Elements method, contours can intersect through the segments becau
 </div>
 
 # 3. Several interpolation functions
-<<<<<<< HEAD
-In the one dimensional models, 'approxfun()' was used to interpolate the kD parameters between the nodes. The states were interpolated in the transient models, we used the built-in state.fun() to interpolate the states between the time steps. A two dimensional equivalent of the interpolation functions is useful for two dimensional modelling. Several different functions will be discussed in this part.
-=======
 In the one dimensional models, `approxfun()` was used to interpolate the kD parameter between the nodes. In the transient models, we used the built-in `state.fun()` to interpolate the states at a certain timestep for use in the next timestep. A two dimensional equivalent of the interpolation functions is useful for two dimensional modelling. Several different functions will be discussed in this part.
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
 
 <div class="exercise">
 8.The two dimensional interpolation functions are not built into the standard library of R. Therefore, three of these functions are built into the FVFE2D package. Use the help to find them.
 </div>
 
 <div class="student_answer">
-<<<<<<< HEAD
 Fill in your answer here...
-=======
-Type your answer here...
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
 </div>
 
 <div class="answer">
@@ -527,7 +316,7 @@ bgplot3d({
 ```
 
 <div class="exercise">
-9. Observe the 2D and 3D plots produced by the constructed interpolation function. Choose between the following two lines:
+9.Observe the 2D and 3D plots produced by the constructed interpolation function. Choose between the following two lines:
 
 * This reminds me of the plots made with the FE principle
 * This reminds me of the plots made with the FV principle
@@ -712,11 +501,7 @@ points(kD.Data$x, kD.Data$y, cex=kD.Data$kD/10, lwd=0.5, col="black")
 ```
 </div>
 
-<<<<<<< HEAD
-In the TwoDmodel the constant value of $kD=60m^2/d$ was used as value for the transmissivity. We will now construct a model that is identical to the TwoDmodel, except for the interpolation function of the transmissivities in the internal flux of the new model.
-=======
-In the `GWModel2D` model, a constant value of $kD=60\frac{m^2}{d}$ was used for the transmissivity. We will now construct a model that is identical to the GWModel2D, except that we use variable transmissivity values in space, created with interpolation.
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
+In the `GWModel2D` the constant value of $kD=60m^2/d$ was used as value for the transmissivity. We will now construct a model that is identical to the `GWModel2D`, except for the interpolation function of the transmissivities in the internal flux of the new model.
 
 * Call the new model 'TwoDmodelInterp'
 * Use an interpolation function of your own choice (think about what is realistic)
@@ -769,11 +554,7 @@ plot(TwoDmodelInterp, fill="state", fill.contours = c(5,6))
 </div>
 
 # 4. Effect of nodal distances
-<<<<<<< HEAD
-One of the selling points of the Finite Volumes and Finite Elements method is that more nodes can be chosen near points of interest and by that obtain higher precision. Use in this section the Finite Elements discretization technique, except where explicitly state otherwise.
-=======
-One of the selling points of the Finite Volumes and Finite Elements method is that more nodes can be chosen near points of interest, and by that higher precision can be obtained.
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
+One of the selling points of the Finite Volumes and Finite Elements method is that more nodes can be chosen near points of interest, and by that higher precision can be obtained. Use in this section the Finite Elements discretization technique, except where explicitly state otherwise.
 
 <div class="exercise">
 15.Copy the `GWModel2D` model, call it `TwoDModelWell` and implement a well at location x=1000 and y = 1000 with an extraction rate of 1000 $m^2/d$. 
@@ -825,13 +606,8 @@ Fill in your answer here...
 The blocky, basalt like structure, should be found for the Finite Volumes method. The Finite Elements method should produce a continuous surface.
 </div>
 
-<<<<<<< HEAD
 <div class="question">
-17.Decrease the nodal distance in an area of 200 $m$ in diameter around the location of the well to a distance of 25 $m$, use a nodal distance of 100 $m$ outside of this area. Are the results indeed better/more realistic?
-=======
-<div class="exercise">
-17.Decrease the nodal distance in an area of 200 $m$ in diameter around the location of the well to a distance of 25 $m$. Use a nodal distance of 100 $m$ outside of this area. Are the results indeed better?
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
+17.Decrease the nodal distance in an area of 200 $m$ in diameter around the location of the well to a distance of 25 $m$. Use a nodal distance of 100 $m$ outside of this area. Are the results indeed better/more realistic?
 </div>
 
 <button type="button" onclick="showHint(417)">Show Hint</button>
@@ -857,17 +633,13 @@ plot(TwoDModelWell, fill="random")
 
 # 3D plot
 new_dev = open3d()
-<<<<<<< HEAD
-plot(TwoDModelWell, fill="state", fill.3D=TRUE, main.title="TwoDModelWell - decreased distance")
+plot(TwoDModelWell, fill="state", fill.3D=TRUE, main.title="TwoDModelWell - decreased nodal distance")
 
 # This adds a title to the 3D plot
 bgplot3d({
   plot.new()
   title(main = "Q17: Well node config.", line = 3)
 })
-=======
-plot(TwoDModelWell, fill="state", fill.3D=TRUE, main.title="TwoDModelWell - decreased nodal distance")
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
 ```
 </div>
 
@@ -1032,7 +804,7 @@ Next, several boundary conditions have to be defined. The boundaries should be i
 * The horizontal top of the dike receives a recharge flux of 0.001 $mm/day$
 
 <div class="exercise">
-22. Create a new model and add the boundary conditions described above. Give an interpretation for each of these boundary conditions. What boundary condition is used on the remaining boundary segments?
+22.Create a new model and add the boundary conditions described above. Give an interpretation for each of these boundary conditions. What boundary condition is used on the remaining boundary segments?
 </div>
 
 <button type="button" onclick="showHint(422)">Show Hint</button>
@@ -1060,17 +832,12 @@ set.BC.fixedflux(DikeFlow, 4, 0.001)
 ```
 </div>
 
-<<<<<<< HEAD
-<div class="question">
+<div class="exercise">
 23.Add a proper discretisation in the model. Use for this the geomden method, with an opdist of 0.5 and the proper y-to-x-ratio. Use the Finite Elements discretisation method. Add a randomly filled plot of the discretised domain.
 </div>
 
 <div class="student_answer">
 Fill in your answer here...
-=======
-<div class="exercise">
-23. Add a proper discretisation to the model. Use for this the geomgen method, with an opdist of 0.5 and the proper y-to-x-ratio. Use the Finite Elements discretisation method. Add a randomly filled plot of the discretised domain.
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
 </div>
 
 <div class="answer">
@@ -1092,11 +859,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-<<<<<<< HEAD
-The largest flux is observed at the lower west boundary. The highest flux density is observed here. The lenght of these vectors represent the magnitude of the flux. The arrows point in the direction of the flow.
-=======
-The largest flux is observed at the lower west boundary, where all the water is forced through a relatively small surface.
->>>>>>> c272d49af658daebe3a92ce0cd0eaa86435ccbec
+The largest flux is observed at the lower west boundary, where all the water is forced through a relatively small surface. The highest flux density is observed here. The lenght of these vectors represent the magnitude of the flux. The arrows point in the direction of the flow.
 ```{r}
 # Solve
 solve.steps(DikeFlow)
@@ -1107,12 +870,17 @@ plot(DikeFlow, fill="state", fill.contours=seq(0, 1, length=10), fill.name="head
 </div>
 
 Apart from flow velocities, the distribution of water pressure in the dike is also important in order to investigate the stability of the dike. The standard use of the plot function as implemented in the FVFE2D package is with `fill= "state"`. This will in this case show the head distribution and not the pressure distribution. However, one can assign a function as fill argument for the plotting function. 
+
 <div class="exercise">
-25. Define the pressure function and create a contour plot of the pressure distribution in the dike. Note that the zero contour line of the pressure head represents the border between the saturated and unsaturated zone (the groundwater level). 
+25.Define the pressure function and create a contour plot of the pressure distribution in the dike. Note that the zero contour line of the pressure head represents the border between the saturated and unsaturated zone (the groundwater level). 
 </div>
 
 <button type="button" onclick="showHint(425)">Show Hint</button>
 <p id="Q425"> </p>
+
+<div class="student_answer">
+Fill in your answer here...
+</div>
 
 <div class="answer">
 ```{r}
@@ -1128,7 +896,7 @@ plot(DikeFlow, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, len
 </div>
 
 <div class="exercise">
-26. This last exercise lets you play with the dike model. Convince yourself that with the help of the model that you have built you can investigate the flow through a dike for the following examples:
+26.This last exercise lets you play with the dike model. Convince yourself that with the help of the model that you have built you can investigate the flow through a dike for the following examples:
 
 * How do the water levels left and right of the dike influence the flow?
 * How do heterogeneities (e.g. a very conductive layer) influence the flow?
