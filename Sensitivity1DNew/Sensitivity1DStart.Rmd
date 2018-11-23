@@ -1,5 +1,5 @@
 ---
-title: "Sensitivity practical 1 - Local sensitivity analysis"
+title: "Sensitivity practical 1 - 1D systems"
 subtitle: "Determining sensitivities and scales of variation in a 1D groundwater model"
 author: "Lieke Melsen"
 date: "24/09/2018"
@@ -33,8 +33,7 @@ First of all, install the following packages from CRAN:
 </div>
 
 <div class="exercise">
-1. Read carefully the example of a sensitivity analysis, found in the 'Code Examples' folder. Reading through the html is a good recap of the material you should understand for the exam. If there
-are questions about techniques or interpretations, please ask them.
+1. Read carefully the example of a sensitivity analysis, found in the 'Example Sensitivity' folder. Reading through the html is a good recap of the material you should understand for the exam. If there are questions about techniques or interpretations, please ask them.
 </div>
 
 # 2. Building the model
@@ -149,7 +148,7 @@ Start adding code...
 Start adding code...
 
 <div class="answer">
-See `LocalSensAnswer1.Rmd`.   
+See `Sens1DAnswer1.Rmd`.   
 The *local sensitivity analysis* shows that the variation of the groundwater extraction rate has a large influence on the uncertainty in M. When looking at the groundwater levels over the whole domain, the rainfall, river level and right-side transmissivity are also important sources of uncertainty, depending on the location in the domain.
 
 The *analysis by sampling* shows that the uncertainty in the groundwater results increases strongly from left to right in the domain. Again Qwell turns out to be the most important contributor to the variation in M, but P and kDl also have an important contribution, which is larger than in the LSA.
@@ -179,7 +178,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-See `LocalSensAnswer2.Rmd`.   
+See `Sens1DAnswer2.Rmd`.   
 Some small changes are visible, for instance, there are changes in the minimum values of dstate/dkDl and dstate/dkDr. Changes in the sensitivity due to a different `eps` point to a nonlinear dependence of M on this parameter. The d{state}/d{hl} line over the model domain shows some fluctuations. These are numerical roundoff errors, and the value is still effectively 1 everywhere.
 
 The relative contribution of the parameters to the uncertainty in M or the overall groundwater levels stays the same. Only the uncertainty in the groundwater level at the right end of the domain decreases.
@@ -199,7 +198,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-See `LocalSensAnswer3.Rmd`.    
+See `Sens1DAnswer3.Rmd`.    
 When you change the seed e.g. to 238, there are no visible changes to the parameter distributions. However, the Msample does change: its standard deviation is increased somewhat. Also there are quite significant changes in the calculated contributions of the parameters to the uncertainty in M: the contribution of kDl becomes much smaller, while the contribution of P increases.
 </div>
 
@@ -212,6 +211,6 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-See `LocalSensAnswer4.Rmd` (larger sample, seed=237) and `LocalSensAnswer5.Rmd` (larger sample, seed=238).   
+See `Sens1DAnswer4.Rmd` (larger sample, seed=237) and `Sens1DAnswer5.Rmd` (larger sample, seed=238).   
 With a sample size of about 1000, the differences between seed 237 and 238 are minimal. This shows that a sufficient sample size is important to ensure the AVS conclusions are correct. 
 </div>

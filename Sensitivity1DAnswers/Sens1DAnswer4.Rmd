@@ -1,11 +1,12 @@
 ---
-title: "Answers to local sensitivity exercise 7"
-subtitle: "Sample size=1000, seed=238"
+title: "Answers to sensitivity-1D exercise 7"
+subtitle: "Sample size=1000, seed=237"
 output:
    html_document:
     css: want.css
     toc: yes
 ---
+
 
 ```{r}
 rm(list=ls())
@@ -133,7 +134,7 @@ parsd    = unlist(scale)
 parlower = c(1, 1, 0, -1, 0.5)
 parupper = c(1000, 1000, 2, 0, 1.5)
 samplesize = 1000
-set.seed(238)
+set.seed(237)
 parsample = GaussianLHS(samplesize,parmeans,parsd,parnames,parlower,parupper) 
 ```
 
@@ -207,7 +208,7 @@ Plot all the model results of the sampled parameter sets in one plot:
 matplot(nodes,t(statesSample),type="l",main="States for all parameter sets",ylab="groundwater level")
 ```
 
-There are still differences between seed=237 and seed=238 in "outlier" model runs. However, these outliers have less influence now. 
+There are still differences between seed=237 and seed=238 in "outlier" model runs. However, these outliers have less influence now.
 
 The following plot contains:
 

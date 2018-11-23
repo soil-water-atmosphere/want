@@ -1,12 +1,11 @@
 ---
-title: "Answers to local sensitivity exercise 6"
-subtitle: "Effect of changing the seed for random sampling"
+title: "Answers to sensitivity-1D exercise 7"
+subtitle: "Sample size=1000, seed=238"
 output:
    html_document:
     css: want.css
     toc: yes
 ---
-
 
 ```{r}
 rm(list=ls())
@@ -133,7 +132,7 @@ parmeans = unlist(base)
 parsd    = unlist(scale)
 parlower = c(1, 1, 0, -1, 0.5)
 parupper = c(1000, 1000, 2, 0, 1.5)
-samplesize = 300
+samplesize = 1000
 set.seed(238)
 parsample = GaussianLHS(samplesize,parmeans,parsd,parnames,parlower,parupper) 
 ```
@@ -169,7 +168,7 @@ lines(density(parsample[,"hl"]),col="red",lwd=2)
 par(old.par)
 ```
 
-The distributions of the sampled parameters are very similar to how they were with seed=237.
+The distributions of the sampled parameters are very similar between the two seeds.
 
 **Making all the model runs**
 
@@ -208,7 +207,7 @@ Plot all the model results of the sampled parameter sets in one plot:
 matplot(nodes,t(statesSample),type="l",main="States for all parameter sets",ylab="groundwater level")
 ```
 
-Some differences in the generated heads are visible, especially in the 'outlier' sample runs. 
+There are still differences between seed=237 and seed=238 in "outlier" model runs. However, these outliers have less influence now. 
 
 The following plot contains:
 
@@ -227,8 +226,7 @@ lines(nodes,StatesSampleMeans+allSDs,col="blue")
 points(nodes,state_base,pch=10, col="red")
 ```
 
-It can be seen that the mean model result of all the parameter sets is close to the model results calculated with the mean parameters, but does deviate from it.   
-The standard deviation still increases from left to right. There are no changes due to the adapted seed.
+It can be seen that the mean model result of all the parameter sets is close to the model results calculated with the mean parameters, but does deviate from it. There are no changes due to the adapted seed.
 
 ## 2.2 AVS variation analysis
 We will limit the AVS analysis to the data calculated by MRESULT.
@@ -243,8 +241,6 @@ print(paste("variance of sample M",round(VARM,4)))
 print(paste("standard deviation of M",round(SDM,4)))
 ```
 
-The standard deviation is higher than with the previous seed.
-
 Plotting the histogram:
 ```{r}
 smoothdensM = density(Msample)
@@ -255,7 +251,7 @@ rug(Msample,col="red")
 lines(smoothdensM,col="red",lwd=3)
 ```
 
-The distribution of M has become slightly more narrow and peaky compared to the results with seed=237.
+There is still a small difference in the standard deviation of M between the seeds (0.6 vs 0.58). However, the shape of the distribution of M is now very similar between the two.
 
 **Conditional expectation of M with respect to parameters**
 
@@ -294,7 +290,7 @@ points(MPsample[,"hl"],Mcondhl,pch=20,col="red")
 par(old.par)
 ```
 
-There are some changes to the conditional expectation plots. The conditional density of M to P is less linear than before; also there is a slight increasing trend in the dependence of M on hl, which wasn't visible before.
+Seed 237 and seed 238 now give very similar conditional expectation curves.
 
 **Contribution of the parameters to the variance of M**
 
@@ -310,4 +306,4 @@ print(ANOVA1) # the variance in M caused by each parameter
 print(sqrt(ANOVA1)) # the standard deviation of M caused by each parameter
 ```
 
-Still, the same three most important parameters pop up (Qwell, P, kDl). However, their relative contributions have changed significantly. The contribution of kDl is much smaller than before, while the contribution of P has increased, becoming almost equal to Qwell. The influence of the random number seed is clearly visible here.
+The relative contributions of the parameters are now much more equal between the seeds.

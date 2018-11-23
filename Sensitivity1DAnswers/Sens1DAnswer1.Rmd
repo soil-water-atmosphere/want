@@ -1,5 +1,5 @@
 ---
-title: "Answers to local sensitivity exercise 3"
+title: "Answers to sensitivity-1D exercise 3"
 subtitle: "Determining sensitivities and scales of variation in a 1D groundwater model"
 output:
    html_document:
