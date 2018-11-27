@@ -1,0 +1,70 @@
+---
+title: "Newton-Raphson from scratch"
+author: "The WANT team"
+date: "27/11/2018"
+output:
+  html_document:
+    css: want.css
+---
+
+# Learning goal
+* Understand the underlying principle of the FV/FD packages
+
+# Introduction
+For the assignments of this week, we have the FV/FD packages available that will take care of the numerics that are involved with solving differential equations using Finite Volumes and Finite Elements. A main principle used in the packages to solve the numerics is that non-linear systems (generally the ones that we are interested in) can be approximated with linear systems, iteratively evaluating the difference between the linear and non-linear system. This approach is called 'Newton-Raphson' and frequently used in numerical mathematics. In this short assignment, you will build a Newton-Raphson solver from scratch. 
+
+# Question 1
+In the Finite Volume technique, given a certain state or in/outflux of a control volume, neighbouring volumes have to update their state to conserve the balance of the overall system. So basically, we search for the zero-point of the system (no change in overall balance). 
+
+<span class="question">
+We have a linear system described by $f(x)=ax+b$, for which $x$ does the function equal zero? 
+</span>
+
+<span class="student_answer">
+Fill in your answer...
+</span>
+
+<span class="answer">
+For linear systems, we can answer this question directly. The system is described by $f(x) = ax+b$, we search for the point $f(\hat{x}) = 0$, so $\hat{x}=\frac{-b}{a}$. For linear systems, we only need one step to find the zero-point. 
+</span>
+
+
+# Question 2
+Generally, the systems that we encounter in Earth sciences behave non-linear. If the equation describing the non-linear system can be differentiated, we can obtain the zero-point by finding the minimum of the derivative. But for many of our systems, we cannot take the derivative (that's why we are stuck with numerical techniques), and therefore we can not directly find the solution where the system equals zero. Therefore, we require iteration; the states of the control volumes have to be identified iteratively. What Newton-Raphson does, is linearize the non-linear function, obtain the zero-point, and compare this zero-point with the non-linear equation. Let's go through it step-by-step. 
+
+<span class="question">
+* Plot the function $y(x)=x^2-10$ for x = 0:10
+* Linearize the function by taking a local derivative, e.g. around x=7. [add hint here] 
+* Add the linearized function to your plot 
+</span>
+
+```{r}
+# Type your code here.
+```
+
+<span class="answer">
+
+```{r}
+# x-domain
+x = seq(0:10)
+
+# non-linear function
+y = function(x){x^2-10}
+
+# linearized function 
+estimate = 7
+epsilon  = 0.1
+f = function(x){y(estimate)+ ((y(estimate+epsilon)-y(estimate))/epsilon)*(x-estimate)}
+
+# plot 
+plot(x,y(x),col="red",type="l")
+lines(x,f(x),col="blue")
+abline(a=x,b=0,lty="dotted")
+```
+</span>
+
+
+
+
+# Question 3
+Newton Raphson
