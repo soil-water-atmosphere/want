@@ -6,6 +6,8 @@ output:
   html_document:
     css: want.css
 ---
+<!-- include the hint.js -->
+<script src="hints.js"></script>
 
 # Learning goal
 * Understand the underlying principle of the FV/FD packages
@@ -16,9 +18,9 @@ For the assignments of this week, we have the FV/FD packages available that will
 # Question 1
 In the Finite Volume technique, given a certain state or in/outflux of a control volume, neighbouring volumes have to update their state to conserve the balance of the overall system. So basically, we search for the zero-point of the system (no change in overall balance). 
 
-<span class="question">
-We have a linear system described by $f(x)=ax+b$, for which $x$ does the function equal zero? 
-</span>
+<div class="question">
+We have a linear system described by $f(x)=ax+b$, for which $x$ does the system $f$ equal zero? 
+</div>
 
 <span class="student_answer">
 Fill in your answer...
@@ -30,12 +32,36 @@ For linear systems, we can answer this question directly. The system is describe
 
 
 # Question 2
-Generally, the systems that we encounter in Earth sciences behave non-linear. If the equation describing the non-linear system can be differentiated, we can obtain the zero-point by finding the minimum of the derivative. But for many of our systems, we cannot take the derivative (that's why we are stuck with numerical techniques), and therefore we can not directly find the solution where the system equals zero. Therefore, we require iteration; the states of the control volumes have to be identified iteratively. What Newton-Raphson does, is linearize the non-linear function, obtain the zero-point, and compare this zero-point with the non-linear equation. Let's go through it step-by-step. 
+Generally, the systems that we encounter in Earth sciences behave non-linear, and therefore we can not directly find the solution where the system equals zero. This requires iteration; the states of the control volumes have to be identified iteratively. What Newton-Raphson does, is linearize the non-linear function, obtain the zero-point, and compare this zero-point with the non-linear equation. Let's go through it step-by-step. 
 
-<span class="question">
-* Plot the function $y(x)=x^2-10$ for x = 0:10
-* Linearize the function by taking a local derivative, e.g. around x=7. [add hint here] 
-* Add the linearized function to your plot 
+<span class="question"> 
+1. Implement y(x)=x^2-10 using a function <br>
+<!-- HINT 1 -->
+<button type="button" onclick="showHint(1)">Hint 1</button>
+<p id="Q1"> </p>
+</span>
+
+<span class="question"> 
+2. Linearize y by taking a local derivative, e.g. around x=7, and implement using a function <br>
+<!-- HINT 2 -->
+<button type="button" onclick="showHint(2)">Hint 2</button>
+<p id="Q2"> </p>
+</span>
+
+<span class="question"> 
+3. Plot y(x)=x^2-10 for x = 0:10 <br>
+</span>
+
+<span class="question"> 
+4. Add the linearized function to your plot. <br>
+</span>
+
+<span class="question"> 
+5. Calculate the x for which the linearized function equals zero. <br>
+</span>
+
+<span class="question"> 
+6. Insert the obtained x from 5 into the non-linear function, does that indeed give zero? <br>
 </span>
 
 ```{r}
@@ -49,22 +75,80 @@ Generally, the systems that we encounter in Earth sciences behave non-linear. If
 x = seq(0:10)
 
 # non-linear function
-y = function(x){x^2-10}
+y <- function(x){x^2-10}
 
 # linearized function 
 estimate = 7
 epsilon  = 0.1
-f = function(x){y(estimate)+ ((y(estimate+epsilon)-y(estimate))/epsilon)*(x-estimate)}
+f <- function(x){y(estimate)+ ((y(estimate+epsilon)-y(estimate))/epsilon)*(x-estimate)}
 
 # plot 
-plot(x,y(x),col="red",type="l")
-lines(x,f(x),col="blue")
+plot(x,y(x),col="blue",type="l",lwd=2)
+lines(x,f(x),col="red")
 abline(a=x,b=0,lty="dotted")
+
+# find where x is zero for the linearized function
+b = f(0)
+a = (y(estimate+epsilon)-y(estimate))/epsilon
+x_0 = -b/a
+f(x_0) # indeed leads to zero!
+
+# check if this also leads to zero in the non-linear function
+y(x_0) # this is certainly not equal to zero! 
+
 ```
 </span>
 
-
-
-
 # Question 3
-Newton Raphson
+In the previous question, we only took one step; we linearized the non-linear function and searched for the 0-point in the linearized function. Subsequently, we compared if the 0-point of the linearized function was close to the 0-point of the non-linear function, by filling out the linearized 0-point in the non-linearized function. The Newton-Raphson algorithm will do this in the same way, but will repeat the procedure when the result of the non-linear function is too far off zero, based on a stopping-criterion. The algorithm will the the 0-point of the linearized function as estimate for the next linearization of the non-linear function. 
+
+<span class="question"> 
+Implement a Newton-Raphson algorithm for the equation given in the previous question, using a while-loop. The stopping criterion is 0.05, that means that the iteration may stop as soon as the non-linear function reaches a result of 0.05 (or lower). Plot the steps in the while-loop to see the process. Later, you can of course adapt the non-linear equation and the stopping-algorithm.
+</span>
+
+```{r}
+# Type your code here.
+```
+
+<span class="answer">
+```{r}
+# Define your non-linear function (can be anything, uncomment the one you want to use)
+#y <- function(x){sin(x)+2*x^2}
+y <- function(x){x^2-10}
+#y <- function(x){4*sin(x)+0.5*cos(x^2)} # what does it do here? 
+
+# Define your linear function
+f <- function(x){y(estimate)+ ((y(estimate+epsilon)-y(estimate))/epsilon)*(x-estimate)}
+
+# Plot your non-linear function
+x = seq(0:10)
+plot(x,y(x),col="blue",type="l",lwd=2)
+abline(a=x,b=0,lty="dotted")
+
+# Define a start-estimate, the epsilon for the linearization, 
+# and a begin-value of the output to initiate the while-loop,
+# define the stopping criterion
+estimate = 7
+epsilon  = 0.1 
+output   = 10
+stopcrit = 0.05
+
+while (output>stopcrit)
+{
+ # calculate the zero-point for the linear function
+ b = f(0)
+ a = (y(estimate+epsilon)-y(estimate))/epsilon
+ x_0 = -b/a
+ # plot this linear function
+ lines(x,f(x),col="red",lty="dashed")
+ # check what the output is for the non-linear function
+ output = abs(y(x_0))
+ # set the zero-point of the linear function as new estimate
+ estimate = x_0
+ print(c(x_0,output))
+}
+
+# Of course, you can also turn this into a function completely. 
+```
+</span>
+
