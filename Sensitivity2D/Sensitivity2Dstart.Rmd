@@ -45,7 +45,8 @@ Figure 1: The study area.
 The model is already built. The following workspace contains the model (called `IJsselmodel`) and all the data it needs.
 
 ```{r}
-load("IJsselmodelNew.Rdata")
+load("IJsselmodel.Rdata")
+IJsselmodel = copy.model(model = model)
 solve.steps(IJsselmodel)
 ```
 
