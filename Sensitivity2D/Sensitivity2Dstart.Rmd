@@ -89,10 +89,6 @@ pie(Net,labels=A$name)
 The water input from rainfall is removed largely by the river, followed by drainage and groundwater flow over the boundaries. The well also removes a small part.
 </div>
 
-<div class="comment">
-Something goes wrong here with dataframe.balance? I don't see what is going on! dataframe.boundaries doesn't work either.
-</div>
-
 ## 1.2 Investigating the drainage fluxes
 <div class="exercise">
 2.In the chunk below, replace the XXXX by the proper function (consult the FVFE2D help if needed), so that the plot that follows shows the spatial distribution of the
@@ -919,7 +915,7 @@ for(i in 1:nrow(parsample))
 <div class="answer">
 ```{r}
 rm(Msample,parsample)
-Msample = load("AVS_mpsample.Rdata")
+load("AVS_mpsample.Rdata")
 ```
 </div>
 
@@ -1036,7 +1032,6 @@ Looking at the relative contributions of the parameters, the dominance of Qrch s
 
 <div class="comment">
 COMMENTS:   
-*  dataframe.balance & dataframe.boundaries werken niet bij mij, iemand een idee hoe dat kan?   
 *  AVS calculations duren lang. Ik heb zelf nog iets aan het IJsselmodel model veranderd (boundary conditions toegevoegd - die zaten er niet in- en naam veranderd. Weet niet of dat hem langzamer zou kunnen maken?)      
 *  ook het knitten van het gehele document duurt vrij lang, ook als je de AVS calculations al geeft. Hoeft niet per se erg te zijn misschien?.  
 </div>
