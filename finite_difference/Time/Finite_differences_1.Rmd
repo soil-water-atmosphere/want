@@ -1316,9 +1316,6 @@ lines(result.time[1:nrsteps],Qout.up[1:nrsteps]+Qout.lw[1:nrsteps],col='blue')
 
 Sumsquares = sum((Qobs.fun(result.time)-(Qout.up+Qout.lw))^2)
 title(main=paste('Observed (grey) vs. calculated discharges ','SS = ',Sumsquares))
-
-
-
 ```
 </span>
 
