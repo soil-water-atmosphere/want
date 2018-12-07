@@ -4,32 +4,10 @@ author: "The WANT team"
 date: "24/09/2018"
 output:
   html_document:
-    css: ../want.css
+    css: ../../want.css
 ---
 
 ## Exercise 1
-<span class="question">
-Derive the exact solution of ordenary differential equation (ODE) of the emptying bucket. 
-$$ \dfrac{ds}{dt} = -\alpha s(t)$$
-</span>
-
-<span class = "answer">
-$$\begin{align}
-ds &= -as \ dt\\
-\dfrac{1}{-as} ds &= dt\\
-\int \dfrac{1}{-as} ds &= \int dt\\
-\dfrac{1}{-a} \int \dfrac{1}{s} ds &= \int dt\\
-\dfrac{ln(s)}{-a} &= t + C_{1}\\
-ln(s) &= -at + C_{2}\\
-s &= \mathrm{e}^{-at + C_{2}}\\
-s &= C_{3}\mathrm{e}^{-at}\\
-s(t) &= s_{init}\mathrm{e}^{-at}
-\end{align}$$
-
-
-</span>
-
-## Exercise 2
 <span class="question">
 Add the analytical solution of equation to chunk3.
 </span>
@@ -38,11 +16,11 @@ Add the analytical solution of equation to chunk3.
 ```{r eval=FALSE}
 time.sequence = seq(begin.time,end.time,by=0.1)
 analyt.state=init.state * exp(-time.sequence*alpha)
-lines(time.sequence,analyt.state,col='blue',lwd=2)
+lines(time.sequence,analyt.state,col='grey',lwd=2)
 ```
 </span>
 
-## Exercise 3
+## Exercise 2
 <span class="question">
 Set up an equation to calculate the error. Use equations 3 and 8.
 </span>
@@ -60,7 +38,7 @@ $$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + err
 $$ error = \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{13}$$
 </span>
 
-## Exercise 4
+## Exercise 3
 <span class="question">
 
 use the R-functions *expression()*, *D()* (derivative) and *eval()* to implement the first six terms of equation 10 incremently in chunk5 below and plot this result on top of the existing plot. Note down the error every time a term is added.
@@ -202,3 +180,74 @@ terms | error
 The error rapidly decreases every time the next term of the taylor series is added.
 
 </span>
+
+## Exercise 4
+<span class="question">
+<span class="comment">  Is this question too complex for the hard track? </span>
+
+calculate the following ratio and explain it's meaning (limit $\Delta t$ to 0):
+
+$$ \lim_{\Delta t\to0}\dfrac{Error_{explicit}}{Error_{midpoint}} $$
+by making the following assumption ($i$ equals every positive integer):
+
+$$
+\dfrac{d^is}{dt^i}\bigg\rvert_{t} = \dfrac{d^is}{dt^i}\bigg\rvert_{t+\Delta t} = 1
+$$
+</span>
+
+<span class="answer">
+
+Defenition $Error_{midpoint}$
+
+\begin{matrix}
+
+s(t+\frac{1}{2}\Delta t) = s(t) + \frac{1}{2}\Delta t \dfrac{ds}{dt}\bigg\rvert_{t} + \sum_{i=2}^{\infty} \dfrac{(\frac{1}{2}\Delta t)^i}{i!}\dfrac{d^is}{dt^i}\bigg\rvert_{t}\\
+
+\tilde{s} = s(t) + \frac{1}{2}\Delta t \dfrac{ds}{dt}\bigg\rvert_{t} \approx s(t+\frac{1}{2}\Delta t)\\
+
+s(t+\Delta t) = s(t+\frac{1}{2}\Delta t) + \frac{1}{2}\Delta t \dfrac{ds}{dt}\bigg\rvert_{t+\Delta t} + \sum_{i=2}^{\infty} \dfrac{(\frac{1}{2}\Delta t)^i}{i!}\dfrac{d^is}{dt^i}\bigg\rvert_{t+\Delta t}\\
+
+s(t+\Delta t) \approx s(t+\frac{1}{2}\Delta t) + \frac{1}{2}\Delta t \dfrac{ds}{dt}\bigg\rvert_{t + \Delta t}\\
+
+Error_{midpoint} = \sum_{i=2}^{\infty} \dfrac{(\frac{1}{2}\Delta t)^i}{i!} (\dfrac{d^is}{dt^i}\bigg\rvert_{t} + \dfrac{d^is}{dt^i}\bigg\rvert_{t+\Delta t})\\
+
+Error_{midpoint} = \sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{2^{i-1}i!} \dfrac{d^is}{dt^i}\bigg\rvert_{t}
+
+\end{matrix}
+
+Defenition $Error_{explicit}$
+
+\begin{matrix}
+
+s(t+\Delta t) = s(t) + \Delta t \dfrac{ds}{dt}\bigg\rvert_{t} + \sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{i!} \dfrac{d^is}{dt^i}\bigg\rvert_{t} \\
+
+s(t+\Delta t) \approx s(t) + \Delta t \dfrac{ds}{dt}\bigg\rvert_{t}\\
+
+Error_{explicit} = \sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{i!} \dfrac{d^is}{dt^i}\bigg\rvert_{t} 
+
+\end{matrix}
+
+Calculating the ratio:
+\begin{align}
+
+Error_{explicit}/Error_{midpoint} &=& \dfrac{\sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{i!} \dfrac{d^is}{dt^i}\bigg\rvert_{t} }{\sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{2^{i-1}i!} \dfrac{d^is}{dt^i}\bigg\rvert_{t}}\\
+
+Error_{explicit}/Error_{midpoint} &=& \dfrac{\sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{i!}}{\sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{2^{i-1}i!}}\\
+
+Error_{explicit}/Error_{midpoint} &=& \dfrac{-\Delta t + e^{\Delta t} - 1}{-\Delta t + 2e^{\frac{\Delta t}{2}} - 2}
+
+\end{align}
+
+\begin{align}
+\lim_{\Delta t\to0}\dfrac{-\Delta t + e^{\Delta t} - 1}{-\Delta t + 2e^{\frac{\Delta t}{2}} - 2} = 2
+
+\end{align}
+
+with a $\Delta t$ approximating 0 the error of the midpoint method is twice as low as the explicit methodology, which makes sense because of the "fake" extra point that is added. The real value of this methodology becomes apparent with increasing $\Delta t$ when the ratio increases rapidly.
+
+</span>
+
+
+
+
+
