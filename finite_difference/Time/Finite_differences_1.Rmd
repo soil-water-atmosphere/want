@@ -1054,6 +1054,7 @@ Maybe it is a nice idea to let the hard track solve the *coupled reservoir* and 
 
 # Part 6 - Real world example
 The reservoir models up till now consider one outlet only. This entails a constant and linear relation between volume change and state change (for the linear reservoirs). For some environmental flow problems a reservoir model with a slow and fast acting component would be the most applicable model.
+
 Its practical use may be found in meteorology like a reservoir containing thermal energy which can be released at different rates or in rainfall runoff models, simulating base flow and after a storm event a quick discharge (e.g. due to surface runoff).
 In the graph below, the principle and workings of such a reservoir model is illustrated: 
 
@@ -1319,7 +1320,9 @@ title(main=paste('Observed (grey) vs. calculated discharges ','SS = ',Sumsquares
 ```
 </span>
 
-<span class="question">6.3  Analyse the effect of the different reservoir parameters on the behavior of the model.</span>
+<span class="question">
+6.3  Analyse the effect of the different reservoir parameters on the behavior of the model.
+</span>
 
 <span class="answer">The four reservoir parameters: 
 
