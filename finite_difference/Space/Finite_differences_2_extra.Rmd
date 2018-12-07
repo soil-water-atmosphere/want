@@ -18,12 +18,12 @@ $$0 = -u \frac{s(x+\Delta x) - s(x - \Delta x)}{2\Delta x} + D\frac{s(x + \Delta
 
 Do this with the following initial conditions:
 ```{R}
-dx = 5  # step size
-D  = 5  # diffusion coefficient
-u  = 5  # advectio coefficient
-bl = 0  # left boundary
-br = 1  # right boundary
-n  = 5  # amount of nodes
+dx    = 5    # step size
+D     = 5    # diffusion coefficient
+u     = 5    # advection coefficient
+bl    = 0    # left boundary
+br    = 1    # right boundary
+n     = 5    # amount of nodes
 ```
 </span>
 
@@ -31,7 +31,7 @@ n  = 5  # amount of nodes
 ```{R}
 dx    = 5    # step size
 D     = 5    # diffusion coefficient
-u     = 5    # advectio coefficient
+u     = 5    # advection coefficient
 bl    = 0    # left boundary
 br    = 1    # right boundary
 n     = 5    # amount of nodes
