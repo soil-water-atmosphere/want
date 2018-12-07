@@ -1,0 +1,304 @@
+---
+title: "Finite differences 2"
+author: "The WANT team"
+date: "24/09/2018"
+output:
+  html_document:
+    css: ../../want.css
+    toc: yes
+    toc_depth: 2
+---
+<!-- include the hint.js -->
+<script src="../../hints.js"></script>
+
+# Part 3 - Standing wave
+For the first example with the three differencing schemes we will examine the simplest wave equation possible, a sinus-function with it's derivative that is the opposite cosine wave ($\frac{ds}{dx}=cos(x)$). The first chunk is fully preprogrammed, it is exactly the same as the approach used for time integration. Easiest way to understand it is to work from left to right (instead of from the beginning to the end as we did with the time dimension). An exlicit integration scheme is used, meaning that information of one point is used to calculate the point directly to the right of it. Still the same stuff as in the previous practical but it's maybe a bit less intuitive. The following information about the system is available:
+
+$$
+\begin{matrix}
+s(x) &=& sin(x)\\
+\dfrac{ds}{dx} &=& cos(x)\\
+\dfrac{s(x+\Delta x) - s(x)}{\Delta x} &=& \dfrac{ds}{dx}
+\end{matrix}
+$$
+Leading to:
+$$
+\begin{matrix}
+\dfrac{s(x+\Delta x) - s(x)}{\Delta x} &=& cos(x)\\
+s(x+\Delta x) &=& s(x) + \Delta x cos(x)
+\end{matrix}
+$$
+
+To implement this equation a boundary state should be set. In this case 0 is a logical choice. This is equivalent to setting an initial state for time integration. For ease if visualisation the right side coordinates (end.time in previous) is set to $2\pi$ and dx to $\frac{\pi}{6}$.  
+
+```{r simple_forward}
+# Initial parameter values
+left          = 0     # usually this variable is set to 0
+right         = 2*pi  # end time of the simulation (50)
+dx            = pi/6  # delta t; time discretisation (0.25)
+left.state    = 0     # state of the system at the beginning of the simulation
+
+# Simulation initialisation
+space         = left
+result.state  = c(left.state)
+result.space  = c(left)
+current.state = left.state
+
+sys.fun = function(space,state){
+  return(state + dx*cos(space))
+}
+
+# Simulation
+while(space < right)
+{
+  current.state = sys.fun(space,current.state)
+  result.state  = c(result.state,current.state)
+  space         = space + dx
+  result.space  = c(result.space,space)
+}
+
+# Plotting
+plot(result.space,result.state,type='o', xlab="x (m)",ylab="state (m)", ylim = c(-1.5,1.5), col="blue")
+space.sequence = seq(left,right,by=0.05)
+analyt.state=sin(space.sequence)
+lines(space.sequence,analyt.state,col='grey',lwd=2)
+title(main='Numerical and analytical solution compared')
+grid()
+```
+
+As introduced in the Part 2 of this practical, this calculation can be done in a quicker way with exactly the same result by setting up a matrix equation. The following script is the same system as the one described above, but implemented by using matrix calculus. The first part sets up the initial parameters. V is the right hand side of the equation, M is the system matrix. Then the matrix and right hand side vector are populated. The equation is solved by running the solve(M,V) command and afterwards the result is plotted. Populating the matrix works as follows:
+
+* First set up the nodes of the matrix:
+  * $\dfrac{2\pi}{\frac{\pi}{6}} = 12$ plus the initial one means a 13x13 cell matrix
+* Defining the equations (square brackets don't signify the location of the coordinate but the index in the matrix):
+
+$$
+\begin{matrix}
+s[0]  &=& b_l = 0\\
+s[1]  &=& s[0]  &+& \Delta xcos(x)\\
+s[2]  &=& s[1]  &+& \Delta xcos(x)\\
+s[3]  &=& s[2]  &+& \Delta xcos(x)\\
+...\\
+s[13] &=& s[12] &+& \Delta xcos(x)\\
+\end{matrix}
+$$
+* Translating them to matrix, vector logic (with the vector entries on the right-hand side:
+
+$$
+\begin{matrix}
+s[0]  && &=& b_l\\
+s[1]  &-& s[0]  &=& \Delta xcos(x)\\
+s[2]  &-& s[1]  &=& \Delta xcos(x)\\
+s[3]  &-& s[2]  &=& \Delta xcos(x)\\
+...\\
+s[13] &-& s[12] &=& \Delta xcos(x)\\
+\end{matrix}
+$$
+
+* Inserted in a matrix:
+$$ 
+M * s = V:
+$$
+
+
+$$
+\begin{bmatrix}
+ &1&.&.&.&.&.&.&.&.&.&.&.&.\\
+&-1&1&.&.&.&.&.&.&.&.&.&.&.\\
+&.&-1&1&.&.&.&.&.&.&.&.&.&.\\
+&.&.&-1&1&.&.&.&.&.&.&.&.&.\\
+&.&.&.&-1&1&.&.&.&.&.&.&.&.\\
+&.&.&.&.&-1&1&.&.&.&.&.&.&.\\
+&.&.&.&.&.&-1&1&.&.&.&.&.&.\\
+&.&.&.&.&.&.&-1&1&.&.&.&.&.\\
+&.&.&.&.&.&.&.&-1&1&.&.&.&.\\
+&.&.&.&.&.&.&.&.&-1&1&.&.&.\\
+&.&.&.&.&.&.&.&.&.&-1&1&.&.\\
+&.&.&.&.&.&.&.&.&.&.&-1&1&.\\
+&.&.&.&.&.&.&.&.&.&.&.&-1&1
+\end{bmatrix}
+* 
+\begin{bmatrix}
+s[0]\\ 
+s[1]\\ 
+s[2]\\ 
+s[3]\\ 
+s[4]\\ 
+s[5]\\ 
+s[6]\\ 
+s[7]\\ 
+s[8]\\ 
+s[9]\\ 
+s[10]\\ 
+s[11]\\ 
+s[12]
+\end{bmatrix}
+= 
+\begin{bmatrix}
+b_l\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x)\\ 
+\Delta x*cos(x) 
+\end{bmatrix}
+$$
+
+To solve the states, matrix algebra is used:
+
+$$
+\begin{matrix}
+M * s &=& V\\
+M^{-1}M * s &=& M^{-1}V\\
+I * s &=& M^{-1}V\\
+s &=& M^{-1}V
+\end{matrix}
+$$
+<span class="question">
+A boundary value is needed to solve the equations. Explain the reason using matrix algebra
+</span>
+
+<span class="answer">
+determinant is 0
+</span>
+
+In R the simple syntax to solve this equation is solve(M,V) to calculate the states. Implementing everything looks as follows:
+
+<span class="comment"> The hard track might do this all by themselves actually</span>
+
+```{r matrix_forward}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/6
+left  = 0
+right = 2*pi
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+
+bl    = 0                      # left boundary condition
+V     = c()                    # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 2:(length(xcoor)))
+{
+  M[j,j]   = 1
+  M[j,j-1] = -1
+  V[j]     = dx*cos(xcoor[j-1])  # -1 because it's an explicit scheme
+}
+
+# left boundary condtion
+M[1,1]     = 1
+M[1,2]     = 0
+V[1]       = bl
+
+# solve matrix equation
+s = solve(M,V)
+
+# plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,sin(x_sol),type='l', col="grey",lwd=2)
+title(main='Forward differencing scheme with matrices')
+grid()
+```
+
+<span class="question">
+3.1 Copy the previous chunk and adapt it to the backward differencing scheme (still explicit integration method)
+</span>
+
+<span class="answer">
+```{r backward}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/6
+left  = 0
+right = 2*pi
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+
+bl    = 0                      # left boundary condition
+V     = c()                    # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 2:(length(xcoor)))
+{
+  M[j,j]   = 1
+  M[j,j-1] = -1
+  V[j]     = dx*cos(xcoor[j])
+}
+
+# left boundary condtion
+M[1,1]     = 1
+M[1,2]     = 0
+V[1]       = bl
+
+# solve matrix equation
+s = solve(M,V)
+
+# plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,sin(x_sol),type='l', col="grey",lwd=2)
+title(main='Backward differencing scheme with matrices')
+grid()
+```
+</class>
+
+
+<span class="comment">
+How to go about this chunk for the central scheme. It's a bit more complex to implement because of singularity problem.
+
+```{r central}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/6
+left  = 0
+right = 2*pi
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+
+bl    = sin(left)              # left boundary condition
+br    = sin(right)             # right boundary condition
+V     = c()                    # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 2:(length(xcoor)-1))
+{
+  M[j,j-1] = -1
+  if(length(xcoor)!=j){M[j,j+1] = 1}
+  M[j,j] = 10E-15 # analytically this should be 0, but this results in a singular matrix that,by defenition is ininvertable. This means that an analytical solution does not exist anymore
+  V[j]     = 2*dx*cos(xcoor[j])
+}
+
+# left boundary condtion
+M[1,1]       = 1
+M[1,2]       = 0
+V[1]         = bl
+
+# right boundary condition
+end = length(xcoor)
+M[end,end]   = 1
+M[end,end-1] = 0
+V[end]       = br
+
+# solve matrix equation
+s = solve(M,V)
+
+# plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,sin(x_sol),type='l', col="grey",lwd=2)
+title(main='Central differencing scheme with matrices')
+grid()
+```
+</span>
