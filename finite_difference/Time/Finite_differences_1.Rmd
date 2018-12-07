@@ -212,9 +212,9 @@ Around `dt = 1` the analytical solution and the numerical approximation come qui
 
 # Part 2 - Taylor series
 ## Section 2.1 - Introduction Taylor Series 
-The former exercise can also be performed using more formal mathematics, such that the error of the numerical approximation can be calculated. For that we need Taylor series.
+The previous exercise can also be done in a more formal way, such that the error of the numerical approximation can be calculated. For that we need Taylor series.
 
-Taylor series (https://en.wikipedia.org/wiki/Taylor_series) can be used to make approximations of complex mathematical functions of the order that you desire. If you use an infinite series, the approximation is exact. The finite difference approximation that you have derived earlier, can also be derived using a Taylor series. TIP: if you are unfamiliar with this topic or you simply want a refresher you can watch the following video by 3Blue1Brown; https://www.youtube.com/watch?v=3d6DsjIBzJ4
+Taylor series (https://en.wikipedia.org/wiki/Taylor_series) can be used to make approximations of complex mathematical functions. If you use an infinite series, the approximation is exact. The finite difference approximation that you have derived earlier, can also be derived using a Taylor series. TIP: if you are unfamiliar with this topic or you simply want a refresher you can watch the following video by 3Blue1Brown; https://www.youtube.com/watch?v=3d6DsjIBzJ4
 
 The mathematical definition of a Taylor series is as follows:
 $$f(x) = \sum_{n=0}^{\infty} \frac{f^{n}(a)}{n!}(x-a)^{n} \tag{6}$$
