@@ -1,0 +1,16 @@
+---
+title: "Finite differences 2"
+author: "The WANT team"
+date: "24/09/2018"
+output:
+  html_document:
+    css: ../../want.css
+    toc: yes
+    toc_depth: 2
+---
+<!-- include the hint.js -->
+<script src="../../hints.js"></script>
+
+<span class="comment">
+Implement the last exercise in the document practmanualspacetime.docx. Afterwards it might be nice to add an exercise for hydrology and meteorology. For hydrology I thought about implementing a richards-equation with variable input (maybe the huspeldata?).
+</span>
