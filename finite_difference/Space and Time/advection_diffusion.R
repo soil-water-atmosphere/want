@@ -1,5 +1,6 @@
 rm(list=ls())
 library(plotly)
+library(shiny)
 
 ### SOLVING THE ADVECTION DIFFUSION EQUATION WITH CN,EXPLICIT OR IMPLICIT SCHEME
 # INPUT
@@ -12,7 +13,8 @@ solve_ad = function(domain=c(0,100),
                     bl=0,
                     br=0,
                     omega=1,
-                    initfun=approxfun(c(0,45,50,55,100),c(0,0,1,0,0),rule=2)
+                    initfun=approxfun(c(0,45,50,55,100),c(0,0,1,0,0),rule=2),
+                    delay = 200
                     ){
   # omega = 1   , explicit
   # omega = 0   , implicit
@@ -55,12 +57,13 @@ solve_ad = function(domain=c(0,100),
   
   # STORE ANALITICAL RESULTS
   a.N           = length(a.x)
-  Nsteps        = endtime/dt+1
+  steps         = seq(0,endtime,by=dt)
+  Nsteps        = length(steps)
   a.steps       = rep(1:Nsteps,each=a.N)
   a.values      = rep(0,length=length(a.steps))
   a.domain      = rep(a.x,length=length(a.steps))
   
-  solution = data.frame("step" = a.steps, "x"= a.domain, "value" = a.values, "tvalue" = a.values)
+  solution = data.frame("step" = a.steps, "t" = a.steps*dt ,"x"= a.domain, "value" = a.values, "tvalue" = a.values)
   
   solution[solution$step == 1,]$tvalue = initfun(a.x)
   solution[solution$step == 1,]$value  = initfun(a.x)
@@ -69,7 +72,7 @@ solve_ad = function(domain=c(0,100),
   new.state  = init.state
   time       = 0
   
-  while(time<endtime){
+  while(step<(Nsteps)){
     # analytical solution
     a.state = rep(0,length(a.x))
     for(i in 1:length(a.x))
@@ -99,27 +102,20 @@ solve_ad = function(domain=c(0,100),
     newstate.fun = approxfun(x,new.state,rule=2)
     solution[solution$step == step,]$tvalue = a.state
     solution[solution$step == step,]$value  = newstate.fun(a.x)
-    #Sys.sleep(1/8)
   }
   
   # plotting
   state.length = state.range[2]-state.range[1]
   plotlim      = c(state.range[1]-0.2*state.length,state.range[2]+0.2*state.length)
   
-  # for(i in 1:25){
-  #   plot(a.x,solution[solution$step == i,]$value,ylim=plotlim,type="l")
-  #   lines(a.x,solution[solution$step == i,]$tvalue, col="grey",lwd=2)
-  #   Sys.sleep(1/8)
-  # }
-  
   plot_ly(
     solution,
     x          = ~x,
     y          = ~tvalue,
-    frame      = ~step,
+    frame      = ~t,
     type       = "scatter",
     mode       = "lines",
-    #showlegend = T,
+    name       = "True solution",  
     line = list(
       color = 'lightgrey',
       width = 2
@@ -127,16 +123,17 @@ solve_ad = function(domain=c(0,100),
   ) %>% 
     add_trace(
       y          = ~value,
-      frame      = ~step,
+      frame      = ~t,
       type       = "scatter",
       mode       = "lines",
       line = list(
         color = 'blue',
         width = 1
-      )
+      ),
+      name = "Approximation"
     ) %>%
     animation_opts(
-      frame      = 200,
+      frame      = delay,
       transition = 0,
       easing     = "linear",
       redraw     = FALSE,
@@ -163,7 +160,67 @@ solve_ad = function(domain=c(0,100),
       align = "left",
       text  = (paste("omega = ", as.character(omega) , "\n", "dx = " , as.character(dx), "\n", "dt = " , as.character(dt))),
       showarrow = F
+    ) %>%
+    animation_slider(
+      currentvalue = list(prefix = "t = ", font = list(color="darkblue"))
     )
 }
 
-solve_ad(omega=1,dt=0.8)
+#################SHINY###################
+ui <- fluidPage(
+  tags$head(
+    tags$style(HTML("
+                    h4 {
+                    color: darkblue;
+                    }
+                    "))
+    ),
+  # App title ----
+  titlePanel("Advection Diffusion Equation"),
+  
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
+    
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+      h4("Equation"),
+      sliderInput("u", label = "u:",min = 0, max = 10, value = 1, step = 0.1),
+      sliderInput("D", label = "D:",min = 0, max = 10, value = 1, step = 0.1),
+      hr(),
+      h4("Approximation settings"),
+      sliderInput("dt", label = "dt:",min = 0.1, max = 10, value = 1, step = 0.1),
+      sliderInput("dx", label = "dx:",min = 0.1, max = 10, value = 1, step = 0.1),
+      div("Omega = 1 (Explicit)"         , style = "font-style:italic; font-size:7pt"),
+      div("Omega = 0 (Implicit)"         , style = "font-style:italic; font-size:7pt"),
+      div("Omega = 0.5 (Crank-Nicolson)" , style = "font-style:italic; font-size:7pt"),
+      sliderInput("omega", "Time-integration scheme (omega):", min=0,max=1,value=0,step=0.1),
+      hr(),
+      h4("Plotting settings"),
+      sliderInput("delay", label = "Frame speed:",min = 0, max = 5000, value = 200, step = 100),
+      sliderInput("endtime", label = "Runtime:",min = 1, max = 100, value = 20, step = 1),
+      hr(),
+      submitButton(text = "Apply Changes", icon = NULL, width = NULL)
+      
+    ),
+    
+    # Main panel for displaying outputs ----
+    mainPanel(
+      
+      # Output: Plot of the requested variable against mpg ----
+      plotlyOutput("p")
+      
+    )
+  )
+)
+
+server <- function(input, output) {
+  output$p  = renderPlotly({solve_ad(dt      = input$dt,
+                                     dx      = input$dx,
+                                     omega   = input$omega,
+                                     u       = input$u,
+                                     D       = input$D,
+                                     delay   = input$delay,
+                                     endtime = input$endtime)})
+}
+
+shinyApp(ui, server)
