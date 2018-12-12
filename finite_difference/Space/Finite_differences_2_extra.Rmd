@@ -82,7 +82,7 @@ for(i in 1:length(f)){
 ## Exercise 2
 
 <span class="question">
-Check for the speed of conversion for the central and forward scheme by creating a grap that displays `dx` on the x-axis and the absolute error on the y-axis. The absolute error is the sum of the individual errors. Explain the pattern that arises.
+Check for the speed of conversion for the central and forward scheme by creating a graph that displays `dx` on the x-axis and the error on the y-axis (average of the absolute differences)
 </span>
 
 <span class="answer">
@@ -135,27 +135,24 @@ f = function(dx=(pi/2)){
   # solve matrix equation
   V_f = M %*% s
   
-  x = seq(0,2*pi,by=0.01)
-  
   ## error C
-  centralfun = approxfun(xcoor, V_c, rule=2)
-  error_c    = sum(abs(centralfun(x) - cos(x)))
+  error_c    = mean(abs(V_c - c))
   
   ## error F
-  forwardfun = approxfun(xcoor, V_f, rule=2)
-  error_f    = sum(abs(forwardfun(x) - cos(x)))
+  error_f    = mean(abs(V_f - c))
   
   return(list(error_c,error_f))
 }
-x = seq(0.1,pi,by=0.1)
+x = seq(0.1,pi/2,by=0.1)
 error_list = data.frame("C" = rep(0,length=length(x)), "F" = rep(0,length=length(x)))
 for(i in 1:length(x)){
   error = f(x[i])
   error_list[i,] = error
 }
 
-plot(x, error_list$C, type="l", col="darkblue")
-lines(x, error_list$F, type="l", col="grey")
+plot(x, error_list$F, type="l", col="grey",ylim=c(0,0.5))
+lines(x, error_list$C, type="l", col="darkblue")
+legend("topleft", c("Central", "Forward"), col = c("darkblue","grey"), lty = c(1,1), pch = c(-1,-1))
 ```
 </span>
 
