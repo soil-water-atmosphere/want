@@ -12,10 +12,14 @@ output:
 <script src="../../hints.js"></script>
 
 # Learning goals
+* Understand the forward, backward and central scheme
+* Understand how to construct a matrix for a dynamical system
+* Understand how to solve an ODE in the space dimension with the use of matrix algebra
+* Understand the advection diffusion equation and how to solve a stationary form
 
 # Part 1 - Introduction
 ## Section 1.1 - Advection Diffusion Equation 
-The final result of this part of the course, the finite difference approach, is to be able models in a time and space continuum. A very common example is the advection diffusion equation that was presented during the lecture. The formula for this equation is as follows:
+The final result of this part of the course, the finite difference approach, is to be able to model in a time and space continuum. A very common example is the advection diffusion equation that was presented during the lecture. The formula for this equation is as follows:
 
 $$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 
@@ -27,26 +31,26 @@ $$0 = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 ## Section 1.2 - Backward and Central Differencing method
 In the previous practical, we have been working with the following formula:
 $$\dfrac{s(t+\Delta t) - s(t)}{\Delta t} = \dfrac{ds(t)}{dt}$$
-This is called the *forward differencing method*. It calculates the state after a given time-step by using the information of the current state $s(t)$. The methodology to solve equations in space is exactly the same, only the mathematical formulation changes slightly:
+This is called the *forward differencing method*. It calculates the state after a given time-step by using the information of the current state $s(t)$. The methodology of solving equations in space is exactly the same, only the mathematical formulation changes slightly:
 
 $$\dfrac{s(x+\Delta x) - s(x)}{\Delta x} = \dfrac{ds(x)}{dx}$$
-The only change in this equation is that time has been replaced by space. By using this formulation you change the dimension, meaning that in time integration you end up with a graph that displays a time - state plot. Here you end up with a space - state plot. The x-axis will be a system, displayed from left to right, with the states on the y-axis. This is a stationary plot, time has no influence. 
+The only change in this equation is that time has been replaced by space. By using this formulation you change the dimension, meaning that in time integration you end up with a graph that displays a time - state plot. Here you end up with a space - state plot. The x-axis will be a system, displayed from left to right (or top to bottom for example), with the states on the y-axis. This is a stationary plot, time has no influence. 
 
-There is a however a difference between space and time; time only goes forward but space does not have a direction. Therefore space integration can be approached in different ways than time. Time integration only has a forward differencing scheme, space also has a backward and central scheme that we will discuss here (forward is a slightly confusing convention here, it basically signifies from left to right).
+There is a however a difference between space and time; time only goes forward but space does not have a direction. Therefore space integration can be approached in different ways than time. Time integration only has a forward differencing scheme (at least in a practical point of view), space also has a backward and central scheme that we will discuss here (forward is a slightly confusing convention here, it basically signifies from left to right).
 
 First the mathematical derivation. The forward differencing method was formally derived by using the following taylor series:
 
-$$s(t + \Delta t) = s(t) + \Delta t \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{}$$
+$$s(t + \Delta t) = s(t) + \Delta t \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} +\ ...$$
 
 In the space dimension this becomes:
 
-$$s(x + \Delta x) = s(x) + \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ...     \tag{}$$
+$$s(x + \Delta x) = s(x) + \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ...     $$
 
 The backward scheme (from right to left) is defined as follows: replace $\Delta x$ with $-\Delta x$.
 
-$$s(x - \Delta x) = s(x) - \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ...     \tag{}$$
+$$s(x - \Delta x) = s(x) - \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ...     $$
 
-Reworking this equation leads to the backward differencing method:
+Reworking this equation leads to the backward differencing scheme:
 
 $$\frac{s(x) - s(x  - \Delta x)}{dx} = \frac{ds}{dx}$$
 
@@ -66,8 +70,6 @@ s(x + \Delta x) - s(x - \Delta x) &=  &&\dfrac{2\Delta x}{1!}\dfrac{ds}{dx} +  &
 It can be seen quite easily that this is an efficient scheme. The second and fourth derivative are canceled out by substraction, leaving an error term in the final equation that has the third derivative as largest contributor instead of the second. This reduces the error significantly. The final equation to express the first derivative is as follows:
 
 $$\frac{s(x + \Delta x) - s(x - \Delta x)}{2\Delta x} = \frac{ds}{dx}$$
-
-<span class="comment"> maybe equations can be written by the hard track themselves </span>
 
 # Part 2 - Matrix calculation intermezzo
 ### Exercise 1
@@ -256,10 +258,6 @@ print(solve(A,b))
 <span class="question">
 3.3 The equations above can be generalized for any integer N into:
 
-x1 = 4
-for i in 2:(N-1) -xi-1 + 2 xi - xi+1 = 1
-xN = 2
-
 $$ 
 \begin{matrix}
 & &&x_1 &=& 4\\
@@ -379,6 +377,7 @@ $$
 <span class="question">
 4.4 Plug the previous equations in a matrix in the following way:
 
+<span class="comment"> index </span>
 $$
 \begin{align}
 A * x &= b\\
@@ -393,7 +392,6 @@ d\\d\\d
 \end{bmatrix}
 \end{align}
 $$
-
 </span>
 
 <span class="answer">
@@ -466,7 +464,9 @@ print(solve(M,b))
 <span class="question">
 4.7 Solve the system depicted in the following scheme and explain the result: 
 </br>
+
 ![](example_2.png){width=30%}
+
 </span>
 
 </span class="answer">
@@ -494,81 +494,17 @@ M[1,1] = 1
 b = c(2,0,0)
 print(solve(M,b))
 ```
-Nothing the disturb the system so it will become a static state with equal states everywhere
+Nothing to disturb the system so it will become a static state with equal states everywhere
 </span>
 
-<span class="question">
-<span class="comment">maybe for hard track</span></br>
-4.8 The following code reaches the same result as the answer on 4.6. Explain briefly how this code works.
-
-```{R}
-M=matrix(0,nrow=3,ncol=3)
-# bring flux between 1and 2 in matrix
-M[1,1] = M[1,1]-7
-M[1,2] = M[1,2]+7
-M[2,2] = M[2,2]-7
-M[2,1] = M[2,1]+7
-# bring flux between 1 and 3 in matrix
-M[1,1] = M[1,1]-5
-M[1,3] = M[1,3]+5
-M[3,3] = M[3,3]-5
-M[3,1] = M[3,1]+5
-# bring flux between 2 and 3 in matrix
-M[2,2] = M[2,2]-8
-M[2,3] = M[2,3]+8
-M[3,3] = M[3,3]-8
-M[3,2] = M[3,2]+8
-# bring in the boundary condition
-M[1,]  = 0
-M[1,1] = 1
-# right hand side
-b = c(2,-1,-2)
-print(solve(M,b))
-```
-</span>
-
-<span class="answer">
-It solves the system by adding the fluxes one after the other instead of implementing the matrix by hand.
-</span>
-
-<span class="question">
-<span class="comment">maybe for hard track</span></br>
-4.9 The following code is a more elegant way to construct the matrix in the previous exercise. Give proper names to the vectors *f,t* and *a* and explain what happens.
-
-```{R}
-M = matrix(0,nrow=3,ncol=3)
-# the following gives an ???elegant??? programming solution
-f = c(1,2,3)
-t = c(2,3,1)
-a = c(7,8,5)
-for(i in 1:length(f)){
-  M[f[i],f[i]] = M[f[i],f[i]] - a[i]
-  M[f[i],t[i]] = M[f[i],t[i]] + a[i]
-  M[t[i],t[i]] = M[t[i],t[i]] - a[i]
-  M[t[i],f[i]] = M[t[i],f[i]] + a[i]
-}
-```
-</span>
-
-<span class="question">
-
-4.10 Solve the following system:</br>
-![](example_3.png){width=40%}
-
-</span>
-
-<span class="question">
-<span class="comment">Maybe for the hard question</span></br>
-4.11 Solve the following system </br>
-![](example_4.png){width=40%}
-</span>
+This is the easiest way of implementing and solving systems with matrices. There are however smarter and faster ways of doing this. If you want to take a look, go to exercise 0 in the Finite_difference_2_extra.Rmd file.
 
 <span class="comment">
 Exercise 6 in the pdf could be useful
 </span>
 
 # Part 3 - Standing wave
-For the first example with the three differencing schemes we will examine the simplest wave equation possible, a sinus-function with it's derivative that is the opposite cosine wave ($\frac{ds}{dx}=cos(x)$). The first chunk is fully preprogrammed, it is exactly the same as the approach used for time integration. Easiest way to understand it is to work from left to right (instead of from the beginning to the end as we did with the time dimension). An exlicit integration scheme is used, meaning that information of one point is used to calculate the point directly to the right of it. Still the same stuff as in the previous practical but it's maybe a bit less intuitive. The following information about the system is available:
+For the first example with the three differencing schemes we will examine the simplest wave equation possible, a sinus-function ($s(x) = \sin(x)$) with it's derivative that is the opposite cosine wave ($\frac{ds}{dx}=\cos(x)$). The first chunk is fully preprogrammed, it is exactly the same as the approach used for time integration. Easiest way to understand it is to work from left to right (instead of from the beginning to the end as we did with the time dimension). An forward integration scheme is used, meaning that information of one point is used to calculate the point directly to the right of it. Still the same stuff as in the previous practical but it's maybe a bit less intuitive. The following information about the system is available:
 
 $$
 \begin{matrix}
@@ -586,6 +522,8 @@ s(x+\Delta x) &=& s(x) + \Delta x cos(x)
 $$
 
 To implement this equation a boundary state should be set. In this case 0 is a logical choice. This is equivalent to setting an initial state for time integration. For ease if visualisation the right side coordinates (end.time in previous) is set to $2\pi$ and dx to $\frac{\pi}{6}$.  
+
+<span class="comment"> This would be enough information to actually implement this chunk. Do we want to let them do that or does it cost too much time? </span>
 
 ```{r simple_forward}
 # Initial parameter values
@@ -622,119 +560,101 @@ title(main='Numerical and analytical solution compared')
 grid()
 ```
 
-As introduced in the Part 2 of this practical, this calculation can be done in a quicker way with exactly the same result by setting up a matrix equation. The following script is the same system as the one described above, but implemented by using matrix calculus. The first part sets up the initial parameters. V is the right hand side of the equation, M is the system matrix. Then the matrix and right hand side vector are populated. The equation is solved by running the solve(M,V) command and afterwards the result is plotted. Populating the matrix works as follows:
+As introduced in the Part 2 of this practical, this calculation can be done in a quicker way with exactly the same result by setting up a matrix equation. The following script is the same system as the one described above, but implemented by using matrix calculus. The first part sets up the initial parameters. V is the right hand side of the equation, M is the system matrix. Then the matrix and right hand side vector are populated. The equation is solved by running the solve(M,V) command and afterwards the result is plotted. Populating the matrix works as follows (as an example):
 
-* First set up the nodes of the matrix:
-  * $\dfrac{2\pi}{\frac{\pi}{6}} = 12$ plus the initial one means a 13x13 cell matrix
+* First set up the nodes of the matrix: 5 (in the chunk more nodes are used)
 * Defining the equations (square brackets don't signify the location of the coordinate but the index in the matrix):
 
 $$
 \begin{matrix}
-s[0]  &=& b_l = 0\\
-s[1]  &=& s[0]  &+& \Delta xcos(x)\\
-s[2]  &=& s[1]  &+& \Delta xcos(x)\\
-s[3]  &=& s[2]  &+& \Delta xcos(x)\\
-...\\
-s[13] &=& s[12] &+& \Delta xcos(x)\\
+\dfrac{s[2]}{\Delta x}  &=& \dfrac{s[1]}{\Delta x}  &+& cos(x)\\
+\dfrac{s[3]}{\Delta x}  &=& \dfrac{s[2]}{\Delta x}  &+& cos(x)\\
+\dfrac{s[4]}{\Delta x}  &=& \dfrac{s[3]}{\Delta x}  &+& cos(x)\\
+\dfrac{s[5]}{\Delta x}  &=& \dfrac{s[4]}{\Delta x}  &+& cos(x)
 \end{matrix}
 $$
+
 * Translating them to matrix, vector logic (with the vector entries on the right-hand side:
 
 $$
 \begin{matrix}
-s[0]  && &=& b_l\\
-s[1]  &-& s[0]  &=& \Delta xcos(x)\\
-s[2]  &-& s[1]  &=& \Delta xcos(x)\\
-s[3]  &-& s[2]  &=& \Delta xcos(x)\\
-...\\
-s[13] &-& s[12] &=& \Delta xcos(x)\\
+\dfrac{s[2]}{\Delta x}  &-& \dfrac{s[1]}{\Delta x}  &=& cos(x)\\
+\dfrac{s[3]}{\Delta x}  &-& \dfrac{s[2]}{\Delta x}  &=& cos(x)\\
+\dfrac{s[4]}{\Delta x}  &-& \dfrac{s[3]}{\Delta x}  &=& cos(x)\\
+\dfrac{s[5]}{\Delta x}  &-& \dfrac{s[4]}{\Delta x}  &=& cos(x)\\
 \end{matrix}
 $$
+This system is underfined if left like this (4 equations with 5 variables). A boundary condition is needed to solve this problem. The easiest boundary condition is the Dirichlet boundary condition where you prescribe one of the states as was done in the chunk above and also in the previous practical (a initial state). This is done with the following equation:
 
-* Inserted in a matrix:
+$$ s[1] = 0$$
+
+<span class="question"> 
+3.1 Insert the formulas stated above in the following matrix equation
 $$ 
 M * s = V:
 $$
+</span>
 
-
+<span class="answer">
 $$
 \begin{bmatrix}
- &1&.&.&.&.&.&.&.&.&.&.&.&.\\
-&-1&1&.&.&.&.&.&.&.&.&.&.&.\\
-&.&-1&1&.&.&.&.&.&.&.&.&.&.\\
-&.&.&-1&1&.&.&.&.&.&.&.&.&.\\
-&.&.&.&-1&1&.&.&.&.&.&.&.&.\\
-&.&.&.&.&-1&1&.&.&.&.&.&.&.\\
-&.&.&.&.&.&-1&1&.&.&.&.&.&.\\
-&.&.&.&.&.&.&-1&1&.&.&.&.&.\\
-&.&.&.&.&.&.&.&-1&1&.&.&.&.\\
-&.&.&.&.&.&.&.&.&-1&1&.&.&.\\
-&.&.&.&.&.&.&.&.&.&-1&1&.&.\\
-&.&.&.&.&.&.&.&.&.&.&-1&1&.\\
-&.&.&.&.&.&.&.&.&.&.&.&-1&1
+&1&.&.&.&.\\
+&\frac{-1}{\Delta x}&\frac{1}{\Delta x}&.&.&.\\
+&.&\frac{-1}{\Delta x}&\frac{1}{\Delta x}&.&.\\
+&.&.&\frac{-1}{\Delta x}&\frac{1}{\Delta x}&.\\
+&.&.&.&\frac{-1}{\Delta x}&\frac{1}{\Delta x}
 \end{bmatrix}
 * 
 \begin{bmatrix}
-s[0]\\ 
 s[1]\\ 
 s[2]\\ 
 s[3]\\ 
 s[4]\\ 
-s[5]\\ 
-s[6]\\ 
-s[7]\\ 
-s[8]\\ 
-s[9]\\ 
-s[10]\\ 
-s[11]\\ 
-s[12]
+s[5]
 \end{bmatrix}
 = 
 \begin{bmatrix}
-b_l\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x)\\ 
-\Delta x*cos(x) 
+0\\
+cos(x)\\ 
+cos(x)\\ 
+cos(x)\\ 
+cos(x)
 \end{bmatrix}
 $$
+</span>
 
 To solve the states, matrix algebra is used:
-
 $$
 \begin{matrix}
 M * s &=& V\\
 M^{-1}M * s &=& M^{-1}V\\
-I * s &=& M^{-1}V\\
 s &=& M^{-1}V
 \end{matrix}
 $$
+
 <span class="question">
-3.1 A boundary value is needed to solve the equations. Explain the reason using matrix algebra
+3.2 A boundary value is needed to solve the equations. Explain the reason using matrix algebra
 </span>
 
 <span class="answer">
-determinant is 0
+Determinant is 0, which means the matrix is ininvertable. This leads to an infinite amount of solutions for this equation.
 </span>
 
 <span class="question">
-3.2 complete the following chunk by constructing the matrix and inserting boundary values as shown above in mathematical notation.
 
-```{r matrix_forward}
+<span class="comment"> maybe the hard track can do this entirely by themselves </span>
+
+3.3 complete the following chunk by constructing the matrix and inserting boundary values as shown above in mathematical notation. If everything went well you will end up with exactly the same plot as the one generated by chunk *simple forward*.
+</span>
+
+<span class="student_answer">
+```{r matrix_forward, eval=FALSE}
 rm(list=ls()) 
 
 # setting up initial parameters
 dx    = pi/6
-left  = 0
-right = 2*pi
+left  = 0                      # left domain
+right = 2*pi                   # right domain
 xcoor = seq(left,right, by=dx) # builds a list of all coordinates
 
 bl    = 0                      # left boundary condition
@@ -756,7 +676,7 @@ grid()
 </span>
 
 <span class="answer">
-```{r matrix_forward}
+```{r matrix_forward_answer_left_boundary}
 rm(list=ls()) 
 
 # setting up initial parameters
@@ -764,6 +684,7 @@ dx    = pi/6
 left  = 0
 right = 2*pi
 xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+N     = length(xcoor)
 
 bl    = 0                      # left boundary condition
 V     = c()                    # build an empty vector for the solutions
@@ -772,15 +693,56 @@ M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for th
 # populating vector and matrix
 for(j in 2:(length(xcoor)))
 {
-  M[j,j]   = 1
-  M[j,j-1] = -1
-  V[j]     = dx*cos(xcoor[j-1])  # -1 because it's an explicit scheme
+  M[j,j]   = 1/dx
+  M[j,j-1] = -1/dx
+  V[j]     = cos(xcoor[j-1]) # it belongs to the j-1 step
 }
 
 # left boundary condtion
 M[1,1]     = 1
-M[1,2]     = 0
 V[1]       = bl
+
+# solve matrix equation
+s = solve(M,V)
+
+# plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,sin(x_sol),type='l', col="grey",lwd=2)
+title(main='Forward differencing scheme with matrices')
+grid()
+```
+
+<span class="question">
+3.4 Use the same system above but instead of using a left boundary condition of $s[1] = 0$, use $s[5] = 0$. Implement it using the previous chunk and show that this will result in exactly the same plot (because $sin(0) = sin(2\pi) = 0$). TIP! If needed write down the matrix by hand as done in the previous exercise.
+</span>
+
+<span class="answer">
+```{r matrix_forward_answer}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/6
+left  = 0
+right = 2*pi
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+N     = length(xcoor)
+
+br    = 0                      # left boundary condition
+V     = c()                    # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 1:(length(xcoor)-1))
+{
+  M[j,j]   = -1/dx
+  M[j,j+1] = 1/dx
+  V[j]     = cos(xcoor[j]) # it belongs to the j'th step
+}
+
+# left boundary condtion
+M[N,N]     = 1
+V[N]       = br
 
 # solve matrix equation
 s = solve(M,V)
@@ -795,7 +757,7 @@ grid()
 </span>
 
 <span class="question">
-3.3 Copy the previous chunk and adapt it to the backward differencing scheme (still explicit integration method)
+3.5 Copy the previous chunk and adapt it to the backward differencing scheme (still explicit integration method)
 </span>
 
 <span class="answer">
@@ -837,62 +799,163 @@ grid()
 ```
 </class>
 
-<span class="comment">
-How to go about this chunk for the central scheme. It's a bit more complex to implement because of singularity problem.
+<span class="comment"> I remove central scheme here because it's slightly tricky but I come back to this in Part 4 </span>
 
-```{r central}
+# Part 4 - Differential field standing wave
+## Section 4.1 - First order derivative
+Part 3 showed how to solve a stationary system when to derivative is known (and at least one boundary condition). In most real world applications however this is not the case. In the final application you will have a system with observations at a certain time and the future values need be calculated based on thos observations. The observations themselves are not necessarily well behaved in a function, so also the derivative is not defined. Looking for example at the advection diffusion equation that was introduced in section 1.1, the derivatives in space need to be calculated to predict the values at the next time-step. 
+
+Let's first look at the case of part 3; a sinus wave. Let's assume that we don't know any functions but only have observations of that sinus-wave and we want to define the derivative field of those observations. (The observations are in fact calculated with the function f = sin(x) and therefore the exact solution is known; a cosine wave).
+
+To solve this problem the matrices defined in part 3 are still valid, with the difference that the states don't need to be calculated because they are already known but the right-hand side is unknown. 
+
+$$
+M*s = V
+$$
+$$
+\begin{bmatrix}
+&\frac{-1}{\Delta x}&\frac{1}{\Delta x}&.&.&.\\
+&.&\frac{-1}{\Delta x}&\frac{1}{\Delta x}&.&.\\
+&.&.&\frac{-1}{\Delta x}&\frac{1}{\Delta x}&.\\
+&.&.&.&\frac{-1}{\Delta x}&\frac{1}{\Delta x}\\
+&.&.&.&.&.
+\end{bmatrix}
+* 
+\begin{bmatrix}
+s[1]\\ 
+s[2]\\ 
+s[3]\\ 
+s[4]\\ 
+s[5]
+\end{bmatrix}
+= 
+\begin{bmatrix}
+cos(x)\\ 
+cos(x)\\ 
+cos(x)\\ 
+cos(x)\\ 
+.
+\end{bmatrix}
+$$
+<span class="question">
+4.1.1 Why does this matrix equation not need a boundary condition?
+</span>
+
+<span class="answer">
+The calculation is direct so no inversion needs to take place. This means that there is no problem when there is a row of zeros.
+</span>
+
+calculating would be done in the following way:
+
+<span class="comment"> The hard track might do this themselves, the other track might implement the matrix
+
+Introduce `M %*% s`
+</span>
+```{r forward_derivative}
 rm(list=ls()) 
 
 # setting up initial parameters
-dx    = pi/6
+dx    = pi/3
 left  = 0
 right = 2*pi
 xcoor = seq(left,right, by=dx) # builds a list of all coordinates
 
-bl    = sin(left)              # left boundary condition
-br    = sin(right)             # right boundary condition
-V     = c()                    # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 1:(length(xcoor)-1))
+{
+  M[j,j]   = -1/dx
+  M[j,j+1] = 1/dx
+}
+
+s = sin(xcoor)
+
+# solve matrix equation
+V = M %*% s
+
+# plotting
+N = length(xcoor)
+plot(xcoor[1:(N-1)],V[1:(N-1)],ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,cos(x_sol),type='l', col="grey",lwd=2)
+title(main='Forward differencing scheme with matrices')
+grid()
+```
+
+<span class="question">
+4.1.2 Implement the backward and central scheme in the same way in the previous question and discuss their effectiveness.
+</span>
+
+
+<span class="answer">
+```{r backward_derivative}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/3
+left  = 0
+right = 2*pi
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 2:(length(xcoor)))
+{
+  M[j,j]   = +1/dx
+  M[j,j-1] = -1/dx
+}
+
+s = sin(xcoor)
+
+# solve matrix equation
+V = M %*% s
+
+# plotting
+N = length(xcoor)
+plot(xcoor[2:N],V[2:N],ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,cos(x_sol),type='l', col="grey",lwd=2)
+title(main='Backward differencing scheme with matrices')
+grid()
+```
+
+```{r central_derivative}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/3
+left  = 0
+right = 2*pi
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+N     = length(xcoor)
+
 M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
 
 # populating vector and matrix
 for(j in 2:(length(xcoor)-1))
 {
-  M[j,j-1] = -1
-  if(length(xcoor)!=j){M[j,j+1] = 1}
-  M[j,j] = 10E-15 # analytically this should be 0, but this results in a singular matrix that,by defenition is ininvertable. This means that an analytical solution does not exist anymore
-  V[j]     = 2*dx*cos(xcoor[j])
+  M[j,j+1] = 1/(2*dx)
+  M[j,j-1] = -1/(2*dx)
 }
 
-# left boundary condtion
-M[1,1]       = 1
-M[1,2]       = 0
-V[1]         = bl
-
-# right boundary condition
-end = length(xcoor)
-M[end,end]   = 1
-M[end,end-1] = 0
-V[end]       = br
+s = sin(xcoor)
 
 # solve matrix equation
-s = solve(M,V)
+V = M %*% s
 
 # plotting
-plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5)) # numerical approximation
+N = length(xcoor)
+plot(xcoor[2:(N-1)],V[2:(N-1)],ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
 x_sol = seq(left,right,by=0.05)
-lines(x_sol,sin(x_sol),type='l', col="grey",lwd=2)
-title(main='Central differencing scheme with matrices')
+lines(x_sol,cos(x_sol),type='l', col="grey",lwd=2)
+title(main='Forward differencing scheme with matrices')
 grid()
 ```
+
+The central scheme is clearly better but two points instead of one is valueluess so more boundary conditions are needed.
 </span>
-
-# Part 4 - Advection diffusion continued 
-## Section 4.1 - Boundary conditions
-Part 3 handled only the simplest of differential equations but some useful insights might be obtained. The first and most important one is that there are two different ways of solving the equations; one after the other (method used in the previous practical) and one levaraging the power and simplicity of matrix algebra. The more comlex the equations become, the harder it becomes to implement the first methodology while the solution based on matrix algebra does not get much more difficult. Especially in the next practical, when we will be looking at both time and space integration at the same time, the matrix solution become much more straightforward. The other important message is that boundary conditions are important to solve ODEs. In the "time" practical this was present in an initial state and in the chunks above left and right boundary conditions had to be implemented. So far we have only implemented one type of boundary condition; the dirichlet boundary condition. This method assumes a fixed state on one or all boundaries. If the state directly next to this border has (more or less) the same state, it means that no flux goes over the boundary while a large difference leads to a high flux. Another option is to implement a fixed flux boundary condition (Neumann boundary condition) that does not specify the state but only the flux. This can be very usefull as will be shown in the next sections but at the same time it can be problematic. If all boundaries are fixed flux boundaries, the system is not solvable. If only fluxes are defined the solution will be relative and no absolute solution *can* exist. To account for this a Dirichlet boundary is needed to anchor the solution. It works as a reference for all other values. The last type of boundary condition is the Cauchy/Robin boundary condition. It specifies both the state and the flux. Summarising;
-
-* Dirichlet (fixed state)
-* Neumann (fixed flux)
-* Cauchy/Robin (fixed state and fixed flux)
 
 ## Section 4.2 - Second order derivative
 In order to be able to solve the *static* advection diffusion equation one other thing remains to be explained; how to solve the second order derivative in the equation:
@@ -905,7 +968,7 @@ This can be done by going back to the taylor series of the forward and backward 
 might be done by the hard track
 </span>
 
-$$\begin{alignat*}{3}
+\begin{alignat*}{3}
 s(x + \Delta x) &= &&s(x) + \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + &&&\dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + &&&&\dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ... \\    
 
 
@@ -914,26 +977,73 @@ s(x - \Delta x) &= &&s(x) - \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} 
 \hline +\\
 
 s(x + \Delta x) + s(x - \Delta x) &=  &&2s(x) + &&&\dfrac{2\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + &&&&\dfrac{2\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x}
-
-
-\end{alignat*}$$
+\end{alignat*}
 
 This leads to the following approximation for the second derivate (also called a Central scheme):
 
-$$\dfrac{ s(x + \Delta x) - 2s(x) + s(x - \Delta x)}{\Delta x^2} = \dfrac{d^{2}s}{dx^{2}}$$
+$$
+\dfrac{ s(x + \Delta x) - 2s(x) + s(x - \Delta x)}{\Delta x^2} = \dfrac{d^{2}s}{dx^{2}}
+$$
 
 <span class="question">
-Implement the central scheme for both the first and second order derivative in the stationary advection diffusion equation (first equation section 4.2)
+4.2.1 Use this equation to estimate the second order derivative of the sinus wave, the same way as was done in section 4.1. TIP! The second derivative of $sin(x)$ is $-sin(x)$ which you can plot behind the approximation to check if everything went fine.
 </span>
 
 <span class="answer">
-$$0 = -u \frac{s(x+\Delta x) - s(x - \Delta x)}{2\Delta x} + D\frac{s(x + \Delta x) - 2s(x) + s(x-\Delta x)}{\Delta x^{2}} \tag{4.1}$$
+```{r central_second_derivative}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/3
+left  = 0
+right = 2*pi
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+N     = length(xcoor)
+
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 2:(length(xcoor)-1))
+{
+  M[j,j+1] = 1/(dx^2)
+  M[j,j  ] = -2/(dx^2)
+  M[j,j-1] = 1/(dx^2)
+}
+
+s = sin(xcoor)
+
+# solve matrix equation
+V = M %*% s
+
+# plotting
+N = length(xcoor)
+plot(xcoor[2:(N-1)],V[2:(N-1)],ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,-sin(x_sol),type='l', col="grey",lwd=2)
+title(main='Forward differencing scheme with matrices')
+grid()
+```
 </span>
 
-## Section 4.3 - Implementation
+# Part 5 - Advection diffusion continued 
+## Section 5.1 - Boundary conditions
+Part 3 and 4 handled only the simplest of differential equations but some useful insights might be obtained. The first and most important one is that there are two different ways of solving the equations; one after the other (as the method used in the *time* practical) and one levaraging the power and simplicity of matrix algebra. The more comlex the equations become, the harder it becomes to implement the first methodology while the solution based on matrix algebra does not get much more difficult. Especially in the next practical, when we will be looking at both time and space integration at the same time, the matrix solution is much more straightforward. The other important message is that boundary conditions are important to solve ODEs. In the "time" practical this was present in an initial state and in the chunks above left and right boundary conditions had to be implemented. So far we have only implemented one type of boundary condition; the dirichlet boundary condition. This method assumes a fixed state on one or all boundaries. If the state directly next to this border has (more or less) the same state, it means that no flux goes over the boundary while a large difference leads to a high flux. Another option is to implement a fixed gradient boundary condition (Neumann boundary condition) that does not specify the state but only the gradient between the boundary cell and the cell right next to it. This can be very usefull as will be shown in the next sections but at the same time it can be problematic. If all boundaries are fixed gradient boundaries, the system is not solvable. If only gradients are defined the solution will be relative and no absolute solution *can* exist. To account for this at least one Dirichlet boundary is needed to anchor the solution. It works as a reference for all other values. The last type of boundary condition is the Cauchy/Robin boundary condition. It specifies both the state and the gradient. Summarising;
 
+* Dirichlet (fixed state)
+* Neumann (fixed gradient)
+* Cauchy/Robin (fixed state and fixed gradient)
+
+<span class="comment">
+This is a quick summary of boundary conditions, but do we want to give it like this or should the students find this out for themselves?
+</span>
+
+## Section 5.2 - Implementation with Dirichlet boundary conditions
 <span class="question">
-4.3.1 Implement equation 4.1 with with 5 nodes (n=5) and two Dirichlet boundaries (left=0 and right=1) in the following notation:
+5.2.1 Implement the stationary advection diffusion equation (second equation section 1.1) with 5 nodes (n=5) and two Dirichlet boundaries (left=0 and right=1) in the following notation:
+
+<span class="comment">
+Is this too hard for the regular track?
+</span>
 
 $$
 \begin{bmatrix}
@@ -944,29 +1054,52 @@ M_{1,1}&&\dots&&M_{1,n}\\
 M_{n,1}&&\dots&&M_{n,n}\\
 \end{bmatrix} * 
 \begin{bmatrix}
-s[0]\\
 s[1]\\
 s[2]\\
 s[3]\\
 s[4]\\
+s[5]\\
 \end{bmatrix} = 
 \begin{bmatrix}
-V_0\\
 V_1\\
 V_2\\
 V_3\\
 V_4\\
+V_5\\
 \end{bmatrix}
 $$
 </span>
 
-<span class="question">
-If you want to go deeper into the subject go to exercise 1 of the Finite_differences_2_extra.Rmd and skip the two following exercises here.
+<span class="answer">
+$$
+\begin{bmatrix}
+1&.&.&.&.\\
+-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.&.\\
+.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.\\
+.&.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}\\
+.&.&.&.&1
+\end{bmatrix} * 
+\begin{bmatrix}
+s[1]\\
+s[2]\\
+s[3]\\
+s[4]\\
+s[5]\\
+\end{bmatrix} = 
+\begin{bmatrix}
+b_l\\
+V_2\\
+V_3\\
+V_4\\
+b_r\\
+\end{bmatrix}
+$$
 </span>
 
-<span class="question">
-4.3.2 Calculate the values in the matrix with $\Delta x = 5$, $D=5$ and $u=5$ and check if the following chunk yields the same matrix.
+If you want to go deeper into the subject and implement this yourself, go to exercise 1 of the Finite_differences_2_extra.Rmd and skip the two following exercises here.
 
+<span class="question">
+5.2.2 Calculate the values in the matrix with $\Delta x = 5$, $D=5$ and $u=5$ and check if the following chunk yields the same matrix.
 ```{R}
 dx    = 5    # step size
 D     = 5    # diffusion coefficient
@@ -1005,7 +1138,7 @@ print(M)
 </span>
 
 <span class="question">
-Run the following chunck to see the quality of the solution:
+5.2.3 Run the following chunck to see the quality of the solution:
 ```{R}
 dx    = 5    # step size
 D     = 5    # diffusion coefficient
@@ -1063,10 +1196,9 @@ legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,
 </span>
 
 <span class="question"> 
-The following chunk is the same system as analysed in the previous question. The only difference is that the domain is fixed from x=0 to x=50. Change `dx` from 10 to 1 in steps of 1 and compare the results. What is the highest value of `dx` for which the solution is stable?
-
+5.2.4 The following chunk is the same system as analysed in the previous question. The only difference is that the domain is fixed from x=0 to x=50. Change `dx` from 10 to 1 in steps of 1 and compare the results. What is the highest value of `dx` for which the solution is stable?
 ```{R}
-dx    = 3   # step size
+dx    = 10   # step size
 D     = 5    # diffusion coefficient
 u     = 5    # advectio coefficient
 bl    = 0    # left boundary
@@ -1122,13 +1254,208 @@ legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,
 ```
 
 <span class="answer">
-The solution becomes stable starting from dx=2
+The solution becomes stable starting from dx=2 and below
+</span>
+
+## Section 5.2 - Implementation with a Neumann boundary condition
+Hard track can go to exercise 2 in the extended Rmd to implement a Neumann boundary condition themselves, the rest can continue with this section here.
+
+As an example we will look at a Neumann boundary with a 0-gradient. In mathematical terms this means (in terminology of section 5.2):
+
+$$
+s[5] = s[4] = 0
+$$
+and inserted in the matrix:
+
+$$
+\begin{bmatrix}
+1&.&.&.&.\\
+-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.&.\\
+.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.\\
+.&.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}\\
+.&.&.&-1&1
+\end{bmatrix} * 
+\begin{bmatrix}
+s[1]\\
+s[2]\\
+s[3]\\
+s[4]\\
+s[5]\\
+\end{bmatrix} = 
+\begin{bmatrix}
+b_l\\
+V_2\\
+V_3\\
+V_4\\
+b_r = 0\\
+\end{bmatrix}
+$$
+
+<span class="question">
+5.2.1 What would the graph look like? Complete the following chunk to incorporate the Neumann boundary condition (change the XXX's in the code).
+<span>
+
+<span class="student_answer">
+```{R, eval=F}
+dx    = 5    # step size
+D     = 5    # diffusion coefficient
+u     = 5    # advectio coefficient
+bl    = 0    # left boundary
+br    = XXX  # right boundary
+
+left  = 0    # left coordinate
+right = 50
+xcoor = seq(left,right, by=dx)
+N     = length(xcoor)
+
+V     = c()  # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
+
+for(j in 2:(length(xcoor)-1))
+{
+  M[j,j-1] = -u/(2*dx) - D/(dx^2)
+  M[j,j  ] = 2*D/(dx^2)
+  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  V[j]     = 0
+}
+
+# Boundary conditions
+XXX
+
+# Solve the system
+s = solve(M,V)
+
+# Plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
+title(main='Advection Diffusion Equation, Neumann boundary')
+grid()
+```
+</span>
+
+<span class="answer">
+```{R}
+dx    = 5    # step size
+D     = 5    # diffusion coefficient
+u     = 5    # advectio coefficient
+bl    = 0    # left boundary
+br    = 0    # right boundary
+
+left  = 0    # left coordinate
+right = 50
+xcoor = seq(left,right, by=dx)
+N     = length(xcoor)
+
+V     = c()  # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
+
+for(j in 2:(length(xcoor)-1))
+{
+  M[j,j-1] = -u/(2*dx) - D/(dx^2)
+  M[j,j  ] = 2*D/(dx^2)
+  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  V[j]     = 0
+}
+
+# Left boundary
+M[1,1] = 1
+V[1]   = bl
+
+# Right boundary
+
+M[N,N]   = 1
+M[N,N-1] = -1
+V[N]     = br
+
+# Solve the system
+s = solve(M,V)
+
+# Plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
+title(main='Advection Diffusion Equation, Neumann boundary')
+grid()
+```
+</span>
+
+## Section 5.3 - Implementation with a Cauchy boundary condition
+Hard track can go to exercise 3 in the extended Rmd to implement a Cauchy boundary condition themselves, the rest can continue with this section here.
+
+A Cauchy boundary means that the state of the boundary is defined and that the gradient between the boundary and the first cell next to it is quantified. In this case we will be looking at a fixed state of 1 at $s[5]$ and again a 0-gradient.
+
+In mathematical notation:
+$$
+s[5] = 1\\
+s[5] = s[4]\\
+s[4] = 1
+$$
+$$
+\begin{bmatrix}
+1&.&.&.&.\\
+-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.&.\\
+.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.\\
+.&.&.&1&.\\
+.&.&.&.&1
+\end{bmatrix} * 
+\begin{bmatrix}
+s[1]\\
+s[2]\\
+s[3]\\
+s[4]\\
+s[5]\\
+\end{bmatrix} = 
+\begin{bmatrix}
+b_l\\
+V_2\\
+V_3\\
+s[5] = b_r = 1\\
+b_r = 1\\
+\end{bmatrix}
+$$
+
+<span class="question">
+5.2.1 What would the graph look like? Complete the following chunk to incorporate the Cauchy boundary condition (change the XXX's in the code).
+<span>
+
+<span class="student_answer">
+```{R, eval=F}
+dx    = 5    # step size
+D     = 5    # diffusion coefficient
+u     = 5    # advectio coefficient
+bl    = 0    # left boundary
+br    = XXX  # right boundary
+
+left  = 0    # left coordinate
+right = 50
+xcoor = seq(left,right, by=dx)
+N     = length(xcoor)
+
+V     = c()  # build an empty vector for the solutions
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
+
+for(j in 2:(length(xcoor)-2))
+{
+  M[j,j-1] = -u/(2*dx) - D/(dx^2)
+  M[j,j  ] = 2*D/(dx^2)
+  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  V[j]     = 0
+}
+
+# Boundary conditions
+XXX
+
+# Solve the system
+s = solve(M,V)
+
+# Plotting
+plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
+title(main='Advection Diffusion Equation, Neumann boundary')
+grid()
+```
 </span>
 
 <span class="comment">
-implementing the other boundary conditions as well
+Implement Robin boundary
 </span>
 
 <span class="comment">
-Do we want to implement the FDS/BDS and the UBS here as well? What about the peclet number/analytical solution? I think that what we have here now could be the size of an afternoon practical.
+Do we want to implement the FDS/BDS and the UBS here as well?
 </span>

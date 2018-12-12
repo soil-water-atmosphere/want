@@ -13,7 +13,9 @@ solve_ad = function(domain=c(0,100),
                     bl=0,
                     br=0,
                     omega=1,
-                    initfun=approxfun(c(0,45,50,55,100),c(0,0,1,0,0),rule=2),
+                    initfun= function(x){
+                      exp(-(x-domain[2]/2)^2/2^2)
+                    },
                     delay = 200
                     ){
   # omega = 1   , explicit
@@ -41,7 +43,7 @@ solve_ad = function(domain=c(0,100),
   Minv = solve(M) # this can be done in when the final calculation is done but this means that the inverting of matrix needs to be done over and over again
   
   # SET UP ANALITICAL SOLUTION
-  a.x            = seq(domain[1],domain[2],length=1000)
+  a.x            = seq(domain[1],domain[2],length=500)
   sd0            = (domain[2]-domain[1])/200
   sampleweights  = initfun(a.x)
   a.init.state   = rep(0,length(a.x))  
@@ -58,7 +60,7 @@ solve_ad = function(domain=c(0,100),
   # STORE ANALITICAL RESULTS
   a.N           = length(a.x)
   steps         = seq(0,endtime,by=dt)
-  Nsteps        = length(steps)
+  Nsteps        = length(steps)-1
   a.steps       = rep(1:Nsteps,each=a.N)
   a.values      = rep(0,length=length(a.steps))
   a.domain      = rep(a.x,length=length(a.steps))
@@ -94,6 +96,7 @@ solve_ad = function(domain=c(0,100),
     }
     
     V[N] = br
+    
     new.state = Minv %*% V
     
     step = step + 1
@@ -102,7 +105,7 @@ solve_ad = function(domain=c(0,100),
     newstate.fun = approxfun(x,new.state,rule=2)
     solution[solution$step == step,]$tvalue = a.state
     solution[solution$step == step,]$value  = newstate.fun(a.x)
-  }
+}
   
   # plotting
   state.length = state.range[2]-state.range[1]
@@ -140,8 +143,10 @@ solve_ad = function(domain=c(0,100),
       mode       = "immediate"
     ) %>% 
     layout(
-      xaxis      = list(range=a.x),
-      yaxis      = list(range=plotlim)
+      xaxis      = list( title = "space",
+                         range=a.x),
+      yaxis      = list( title = "state",
+                         range=plotlim)
     ) %>% 
     add_annotations(
       xref  = "paper",
@@ -196,7 +201,7 @@ ui <- fluidPage(
       sliderInput("omega", "Time-integration scheme (omega):", min=0,max=1,value=0,step=0.1),
       hr(),
       h4("Plotting settings"),
-      sliderInput("delay", label = "Frame speed:",min = 0, max = 5000, value = 200, step = 100),
+      sliderInput("delay", label = "Delay between frames:",min = 0, max = 5000, value = 200, step = 50),
       sliderInput("endtime", label = "Runtime:",min = 1, max = 100, value = 20, step = 1),
       hr(),
       submitButton(text = "Apply Changes", icon = NULL, width = NULL)
