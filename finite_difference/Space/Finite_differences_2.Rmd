@@ -200,9 +200,9 @@ These exercise are an introduction to the solution of linear equations. The foll
 
 $$
 \begin{align}
-&x_1 + &&2x_2 &&& &&&&= &&&&&5\\
-& &&3x_2 + &&&4x_3 &&&&= &&&&&18\\
-&6x_1 + && &&&x_3 &&&&= &&&&&9
+ 2x_1 + x_2 -  x_3 = 8\\
+-3x_1 - x_2 + 2x_3 = -11\\
+-2x_1 + x_2 + 2x_3 = -3
 \end{align}
 $$
 are rewritten in matrix form:
@@ -211,31 +211,49 @@ $$
 \begin{matrix}
 A\ x &=& b\\
 \begin{bmatrix}
-1&2&0\\0&3&4\\6&0&1
+2&1&-1\\-3&-1&2\\-2&1&2
 \end{bmatrix}
 \begin{bmatrix}
 x_1\\x_2\\x_2
 \end{bmatrix}
 &=&
 \begin{bmatrix}
-5\\18\\9
+8\\-11\\-3
 \end{bmatrix}
 \end{matrix}
 $$
+This system of equations can be solved in the following way.
+$$
+Ax = b\\
+A^{-1}Ax = A^{-1}b\\
+Ix = A^{-1}b\\
+x = A^{-1}b
+$$
+By hand this can be done with gaussian eliminitation. If unfamiliar with this method or if in need of a quick refresher, the following video might be instructive; https://www.youtube.com/watch?v=xCIXkm3-ocQ 
 
-and solved in R by:
+After implementing the matrices the system can be solved for x in the following in R:
 
 ```{}
 x = solve(A,b)
 ```
 
 <span class="question">
-3.1 Calculate the solutions of the equations above in R
+3.1 Calculate this equation first by hand and check your solution by solving it in R.
+</span>
+
+<span class="answer">
+$$
+\begin{bmatrix}
+x_1\\x_2\\x_2
+\end{bmatrix} = 
+\begin{bmatrix}
+2\\3\\-1
+\end{bmatrix}
+$$
 </span>
 
 <span class="question">
 3.2 Find the solution (as done above) of the following equations:
-
 $$
 \begin{align}
 x_1 = 4\\
@@ -257,33 +275,32 @@ print(solve(A,b))
 
 <span class="question">
 3.3 The equations above can be generalized for any integer N into:
-
 $$ 
 \begin{matrix}
 & &&x_1 &=& 4\\
-&for\ i\ in\ 2:(N-1) && -x_i + 2x_i-x_i &=& 1\\
+&for\ i\ in\ 2:(N-1) && -x_{i-1} + 2x_i-x_{i+1} &=& 1\\
 & &&x_N &=& 2
 \end{matrix}
 $$
 
 Write code that generates the matrices for the equations above and
-solve them. Use the following lines as a starter:
+solves them. Use the following lines as a starter:
 
 ```{R}
-N      = 20
+N      = 5
 A      = matrix(0,nrow=N,ncol=N)
 b      = rep(1,length=N)
 A[1,1] = 1
 b[1]   = 4
 ```
 
+<span class="question">
 * finish this code
 * check that for N=5 the result of the previous question is recalculated
-* make for N=100 a plot of the result
-
+* make for N=25 a plot of the result
 </span>
 
-<span class="question">
+<span class="answer">
 ```{R}
 N      = 25
 A      = matrix(0,nrow=N,ncol=N)
@@ -297,7 +314,7 @@ for(i in 2:(N-1)){
   A[i,i-1] = -1
   A[i,i+1] = -1
 }
-#print(solve(A,b))
+print(solve(A,b))
 plot(solve(A,b))
 ```
 </span>
@@ -628,9 +645,11 @@ $$
 \begin{matrix}
 M * s &=& V\\
 M^{-1}M * s &=& M^{-1}V\\
+I * s &=& M^{-1}V\\
 s &=& M^{-1}V
 \end{matrix}
 $$
+*where I is the identity matrix*
 
 <span class="question">
 3.2 A boundary value is needed to solve the equations. Explain the reason using matrix algebra
@@ -845,17 +864,44 @@ $$
 The calculation is direct so no inversion needs to take place. This means that there is no problem when there is a row of zeros.
 </span>
 
-calculating would be done in the following way:
-
-<span class="comment"> The hard track might do this themselves, the other track might implement the matrix
-
-Introduce `M %*% s`
+<span class="question">
+4.1.2 Calculate the the righthand-side of the equation above (by hand) and fill in the following table:
 </span>
+
+<span class="student_answer">
+
+| Location  | Cosine value |
+| ------------- | ------------- |
+| $s[1] = s(0)$  |  |
+| $s[2] = s(\frac{1}{2\pi})$  |  |
+| $s[3] = s(\frac{2}{2\pi})$ |  |
+| $s[4] = s(\frac{3}{2\pi})$ |  |
+| $s[5] = s(2\pi)$  |  |
+
+</span>
+
+<span class="answer">
+
+| Location  | Cosine value |
+| ------------- | ------------- |
+| $s[1] = s(0)$  | $\frac{2}{\pi}$ |
+| $s[2] = s(\frac{1}{2\pi})$  | $-\frac{2}{\pi}$ |
+| $s[3] = s(\frac{2}{2\pi})$ | $-\frac{2}{\pi}$ |
+| $s[4] = s(\frac{3}{2\pi})$ | $\frac{2}{\pi}$ |
+| $s[5] = s(2\pi)$  | `NA` |
+</span>
+
+<span class="question">
+4.1.2 Run the following chunk to plot the results of the previous question and check your results.
+</span>
+
+<span class="comment"> The hard track might do this themselves, the other track might implement the matrix </span>
+
 ```{r forward_derivative}
 rm(list=ls()) 
 
 # setting up initial parameters
-dx    = pi/3
+dx    = pi/2
 left  = 0
 right = 2*pi
 xcoor = seq(left,right, by=dx) # builds a list of all coordinates
@@ -882,18 +928,26 @@ lines(x_sol,cos(x_sol),type='l', col="grey",lwd=2)
 title(main='Forward differencing scheme with matrices')
 grid()
 ```
-
-<span class="question">
-4.1.2 Implement the backward and central scheme in the same way in the previous question and discuss their effectiveness.
 </span>
 
+<span class="question">
+4.1.3 What does the code `V = M %*% s` of the previous chunk do?
+</span>
+
+<span class="answer">
+matrix multiplication
+</span>
+
+<span class="question">
+4.1.4 Implement the backward and central scheme in the same way in the previous question and discuss their effectiveness.
+</span>
 
 <span class="answer">
 ```{r backward_derivative}
 rm(list=ls()) 
 
 # setting up initial parameters
-dx    = pi/3
+dx    = pi/2
 left  = 0
 right = 2*pi
 xcoor = seq(left,right, by=dx) # builds a list of all coordinates
@@ -925,7 +979,7 @@ grid()
 rm(list=ls()) 
 
 # setting up initial parameters
-dx    = pi/3
+dx    = pi/2
 left  = 0
 right = 2*pi
 xcoor = seq(left,right, by=dx) # builds a list of all coordinates
@@ -950,15 +1004,298 @@ N = length(xcoor)
 plot(xcoor[2:(N-1)],V[2:(N-1)],ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
 x_sol = seq(left,right,by=0.05)
 lines(x_sol,cos(x_sol),type='l', col="grey",lwd=2)
-title(main='Forward differencing scheme with matrices')
+title(main='Central differencing scheme with matrices')
 grid()
 ```
 
 The central scheme is clearly better but two points instead of one is valueluess so more boundary conditions are needed.
 </span>
 
+The problem with the previous three approaches is that they all have at least one point that has no value because it's out of the calculations reach. To solve this problem the methods might be combined to cover the whole range. This is done in the following way; starting from the matrix equation for the forward differencing method:
+
+$$
+\begin{bmatrix}
+&\frac{-1}{\Delta x}&\frac{1}{\Delta x}&.&.&.\\
+&.&\frac{-1}{\Delta x}&\frac{1}{\Delta x}&.&.\\
+&.&.&\frac{-1}{\Delta x}&\frac{1}{\Delta x}&.\\
+&.&.&.&\frac{-1}{\Delta x}&\frac{1}{\Delta x}\\
+&.&.&.&.&.
+\end{bmatrix}
+* 
+\begin{bmatrix}
+s[1]\\ 
+s[2]\\ 
+s[3]\\ 
+s[4]\\ 
+s[5]
+\end{bmatrix}
+= 
+\begin{bmatrix}
+cos(x)\\ 
+cos(x)\\ 
+cos(x)\\ 
+cos(x)\\ 
+.
+\end{bmatrix}
+$$
+
+On the last row there is no equation present. The easiest way to fill that up is to insert the approximation from the backward method into the matrix: 
+$$ \dfrac{s[5]}{\Delta x} - \dfrac{s[4]}{\Delta x} = \dfrac{ds(x)}{dx}$$
+
+<span class="question">
+4.1.5 Insert this equation in the matrix equation above and implement this in the chunk `forward_derivative`.
+</span>
+
+<span class="answer">
+```{r forward_derivative_extended}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/2
+left  = 0
+right = 2*pi
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+N     = length(xcoor)
+
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 1:(length(xcoor)-1))
+{
+  M[j,j]   = -1/dx
+  M[j,j+1] = 1/dx
+}
+M[N,N  ] = 1/dx
+M[N,N-1] = -1/dx
+
+s = sin(xcoor)
+
+# solve matrix equation
+V = M %*% s
+
+# plotting
+N = length(xcoor)
+plot(xcoor[1:(N)],V[1:(N)],ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,cos(x_sol),type='l', col="grey",lwd=2)
+title(main='Forward differencing scheme with matrices')
+grid()
+```
+</span>
+
+<span class="question">
+4.1.6 Complete the central differencing scheme with equations for the first and last node.
+</span>
+
+<span class="answer">
+```{r central_derivative_extended}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/2
+left  = 0
+right = 2*pi
+xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+N     = length(xcoor)
+
+M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# populating vector and matrix
+for(j in 2:(length(xcoor)-1))
+{
+  M[j,j+1] = 1/(2*dx)
+  M[j,j-1] = -1/(2*dx)
+}
+M[1,1  ] = -1/dx
+M[1,2  ] = 1/dx
+M[N,N  ] = 1/dx
+M[N,N-1] = -1/dx
+
+
+s = sin(xcoor)
+
+# solve matrix equation
+V = M %*% s
+
+# plotting
+N = length(xcoor)
+plot(xcoor[1:(N)],V[1:(N)],ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+x_sol = seq(left,right,by=0.05)
+lines(x_sol,cos(x_sol),type='l', col="grey",lwd=2)
+title(main='Forward differencing scheme with matrices')
+grid()
+```
+</span>
+
+To evaluate the quality of these different approaches the absolute error between the approximated and real values can be added up. The hard track might implement this themselves in exercise 2 of the extended Rmd. The rest can go to the next question.
+
+<span class="question">
+4.1.7 Fill the following table of errors for the different schemes by running the following chunk
+</span>
+
+<span class="student_answer">
+
+| dx | Forward differencing scheme | Central differencing scheme |
+| ------------- | ------------- | ------------- |
+| $\pi$ |  |  |
+| $\frac{1}{2}\pi$ |  |  |
+| $\frac{1}{3}\pi$ |  |  |
+| $\frac{1}{4}\pi$ |  |  |
+| $\frac{1}{5}\pi$ |  |  |
+| $\frac{1}{10}\pi$ |  |  |
+| $\frac{1}{20}\pi$ |  |  |
+
+<button type="button" onclick="toggle('Q2')">Show chunk</button>
+
+<div id="Q2" style="display: none">
+```{r calculate_error_differencing_schemes, eval=F}
+rm(list=ls()) 
+library(shiny)
+
+f = function(scheme = "C", dx=(pi/2)){
+  
+  # scheme C = central
+  # scheme F = forward
+  
+  #### setting up initial parameters
+  dx    = dx
+  left  = 0
+  right = 2*pi
+  xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+  N     = length(xcoor)
+  s     = sin(xcoor)
+  c     = cos(xcoor)
+  
+  ##### CENTRAL SCHEME WITH FORWARD AND BACKWARD VALUES ON THE OUTER NODES
+  
+  M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+  
+  # populating vector and matrix
+  for(j in 2:(length(xcoor)-1))
+  {
+    M[j,j+1] = 1/(2*dx)
+    M[j,j-1] = -1/(2*dx)
+  }
+  M[1,1  ] = -1/dx
+  M[1,2  ] = 1/dx
+  M[N,N  ] = 1/dx
+  M[N,N-1] = -1/dx
+  
+  # solve matrix equation
+  V_c = M %*% s
+  
+  ##### FORWARD SCHEME WITH BACKWARD RIGHT NODE
+  
+  M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+  
+  # populating vector and matrix
+  for(j in 1:(length(xcoor)-1))
+  {
+    M[j,j]   = -1/dx
+    M[j,j+1] = 1/dx
+  }
+  M[N,N  ] = 1/dx
+  M[N,N-1] = -1/dx
+  
+  # solve matrix equation
+  V_f = M %*% s
+  
+  
+  ##### PLOTTING
+  if(scheme == "C"){
+    ## plotting C
+    plot(xcoor[1:(N)],V_c[1:(N)],ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+    x_sol = seq(left,right,by=0.05)
+    lines(x_sol,cos(x_sol),type='l', col="grey",lwd=2)
+    
+    # including error and 
+    error = 0
+    for(i in 1:N){
+      error = error + abs(c[i]-V_c[i])
+      points(xcoor[i],V_c[i],col="green",pch=19)
+      points(xcoor[i],c[i],pch=19)
+      segments(xcoor[i],V_c[i],xcoor[i],c[i],col="red",lwd=2)
+    }
+    
+    title(main=paste('Central scheme, error = ',as.character(round(error,3))))
+    grid()
+  }
+  
+  ## plotting F
+  if(scheme == "F"){
+    plot(xcoor[1:(N)],V_f[1:(N)],ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+    x_sol = seq(left,right,by=0.05)
+    lines(x_sol,cos(x_sol),type='l', col="grey",lwd=2)
+    grid()
+    
+    # including error and 
+    error = 0
+    for(i in 1:N){
+      error = error + abs(c[i]-V_f[i])
+      points(xcoor[i],V_f[i],col="green",pch=19)
+      points(xcoor[i],c[i],pch=19)
+      segments(xcoor[i],V_f[i],xcoor[i],c[i],col="red",lwd=2)
+    }
+    
+    title(main=paste('Forward scheme, error = ',as.character(round(error,3))))
+    grid()
+  }
+}
+
+#########################################
+ui <- fluidPage(
+  
+  # App title ----
+  titlePanel("Calculate the error"),
+  
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
+    
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+      
+      selectInput("scheme", label="scheme", choices = list("Central differencing scheme"="C","Forward differencing scheme"="F")),
+      sliderInput("dx", label  = HTML("dx (<sup>&Pi;</sup>&frasl;<sub>x</sub>):") , value=2, min = 1, max = 20, step = 1)
+      
+    ),
+    
+    # Main panel for displaying outputs ----
+    mainPanel(
+      
+      # Output: Plot of the requested variable against mpg ----
+      plotOutput("p")
+      
+      
+      
+    )
+  )
+)
+server <- function(input, output) {
+  output$p = renderPlot({f(scheme = input$scheme, dx = pi/(input$dx))})
+}
+
+shinyApp(ui, server)
+```
+</div>
+
+</span>
+
+<span class="answer">
+
+| dx | Forward differencing scheme | Central differencing scheme |
+| ------------- | ------------- | ------------- |
+| $\pi$ | 3 | 3 |
+| $\frac{1}{2}\pi$ | 2.363  | 1.090 |
+| $\frac{1}{3}\pi$ | 2.173  | 0.865 |
+| $\frac{1}{4}\pi$ | 2.100  | 0.581 |
+| $\frac{1}{5}\pi$ | 2.065  | 0.482 |
+| $\frac{1}{10}\pi$ | 2.016 | 0.223 |
+| $\frac{1}{20}\pi$ | 2.004 | 0.108 |
+
+</span>
+
 ## Section 4.2 - Second order derivative
-In order to be able to solve the *static* advection diffusion equation one other thing remains to be explained; how to solve the second order derivative in the equation:
+In order to be able to solve the *stationary* advection diffusion equation one other thing remains to be explained; how to solve the second order derivative in the equation:
 
 $$0 = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 
@@ -994,7 +1331,7 @@ $$
 rm(list=ls()) 
 
 # setting up initial parameters
-dx    = pi/3
+dx    = pi/2
 left  = 0
 right = 2*pi
 xcoor = seq(left,right, by=dx) # builds a list of all coordinates
@@ -1258,13 +1595,20 @@ The solution becomes stable starting from dx=2 and below
 </span>
 
 ## Section 5.2 - Implementation with a Neumann boundary condition
-Hard track can go to exercise 2 in the extended Rmd to implement a Neumann boundary condition themselves, the rest can continue with this section here.
+Hard track can go to exercise 3 in the extended Rmd to implement a Neumann boundary condition themselves, the rest can continue with this section here.
 
-As an example we will look at a Neumann boundary with a 0-gradient. In mathematical terms this means (in terminology of section 5.2):
+As an example we will look at a Neumann boundary with a gradient of $0.5$. In mathematical terms this means:
 
 $$
-s[5] = s[4] = 0
+\dfrac{ds}{dx} = 0.5
 $$
+To implement this on the right side of the system a backward scheme is used.
+
+$$
+\dfrac{ds}{dx} = \dfrac{s[5]-s[4]}{\Delta x}\\
+s[5] - s[4] = 0.5 * \Delta x = \frac{\Delta x}{2}
+$$
+
 and inserted in the matrix:
 
 $$
@@ -1287,7 +1631,7 @@ b_l\\
 V_2\\
 V_3\\
 V_4\\
-b_r = 0\\
+b_r = \frac{\Delta x}{2}\\
 \end{bmatrix}
 $$
 
@@ -1338,7 +1682,7 @@ dx    = 5    # step size
 D     = 5    # diffusion coefficient
 u     = 5    # advectio coefficient
 bl    = 0    # left boundary
-br    = 0    # right boundary
+br    = dx/2 # right boundary
 
 left  = 0    # left coordinate
 right = 50
@@ -1374,86 +1718,6 @@ plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
 title(main='Advection Diffusion Equation, Neumann boundary')
 grid()
 ```
-</span>
-
-## Section 5.3 - Implementation with a Cauchy boundary condition
-Hard track can go to exercise 3 in the extended Rmd to implement a Cauchy boundary condition themselves, the rest can continue with this section here.
-
-A Cauchy boundary means that the state of the boundary is defined and that the gradient between the boundary and the first cell next to it is quantified. In this case we will be looking at a fixed state of 1 at $s[5]$ and again a 0-gradient.
-
-In mathematical notation:
-$$
-s[5] = 1\\
-s[5] = s[4]\\
-s[4] = 1
-$$
-$$
-\begin{bmatrix}
-1&.&.&.&.\\
--\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.&.\\
-.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.\\
-.&.&.&1&.\\
-.&.&.&.&1
-\end{bmatrix} * 
-\begin{bmatrix}
-s[1]\\
-s[2]\\
-s[3]\\
-s[4]\\
-s[5]\\
-\end{bmatrix} = 
-\begin{bmatrix}
-b_l\\
-V_2\\
-V_3\\
-s[5] = b_r = 1\\
-b_r = 1\\
-\end{bmatrix}
-$$
-
-<span class="question">
-5.2.1 What would the graph look like? Complete the following chunk to incorporate the Cauchy boundary condition (change the XXX's in the code).
-<span>
-
-<span class="student_answer">
-```{R, eval=F}
-dx    = 5    # step size
-D     = 5    # diffusion coefficient
-u     = 5    # advectio coefficient
-bl    = 0    # left boundary
-br    = XXX  # right boundary
-
-left  = 0    # left coordinate
-right = 50
-xcoor = seq(left,right, by=dx)
-N     = length(xcoor)
-
-V     = c()  # build an empty vector for the solutions
-M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
-
-for(j in 2:(length(xcoor)-2))
-{
-  M[j,j-1] = -u/(2*dx) - D/(dx^2)
-  M[j,j  ] = 2*D/(dx^2)
-  M[j,j+1] = u/(2*dx) - D/(dx^2)
-  V[j]     = 0
-}
-
-# Boundary conditions
-XXX
-
-# Solve the system
-s = solve(M,V)
-
-# Plotting
-plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
-title(main='Advection Diffusion Equation, Neumann boundary')
-grid()
-```
-</span>
-
-<span class="comment">
-Implement Robin boundary
 </span>
 
 <span class="comment">

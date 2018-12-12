@@ -11,7 +11,7 @@ output:
 <!-- include the hint.js -->
 <script src="../../hints.js"></script>
 
-## Exercise 0
+## Exercise 1
 <span class="question">
 4.8 The following code reaches the same result as the answer on 4.6. Explain briefly how this code works.
 
@@ -79,8 +79,91 @@ for(i in 1:length(f)){
 ![](example_4.png){width=40%}
 </span>
 
+## Exercise 2
 
-## Exercise 1
+<span class="question">
+Check for the speed of conversion for the central and forward scheme by creating a grap that displays `dx` on the x-axis and the absolute error on the y-axis. The absolute error is the sum of the individual errors. Explain the pattern that arises.
+</span>
+
+<span class="answer">
+```{R error_calculation}
+f = function(dx=(pi/2)){
+  
+  # scheme C = central
+  # scheme F = forward
+  
+  #### setting up initial parameters
+  dx    = dx
+  left  = 0
+  right = 2*pi
+  xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+  N     = length(xcoor)
+  s     = sin(xcoor)
+  c     = cos(xcoor)
+  
+  ##### CENTRAL SCHEME WITH FORWARD AND BACKWARD VALUES ON THE OUTER NODES
+  
+  M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+  
+  # populating vector and matrix
+  for(j in 2:(length(xcoor)-1))
+  {
+    M[j,j+1] = 1/(2*dx)
+    M[j,j-1] = -1/(2*dx)
+  }
+  M[1,1  ] = -1/dx
+  M[1,2  ] = 1/dx
+  M[N,N  ] = 1/dx
+  M[N,N-1] = -1/dx
+  
+  # solve matrix equation
+  V_c = M %*% s
+  
+  ##### FORWARD SCHEME WITH BACKWARD RIGHT NODE
+  
+  M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+  
+  # populating vector and matrix
+  for(j in 1:(length(xcoor)-1))
+  {
+    M[j,j]   = -1/dx
+    M[j,j+1] = 1/dx
+  }
+  M[N,N  ] = 1/dx
+  M[N,N-1] = -1/dx
+  
+  # solve matrix equation
+  V_f = M %*% s
+  
+  x = seq(0,2*pi,by=0.01)
+  
+  ## error C
+  centralfun = approxfun(xcoor, V_c, rule=2)
+  error_c    = sum(abs(centralfun(x) - cos(x)))
+  
+  ## error F
+  forwardfun = approxfun(xcoor, V_f, rule=2)
+  error_f    = sum(abs(forwardfun(x) - cos(x)))
+  
+  return(list(error_c,error_f))
+}
+x = seq(0.1,pi,by=0.1)
+error_list = data.frame("C" = rep(0,length=length(x)), "F" = rep(0,length=length(x)))
+for(i in 1:length(x)){
+  error = f(x[i])
+  error_list[i,] = error
+}
+
+plot(x, error_list$C, type="l", col="darkblue")
+lines(x, error_list$F, type="l", col="grey")
+```
+</span>
+
+<span class="comment">
+This is not really a pretty graph but it should be clear that the central scheme converges faster right?
+</span>
+
+## Exercise 3
 <span class="question">
 Solve the following equation with a Dirichlet boundary on both sides using matrix algebra:
 
@@ -154,7 +237,7 @@ legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,
 ```
 </span>
 
-## Exercise 2
+## Exercise 4
 
 <span class="question">
 2.1 What would be the mathematical notation of a 0-gradient condition (no flux) by using $s[4]$ and $s[5]$ and what would this look like in matrix notation (starting from the matrix defined for the Dirichlet boundary condition).
@@ -238,90 +321,4 @@ grid()
 ```
 </span>
 
-## Exercise 3
-<span class="question">
-3.1 What would be the mathematical notation of a 0-gradient condition (no flux) and fixed state ($s[5] = 1$) by using $s[4]$ and $s[5]$ and what would this look like in matrix notation (starting from the matrix defined for the Dirichlet boundary condition).
-</span>
 
-<span class="answer">
-This quite a trivial question
-$$
-s[5] = 1\\
-s[5] = s[4]\\
-s[4] = 1
-$$
-$$
-\begin{bmatrix}
-1&.&.&.&.\\
--\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.&.\\
-.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.\\
-.&.&.&1&.\\
-.&.&.&.&1
-\end{bmatrix} * 
-\begin{bmatrix}
-s[1]\\
-s[2]\\
-s[3]\\
-s[4]\\
-s[5]\\
-\end{bmatrix} = 
-\begin{bmatrix}
-b_l\\
-V_2\\
-V_3\\
-s[5] = b_r = 1\\
-b_r = 1\\
-\end{bmatrix}
-$$
-</span>
-
-<span class="question">
-3.2 Implement this matrix equation in the last chunk of section 5.2. 
-</span>
-
-<span class="answer">
-```{R}
-dx    = 5    # step size
-D     = 5    # diffusion coefficient
-u     = 5    # advectio coefficient
-bl    = 0    # left boundary
-br    = 1    # right boundary
-
-left  = 0    # left coordinate
-right = 50
-xcoor = seq(left,right, by=dx)
-N     = length(xcoor)
-
-V     = c()  # build an empty vector for the solutions
-M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
-
-for(j in 2:(length(xcoor)-2))
-{
-  M[j,j-1] = -u/(2*dx) - D/(dx^2)
-  M[j,j  ] = 2*D/(dx^2)
-  M[j,j+1] = u/(2*dx) - D/(dx^2)
-  V[j]     = 0
-}
-
-# Left boundary
-M[1,1] = 1
-V[1]   = bl
-
-# Right boundary
-# s[5]
-M[N,N]   = 1
-V[N]     = br
-
-# s[4]
-M[(N-1),(N-1)] = 1
-V[(N-1)]       = br
-
-# Solve the system
-s = solve(M,V)
-
-# Plotting
-plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
-title(main='Advection Diffusion Equation, Cauchy boundary')
-grid()
-```
-</span>
