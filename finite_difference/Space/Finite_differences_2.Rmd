@@ -733,7 +733,7 @@ grid()
 ```
 
 <span class="question">
-3.4 Use the same system above but instead of using a left boundary condition of $s[1] = 0$, use $s[5] = 0$. Implement it using the previous chunk and show that this will result in exactly the same plot (because $sin(0) = sin(2\pi) = 0$). TIP! If needed write down the matrix by hand as done in the previous exercise.
+3.4 Use the same system above but instead of using a left boundary condition of $s[1] = 0$, use $s[5] = 0$. Implement it using the previous chunk and show that this will result in exactly the same plot (because $\sin(0) = \sin(2\pi) = 0$). TIP! If needed write down the matrix by hand as done in the previous exercise.
 </span>
 
 <span class="answer">
@@ -824,7 +824,7 @@ grid()
 ## Section 4.1 - First order derivative
 Part 3 showed how to solve a stationary system when to derivative is known (and at least one boundary condition). In most real world applications however this is not the case. In the final application you will have a system with observations at a certain time and the future values need be calculated based on thos observations. The observations themselves are not necessarily well behaved in a function, so also the derivative is not defined. Looking for example at the advection diffusion equation that was introduced in section 1.1, the derivatives in space need to be calculated to predict the values at the next time-step. 
 
-Let's first look at the case of part 3; a sinus wave. Let's assume that we don't know any functions but only have observations of that sinus-wave and we want to define the derivative field of those observations. (The observations are in fact calculated with the function f = sin(x) and therefore the exact solution is known; a cosine wave).
+Let's first look at the case of part 3; a sinus wave. Let's assume that we don't know any functions but only have observations of that sinus-wave and we want to define the derivative field of those observations. (The observations are in fact calculated with the function $f = \sin(x)$ and therefore the exact solution is known; a cosine wave).
 
 To solve this problem the matrices defined in part 3 are still valid, with the difference that the states don't need to be calculated because they are already known but the right-hand side is unknown. 
 
@@ -1321,7 +1321,7 @@ $$
 $$
 
 <span class="question">
-4.2.1 Use this equation to estimate the second order derivative of the sinus wave, the same way as was done in section 4.1. TIP! The second derivative of $sin(x)$ is $-sin(x)$ which you can plot behind the approximation to check if everything went fine.
+4.2.1 Use this equation to estimate the second order derivative of the sinus wave, the same way as was done in section 4.1. TIP! The second derivative of $\sin(x)$ is $-\sin(x)$ which you can plot behind the approximation to check if everything went fine.
 </span>
 
 <span class="answer">
