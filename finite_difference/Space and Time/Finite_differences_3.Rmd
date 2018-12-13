@@ -11,6 +11,53 @@ output:
 <!-- include the hint.js -->
 <script src="../../hints.js"></script>
 
-<span class="comment">
-Implement the last exercise in the document practmanualspacetime.docx. Afterwards it might be nice to add an exercise for hydrology and meteorology. For hydrology I thought about implementing a richards-equation with variable input (maybe the huspeldata?).
-</span>
+# Introduction
+In this practical the last subject of this series of practicals will be tackled; space-time integration. To be able to solve for both space and time the knowledge of solving a system in space and time separately will be combined.
+
+# Part 1 - Clarifying the last missing parts
+## Section 1.1 - Notation
+So far we have been using two different notations when talking about discretisation of equations. Namely the following;
+
+$$
+s[i]\\
+s(x)\ or \ s(t)
+$$
+The first notation signifies the location in the corresponding matrix. $i$ is therefore always a positive integer. The second one is a specific value. It describes the state of a system at for example `x = 12.5` meters or the state at a specific time. When talking about space and time at the same time these notations tend to become quite cumbersome as you can see in the following example:
+
+$$
+s(x + \Delta x, t + \frac{1}{2}\Delta t)
+$$
+It's still understandable but with longer equations it can become hard to keep track of. To solve this issue we will use the following notation during this practical:
+
+$$
+s^{t + \frac{1}{2}\Delta t}_{x + \Delta x}
+$$
+This equation means exactly the same as the equation above but in a much shorter notation. The convention is to put time above and space below. The same goes for the matrix form:
+
+$$
+s^{n + 1}_{i}
+$$
+This equation means the state at the following time-step `n+1` and at the current location `i`.
+
+## Section 1.2 - Crank-Nicolson
+The Crank-Nicolson methodology is another way of solving ODEs in time. What it does in simple words, it averages each time step the solution of an explicit and implicit scheme. In mathematical formulation it would look like this:
+
+$$
+\dfrac{ds(t)}{dt} = \frac{1}{2}f(t) + \frac{1}{2}f(t+\Delta t)
+$$
+A strategy that is often used to be able to solve the explicit, implicit and Crank-Nicolson (CN) scheme at once in an analitical way is to use the omega notation:
+
+$$
+\dfrac{ds(t)}{dt} = \omega (f(t)) + (1-\omega)f(t+\Delta t)
+$$
+This is a trick to solve all three at the same time. If you plug in $\omega = 1$ you get the explicit solution, $\omega = 0$ the implicit solution and $\omega = \frac{1}{2}$ the Crank-Nicolson version. This convention makes programming the three down the line much more convenient.
+
+
+# Part 2 - The advection-diffusion equation revisited
+
+
+
+
+
+
+
