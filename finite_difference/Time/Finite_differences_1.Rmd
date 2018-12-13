@@ -223,23 +223,24 @@ Around `dt = 1` the analytical solution and the numerical approximation come qui
 
 # Part 2 - Taylor series
 ## Section 2.1 - Introduction Taylor Series 
-The previous exercise can also be done in a more formal way, such that the error of the numerical approximation can be calculated. For that we need Taylor series.
-
-Taylor series (https://en.wikipedia.org/wiki/Taylor_series) can be used to make approximations of complex mathematical functions. If you use an infinite series, the approximation is exact. The finite difference approximation that you have derived earlier, can also be derived using a Taylor series. TIP: if you are unfamiliar with this topic or you simply want a refresher you can watch the following video by 3Blue1Brown; https://www.youtube.com/watch?v=3d6DsjIBzJ4
+The previous exercise can also be done in a more formal way, such that the error of the numerical approximation can be calculated. For that you will make us of **Taylor series**. Taylor series (https://en.wikipedia.org/wiki/Taylor_series) can be used to make approximations of complex mathematical functions using extrapolation. If you use an infinite series, the approximation is exact. The finite difference approximation that you have derived earlier, can also be derived using a Taylor series. **TIP**: if you are unfamiliar with this topic or you simply want a refresher, you can watch the following video by *3Blue1Brown*: https://www.youtube.com/watch?v=3d6DsjIBzJ4
 
 The mathematical definition of a Taylor series is as follows:
-$$f(x) = \sum_{n=0}^{\infty} \frac{f^{n}(a)}{n!}(x-a)^{n} \tag{6}$$
+$$f(x + \Delta x) = \sum_{n=0}^{\infty} f^{n}(x) \dfrac{\Delta x^{n}}{n!} \tag{6}$$
 
 Expansion of this function gives:
 
-$$f(x) = f(a) + \frac{f'(a)}{1!}(x-a) + \frac{f''(a)}{2!}(x-a)^{2} + \frac{f'''(a)}{3!}(x-a)^{3} + \frac{f''''(a)}{4!}(x-a)^{4} + \ ... \tag{7}$$
+$$f(x + \Delta x) = f(x) + f'(x)\frac{\Delta x}{1!} + f''(x)\frac{\left(\Delta x\right)^2}{2!} + f'''(x)\frac{\left(\Delta x\right)^3}{3!} + f''''(x)\frac{\left(\Delta x\right)^4}{4!} + \ ... \tag{7}$$
 
 If we use the definitions and notation of exercise 1, we find:
 
-$$s(t + \Delta t) = s(t) + \Delta t \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{8}$$
-In simple words, this formula estimates the exponential decay, starting from a specified time $t$ a specific time-step into the future $\Delta t$, using only information that is known at $t$. If enough terms of the above equation are taken into account, only that equation would be needed to evaluate the whole period of the emptying reservoir. However, in a practical situation, only the first two terms are taken into account, because it is easier to work with and because it is most of the time impossible to derive the other terms.
+$$s(t + \Delta t) = s(t) + \Delta t \frac{ds}{dt} \bigg\rvert_{t} + \frac{(\Delta t)^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{(\Delta t)^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{(\Delta t)^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{8}$$
 
-A finite difference approximation of an ordinary differential equations can be set up by using the same principles. The first step is done by defining the balances in the system and determining the physical formulas needed to solve them. A simple example is the emptying bucket model shown above. The first derivative, the rate of change, is simply the amount (water might be a good way to visualise this) going into the system minus the amount leaving it:
+In simple words, this formula estimates the exponential decay, starting from a specified time $t$ a specific time-step into the future $\Delta t$, using only information that is known at $t$. The more terms are taken into account, the more accurate this approximation gets. 
+
+<span class="comment"> **[CvH]** Do we need to include some sort of example here? </span>
+
+A finite difference approximation of an ordinary differential equation can be set up by using the same principles. The first step is done by defining the balances in the system and determining the physical formulas needed to solve them. A simple example is the emptying bucket model shown above. The first derivative, the rate of change, is simply the amount (water might be a good way to visualise this) going into the system minus the amount leaving it:
 $$\frac{ds}{dt} = Q_{in} - Q_{out} \tag{9}$$
 In the example above the term $Q_{in}$ is zero. $Q_{out}$ is replaced by it's physical interpretation $-at$, which is simply an exponential decay constant multiplied by the time that the system has a flux going out. The next step in defining the finite difference scheme is an approximation of the derivative for which the Taylor series is used. 
 
@@ -260,10 +261,10 @@ $$ error = \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\De
 </div>
 
 ##Section 2.2 - Error of estimation
-The hard track goes to exercise 3 in the extended file and will calculate the error term by hand. The rest proceeds with the following exercise.
+If you prefer a **challenging exercise**, you can open Exercise 3 in the `Finite_differences_1_challenges.Rmd` file. If not, you can proceed with this exercise.
 
 <span class="question">
-2.1.1 Run the chunk below that will open a new window. Use the arrows to change the number of terms of the Taylor series that are implemented and write down the error between the Taylor series implementation and the true emptying bucket.
+2.1.1 Run the chunk below that will open a new window. Use the arrows to change the number of terms of the Taylor series that are implemented and write down the errors between the Taylor series implementation and the true emptying bucket.
 
 terms | error 
 ----- | ----- 
@@ -335,8 +336,8 @@ error = function(taylor){
   DT = dt
   correct.state = init.state*exp(-dt*alpha)
   error = round(abs(correct.state-eval(g)),3)
-  points(dt,eval(g),col="green",pch=19)
-  points(dt,correct.state,pch=19)
+  points(dt, eval(g),col="green", pch=19)
+  points(dt, correct.state, pch=19)
   segments(dt,correct.state,dt,eval(g),col="red",lwd=2)
   title(main=paste('Numerical and analytical solution compared. Error: ',error))
   
@@ -378,7 +379,7 @@ server <- function(input, output) {
 shinyApp(ui, server)
 ```
 
-</span
+</span>
 
 <span class="answer">
 
