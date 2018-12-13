@@ -170,10 +170,10 @@ $\alpha$ | physically correct | convergent | stability | explanation
 
 </span>
 
-You will now compare the results against the exact analytical solution that you derived. **You can choose here from the assignment below, or from question 1 from the extended tutorial**.
+You will now compare the results against the exact analytical solution that you derived. If you are in for a **challenging exercise** open Excercise 1 of `Finite_differences_1_challenges.Rmd` where you will add the analytical solution yourself, otherwise do the exercise below.
 
 <span class="question">
-1.2.5 Two options are available here; either unfold `chunk4` and run the code or go to question 1 in the extended tutorial to add the exact solution to the previous plot yourself.
+1.2.5 Unfold `chunk4` and run the code in order to study the 
 </span>
 
 <button type="button" onclick="toggle('Q1')">Show chunk</button>
@@ -211,10 +211,10 @@ grid()
 ```
 </div>
 
-<br />
+<br>
 
 <span class="question">
-1.2.4 At which `dt` do the numerical approximation and analytical solution start to agree fairly reasonably?
+1.2.6 At which `dt` do the numerical approximation and analytical solution start to agree fairly reasonably?
 </span>
 
 <span class="answer">
@@ -240,11 +240,9 @@ In simple words, this formula estimates the exponential decay, starting from a s
 
 <span class="comment"> **[CvH]** Do we need to include some sort of example here? </span>
 
-A finite difference approximation of an ordinary differential equation can be set up by using the same principles. The first step is done by defining the balances in the system and determining the physical formulas needed to solve them. A simple example is the emptying bucket model shown above. The first derivative, the rate of change, is simply the amount (water might be a good way to visualise this) going into the system minus the amount leaving it:
-$$\frac{ds}{dt} = Q_{in} - Q_{out} \tag{9}$$
-In the example above the term $Q_{in}$ is zero. $Q_{out}$ is replaced by it's physical interpretation $-at$, which is simply an exponential decay constant multiplied by the time that the system has a flux going out. The next step in defining the finite difference scheme is an approximation of the derivative for which the Taylor series is used. 
+With the derived expression above, we can as well derive a mathematical expression for the error of a numerical approximation for a derivative. We can do this by rearranging equation 8 such that the the lefthand side is equal to the right-hand side of equation 3. 
 
-Advanced track can go to exercise 2 of the extended file to derive the error term of the Taylor series. The rest can unfold the derivation here.
+If you are in for a **challenging exercise** open Excercise 2 of `Finite_differences_1_challenges.Rmd` to manually derive the general mathematical expression for the numerical error. Otherwise, unfold the derivation with the button below.
 
 <button type="button" onclick="toggle('Q2')">Show derivation</button>
 <div id="Q2" style="display: none">
