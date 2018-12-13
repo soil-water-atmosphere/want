@@ -7,6 +7,9 @@ output:
     css: ../../want.css
     toc: yes
     toc_depth: 2
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
 ---
 <!-- include the hint.js -->
 <script src="../../hints.js"></script>
@@ -37,7 +40,7 @@ This equation means exactly the same as the equation above but in a much shorter
 $$
 s^{n + 1}_{i}
 $$
-This equation means the state at the following time-step `n+1` and at the current location `i`.
+This equation means the state at the following time-step `n+1` (current time step: `n`) and at the current location `i`.
 
 ## Section 1.2 - Crank-Nicolson
 The Crank-Nicolson methodology is another way of solving ODEs in time. What it does in simple words, it averages each time step the solution of an explicit and implicit scheme. In mathematical formulation it would look like this:
@@ -52,8 +55,114 @@ $$
 $$
 This is a trick to solve all three at the same time. If you plug in $\omega = 1$ you get the explicit solution, $\omega = 0$ the implicit solution and $\omega = \frac{1}{2}$ the Crank-Nicolson version. This convention makes programming the three down the line much more convenient.
 
-
 # Part 2 - The advection-diffusion equation revisited
+## Section 2.1 - Setting up the equations
+Back to the advection difussion equation, introduced in the second pratical. In the second pratical we worked with this equation only in the stationary case; $\dfrac{ds}{dt} = 0$. This is the full version of the equation.
+
+$$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
+
+<span class="question">
+2.1.1 Discretise the equation using a forward differencing scheme in time and a central scheme in space (both first and second order derivative). Use the omega notation given above to solve for the explicit, implicit and Crank-Nicolson integration scheme. Make sure to use the notation shown section 1.1 (last equation).
+
+<span class="comment"> 
+Is this too much and too fast?
+</span>
+
+</span>
+
+<span class="answer">
+$$
+\dfrac{s^{n+1}_i - s^{n}_{i}}{\Delta t} = \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2}) + (1-\omega)(-u\dfrac{s^{n+1}_{i+1}-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}-2s^{n+1}_{i}+s^{n+1}_{i+1}}{\Delta x^2})
+$$  
+</span>
+
+This equation can be organised in such a way that it can be inserted in the standard matrix equation:
+$$
+M*s^{n+1} = V
+$$
+
+<span class="question">
+2.1.2 Reorganise the equation from question 2.1.1 to have all terms about the new time-step `n+1` on the left-hand side and everything else on the right-hand side.
+</span>
+
+<span class="answer">
+$$
+\dfrac{s^{n+1}_i}{\Delta t} - (1-\omega)(-u\dfrac{s^{n+1}_{i+1}-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}-2s^{n+1}_{i}+s^{n+1}_{i+1}}{\Delta x^2}) = \dfrac{s^{n}_{i}}{\Delta t} + \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2})
+$$  
+</span>
+
+<span class="question">
+2.1.3 The equation obtained from the previous exercise can be written in the following way:
+$$
+As^{n+1}_{i-1} + Bs^{n+1}_{i} + Cs^{n+1}_{i+1} = E
+$$
+find the coefficients A,B,C and E
+</span>
+
+<span class="answer">
+$$
+As^{n+1}_{i-1} = -(1-\omega)(-u\dfrac{-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}}{\Delta x^2})\\
+A = (\omega-1)(\dfrac{u}{2\Delta x} + \dfrac{D}{\Delta x^2})
+$$
+$$
+Bs^{n+1}_{i} = \dfrac{s^{n+1}_{i}}{\Delta t} - (1-\omega)(D\dfrac{-2s^{n+1}_{i}}{\Delta x^2})\\
+B = \dfrac{1}{\Delta t} + (\omega-1)(\dfrac{-2D}{\Delta x^2})
+$$
+$$
+Cs^{n+1}_{i+1} = -(1-\omega)(-u\dfrac{s^{n+1}_{i+1}}{2\Delta x} + D\dfrac{s^{n+1}_{i+1}}{\Delta x^2})\\
+C = (\omega-1)(\dfrac{-u}{2\Delta x} + \dfrac{D}{\Delta x^2})
+$$
+$$
+E = \dfrac{s^{n}_{i}}{\Delta t} + \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2})
+$$
+</span>
+
+<span class="question">
+2.1.4 Use the coefficients of the previous equation to set up a the following matrix equation (using two Dirichlet boundaries): 
+$$
+M*s^{n+1} = V
+$$
+</span>
+
+<span class="answer">
+$$
+\begin{bmatrix}
+1&.&.&.&.\\
+A&B&C&.&.\\
+.&A&B&C&.\\
+.&.&A&B&C\\
+.&.&.&.&1
+\end{bmatrix} * 
+\begin{bmatrix}
+s^{n+1}_{1}\\
+s^{n+1}_{2}\\
+s^{n+1}_{3}\\
+s^{n+1}_{4}\\
+s^{n+1}_{5}
+\end{bmatrix} = 
+\begin{bmatrix}
+b_l\\
+E_2\\
+E_3\\
+E_4\\
+b_r
+\end{bmatrix}
+$$
+</span>
+
+<span class="question">
+2.1.5 Are the matrix and the vector space or time dependent?
+</span>
+
+</span class="answer">
+Matrix is completely independent. Vector is dependent on both space and time.
+</span>
+
+## Section 2.2 - Solving the matrix equation
+
+
+
+
 
 
 
