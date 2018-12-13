@@ -88,8 +88,8 @@ s(t) &= s_{0}\mathrm{e}^{-at}
 ```{r chunk1_question}
 sys.fun = function(state)
 {
-  newstate = ...
-  return(newstate)
+    newstate = ...
+    return(newstate)
 }
 ```
 </span>
@@ -98,14 +98,14 @@ sys.fun = function(state)
 ```{r chunk1_answer}
 sys.fun = function(state)
 {
-  newstate = state*(1-alpha*dt)
-  return(newstate)
+    newstate = state*(1-alpha*dt)
+    return(newstate)
 }
 ```
 </span>
 
 <span class="question">
-1.2.2 Run the following chunk to perform the actual simulation and visualise it.
+1.2.2 Run the following chunk to perform the actual simulation and visualize it.
 ```{r chunk3}
 # Initial parameter values
 begin.time = 0     # usually this variable is set to 0
@@ -116,28 +116,28 @@ alpha      = 0.25  # decay constant (0.25)
 
 # Simulation initialisation
 time = begin.time
-result.state= c(init.state)
+result.state = c(init.state)
 result.time = c(time)
 current.state = init.state
 
 # Simulation
 while(time < end.time)
 {
-  current.state = sys.fun(current.state)
-  result.state = c(result.state,current.state)
-  time = time + dt
-  result.time = c(result.time,time)
+    current.state = sys.fun(current.state)
+    result.state = c(result.state,current.state)
+    time = time + dt
+    result.time = c(result.time,time)
 }
 
 # Plotting
-plot(result.time,result.state,type='o',xlab="time",ylab="state")
+plot(result.time,result.state,type='o', xlab="time", ylab="state")
 title(main='Emptying reservoir')
 grid()
 ```
 </span>
 
 <span class="question">
-1.2.3 Vary the `dt` parameter between 0.001 and 25. Are there any numerical problems arising beyond a certain value for `dt`? What are the problems occurring when choosing a value for `dt` close the high or low end of this range?
+1.2.3 Vary the `dt` parameter between 0.001 and 25. Are there any numerical problems arising beyond a certain value for `dt`? What are the problems occurring when choosing a value for `dt` close the high or low end of this range? Can you interpret your results in terms of convergence, oscillations and stability?
 </span>
 
 <span class="answer">
@@ -145,7 +145,7 @@ In the low end of the spectrum run-time will be significantly higher and can bec
 </span>
 
 <span class="question">
-1.2.4 Reset `dt` to 0.1 and vary alpha between 0.25 and 25. Describe for alpha 0.25, 5, 10, 15, 20, 25 if the simulation is physically correct, converging (approximation and exact solution advance to the same, or at least roughly the same, solution) and stable and explain why with the help of the equation that calculates the next state. 
+1.2.4 Reset `dt` to 0.1 and vary alpha between 0.25 and 25. Describe for `alpha` 0.25, 5, 10, 15, 20, 25 whether the simulation is physically correct, converging (approximation and exact solution advance to the same, or at least roughly the same, solution) and stable, and explain why with the help of the equation that calculates the next state. 
 
 $\alpha$ | physically correct | convergent | stability | explanation 
 ---------| ------------------ | ---------- | --------- | ----------- 
@@ -170,8 +170,10 @@ $\alpha$ | physically correct | convergent | stability | explanation
 
 </span>
 
+You will now compare the results against the exact analytical solution that you derived. **You can choose here from the assignment below, or from question 1 from the extended tutorial**.
+
 <span class="question">
-1.2.5 The exact solution. Two options are available here; either unfold chunk4 and run the code or go to question 1 in the extended tutorial to add the exact solution to the previous plot yourself.
+1.2.5 Two options are available here; either unfold `chunk4` and run the code or go to question 1 in the extended tutorial to add the exact solution to the previous plot yourself.
 </span>
 
 <button type="button" onclick="toggle('Q1')">Show chunk</button>
@@ -186,24 +188,24 @@ alpha      = 0.25  # decay constant (0.25)
 
 # Simulation initialisation
 time = begin.time
-result.state= c(init.state)
+result.state = c(init.state)
 result.time = c(time)
 current.state = init.state
 
 # Simulation
 while(time < end.time)
 {
-  current.state = sys.fun(current.state)
-  result.state = c(result.state,current.state)
-  time = time + dt
-  result.time = c(result.time,time)
+    current.state = sys.fun(current.state)
+    result.state = c(result.state,current.state)
+    time = time + dt
+    result.time = c(result.time,time)
 }
 
 # Plotting
-plot(result.time,result.state,type='o', col="blue",xlab="time",ylab="state")
-time.sequence = seq(begin.time,end.time,by=0.1)
+plot(result.time, result.state, type='o', col="blue", xlab="time", ylab="state")
+time.sequence = seq(begin.time,end.time, by=0.1)
 analyt.state=init.state * exp(-time.sequence*alpha)
-lines(time.sequence,analyt.state,col='grey',lwd=2)
+lines(time.sequence, analyt.state, col='grey', lwd=2)
 title(main='Numerical and analytical solution compared')
 grid()
 ```
