@@ -1,9 +1,15 @@
 h1 {
+    font-size: 20pt;
+    font-weight: bold;
+}
+
+h2 {
     font-size: 16pt;
+    font-weight: bold;
 }
 
 .answer {
-    color: red;
+    color: blue;
 }
 
 .student_answer {
@@ -11,7 +17,15 @@ h1 {
 }
 
 .question {
-    color: blue;
+    color: red;
+}
+
+.exercise {
+    color: red;
+}
+
+.comment {
+    color: grey;
 }
 
 .exercise {
