@@ -12,15 +12,19 @@ output:
 <script src="../../hints.js"></script>
 
 # Learning goals
-* Understand the use of Taylor series
-* Understand the mathematics of Taylor series
-* Be able to calculate Taylor series for arbitrary functions
-* Derive approximations for first derivatives from Taylor series
+After completing this tutorial you will:
 
-<span class='comment'> Something about approximation of ODEs in the time dimension? </span>
+* Understand the use of Taylor series.
+* Understand the mathematics of Taylor series.
+* Be able to calculate Taylor series for arbitrary functions.
+* Derive approximations for first derivatives from Taylor series.
+* Integrate ordinary differential equations (ODEs) in time using explicit methods.
+* Integrate ordinary differential equations (ODEs) in time using implicit methods.
+* Integrate ordinary differential equations (ODEs) in time using midpoint methods.
+* Appreciate the concepts of numerical convergence, oscillation, and stability.
 
 # Introduction
-In this tutorial, you will analyse models that consist of ordinary differential equations that only depend on time. You will test the influence of parameter values and numerical schemes on the behavior of the solutions for simple 1D models, known as bucket or reservoir models (leaving out the spatial dimensions). This will be tackled with the help of Taylor series. 
+In this tutorial, you will analyse and develop models of ordinary differential equations (ODEs) that only depend on time. You will test the influence of parameter values and numerical schemes on the behavior of the solutions for simple 1D models, such as the emptying reservoir model (leaving out the spatial dimensions). This you will learn how to use Taylor series to develop such models using different techniques. You will also use Taylor series to estimate the errors of numerical models in order to judge their quality.
 
 # Part 1 - Simple models in time
 ## Section 1.1 - Introduction ordinary differential equations
@@ -32,16 +36,19 @@ The first model that you will study, is that of an emptying bucket (see Figure).
 
 This system can be represented by the following ODE:
 $$ \dfrac{ds}{dt} = -\alpha s(t) \tag{1}$$
-Which simply means that the amount of water coming out of the bucket is proportional to the volume of water present inside the bucket.
+This equation shows that change in the state variable $s$, in this case the water level, is proportional to the water level itself, multiplied with a positive constant $\alpha$ that describes the properties of the outlet. The larger $\alpha$, the easier water can flow out of the reservoir. Later in this tutorial, you will derive this model in detail, but first you will learn about its basic properties.
 
-The exact mathematical definition of a time derivative of the function $s(t)$ is as follows
+The mathematical definition of a **time derivative of** the function $s(t)$ is as follows
 
 $$\dfrac{ds}{dt} = \lim_{\Delta t\to\ 0}\frac{s(t+\Delta t)-s(t)}{\Delta t} \tag{2}$$
+which teaches us that we can approximate the gradient of a function by taking the difference between to adjacant values and dividing it by the step size. If we take a step size that approximates zero, the derivative is exact. In this case, $\Delta t$ is an **infinitesimal difference**.
 
-This function can be approximated to be able to implement it in a computer. The simplest way of doing this is by taking a small $\Delta t$ instead of having a limit to 0:
+For most practical applications, it is impossible to take an infinitesimal step size if we want to approximate the derivative. Instead, we mostly use a finite step size such that the approximation is equal to:
 
 $$ \dfrac{ds}{dt} \approx \frac{s(t+\Delta t)-s(t)}{\Delta t} \tag{3}$$
-Note that this solution is no longer exact. The difference between $t$ and $\Delta t$ is *finite* and has an associated error (we will come back to this later).
+Note that this solution is no longer exact. The difference between $t$ and $\Delta t$ is a **finite difference** and has an associated approximation error (we will come back to this later). Generally, we can state that the larger the step size, the larger the error.
+
+With equation 3, we can build models in which we can approximate the value of the state $s$ at a future time step $t + \Delta t$.
 
 <span class="question">
 1.1.1 Combine equations 1 and 3 to find an equation that can give you the value of $s$ at the next time step ($s(t+\Delta t)$)
@@ -52,8 +59,10 @@ $$ s(t+\Delta t) = s(t) - \Delta t *\alpha  s(t) \tag{4}$$
 $$ s(t+\Delta t) = s(t)(1-\alpha \Delta t) \tag{5}$$
 </span>
 
+In order to refresh your mathematics, calculate the analytical solution to equation 1, so we can use it later to validate your models against.
+
 <span class="question">
-1.1.2 Derive the exact solution of ordinary differential equation (ODE) of the emptying bucket (equation 1). 
+1.1.2 Derive the exact solution of ordinary differential equation (ODE) of the emptying reservoir (equation 1). 
 </span>
 
 <span class = "answer">
@@ -62,8 +71,8 @@ ds &= -as \ dt\\
 \dfrac{1}{-as} ds &= dt\\
 \int \dfrac{1}{-as} ds &= \int dt\\
 \dfrac{1}{-a} \int \dfrac{1}{s} ds &= \int dt\\
-\dfrac{ln(s)}{-a} &= t + C_{1}\\
-ln(s) &= -at + C_{2}\\
+\dfrac{\ln(s)}{-a} &= t + C_{1}\\
+\ln(s) &= -at + C_{2}\\
 s &= \mathrm{e}^{-at + C_{2}}\\
 s &= C_{3}\mathrm{e}^{-at}\\
 s(t) &= s_{0}\mathrm{e}^{-at}
