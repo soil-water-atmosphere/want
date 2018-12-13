@@ -1,5 +1,5 @@
 ---
-title: "Finite differences 2"
+title: "Finite differences 3"
 author: "The WANT team"
 date: "24/09/2018"
 output:
@@ -15,7 +15,7 @@ output:
 <script src="../../hints.js"></script>
 
 # Introduction
-In this practical the last subject of this series of practicals will be tackled; space-time integration. To be able to solve for both space and time the knowledge of solving a system in space and time separately will be combined.
+In this you will combine the topics of the previous two tutorials. Until now, you have dealt with system that have a state that is a function of time $s(t)$, as the emptying reservoir, as well as systems that are steady state in time $s(x)$, such as the stationary advection-diffusion equation. Here, you will analyze systems that have a state that is varying in time and space $s(x,t)$.
 
 # Part 1 - Clarifying the last missing parts
 ## Section 1.1 - Notation
@@ -23,14 +23,14 @@ So far we have been using two different notations when talking about discretisat
 
 $$
 s[i]\\
-s(x)\ or \ s(t)
+s(x)\ \text{or} \ s(t)
 $$
 The first notation signifies the location in the corresponding matrix. $i$ is therefore always a positive integer. The second one is a specific value. It describes the state of a system at for example `x = 12.5` meters or the state at a specific time. When talking about space and time at the same time these notations tend to become quite cumbersome as you can see in the following example:
 
 $$
 s(x + \Delta x, t + \frac{1}{2}\Delta t)
 $$
-It's still understandable but with longer equations it can become hard to keep track of. To solve this issue we will use the following notation during this practical:
+It's still understandable but with longer equations it can become hard to keep track of. To solve this issue we will use the following notation during this tutorial:
 
 $$
 s^{t + \frac{1}{2}\Delta t}_{x + \Delta x}
