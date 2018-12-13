@@ -392,24 +392,26 @@ terms | error
 
 </span>
 
-#Part 3 - Input and output
+#Part 3 - An emptying reservoir with input.
 ##Section 3.1 - Introducing input
-In this part of the assignments on the finite differences methodology, an input will be introduced into the simulations. The numerical approximations (methods) discussed during the lectures will be implemented and are assessed for their performance.
-
-A simple, but effective input could be a $\sin(time)+1$ function representing for example the daily varying latent heat flux or precipitation:
+In this exercise, the emptying reservoir model will be adapted to make it more realistic by adding an input source that depends on time. This introduces an extra source of fluctuation and makes the output graph more complex. Therefore, it is an excellent model to investigate the accuracy of different type of integration methods.We introduce a simple input function that could for instance describe a time-varying precipitation $\sin(time)+1$:
 
 ```{r chunk6}
-time = seq(0,50,by=0.5)
-plot(time,sin(time)+1,type='o', xlab="time",ylab="state")
+time = seq(0, 50, by=0.5)
+plot(time, sin(time)+1, type='o', xlab="time", ylab="state")
 ```
 
-Coming back the the mathematics of the implementation. The first step was to set up the balance equation in the system. For an emptying bucket with a variable input: 
+This time, you will derive the emptying reservoir model a bit more rigorously. The amount water stored in the reservoir is the volume $V$. The change in volume over time is equal to the influx $Q_{in}$ minus the outflux $Q_{out}$:
 
 $$\frac{dV}{dt} = Q_{in} - Q_{out} \tag{14}$$
-Said simply, the change in the volume inside the bucket is the amount going in the bucket minus the amount leaving the bucket. The volume of the bucket, $V$, can be replaced by the area times the height: $A\,s(t)$. $Q_{out}$ is still the reservoir constant times the height of the volume in the bucket $a*s(t)$. The situation we dealt with in Part 1 and 2 was more or less the same except that $Q_{in}$ was equal to 0 and and A was 1. 
+The volume of the bucket, $V$, can be replaced by the area times the height: $A\,s(t)$. $Q_{out}$ is calculated as the reservoir constant $\alpha$ multiplied with the water level $s(t)$. The earlier model that you used in Part 1 and 2 was a simplification of this model, with $Q_{in}$ equals 0 and A equals unity.
 
 <span class="question">
-3.1.1 Replace $Q_{in}$ and $Q_{out}$ with their physical counterparts and derive the finite differences approximation for $s(t+\Delta t)$.
+3.1.0 What are the units of $V$, $Q_{in}$, $A$ and $\alpha$? Do the units of the equation match?
+</span>
+
+<span class="question">
+3.1.1 Replace $Q_{in}$ and $Q_{out}$ with their formulas and derive the finite differences approximation for $s(t+\Delta t)$ starting from equation 14.
 </span>
 
 <span class="answer">
@@ -417,17 +419,17 @@ $$
 \begin{matrix}
 \dfrac {dV}{dt} &=& Q_{in} - Q_{out}\\
 Q_{in} &=& \sin(t) + 1 \\
-Q_{out} &=& a\,s(t) \\
+Q_{out} &=& \alpha \,s(t) \\
 V &=& A\,s(t) \\
-A\dfrac{ds}{dt} &=& {(\sin(t)+1)} - as(t) \\
-\dfrac {s(t+\Delta t)-s(t)} {\Delta t} &=& \dfrac 1 A((\sin(t)+1) - as(t)) \\
-s(t+\Delta t) &=& s(t) + \dfrac{\Delta t}{A} ((\sin(t)+1) - as(t))
+A\dfrac{ds}{dt} &=& {(\sin(t)+1)} - \alpha\,s(t) \\
+\dfrac {s(t+\Delta t)-s(t)} {\Delta t} &=& \dfrac 1 A((\sin(t)+1) - \alpha\,s(t)) \\
+s(t+\Delta t) &=& s(t) + \dfrac{\Delta t}{A} ((\sin(t)+1) - \alpha\,s(t))
 \end{matrix}
 $$
 </span>
 
 <span class="question"> 
-3.1.2 Copy chunk three here and add a new, updated **sys.fun** reflecting the equation derived in question 3.1.1, using these parameter values:
+3.1.2 Copy chunk three here and add a new, updated **sys.fun** that represents the equation derived in question 3.1.1. Use the following parameter values:
 
 ```{r chunk7}
 rm(list=ls())
@@ -472,7 +474,7 @@ grid()
 ```
 </span>
 
-This system is technically still analytically solvable, but this is far from trivial. For simplicity we will not go into the details here and use another way to compare the quality of the simulation with the "real" solution. For that, we run the last simulation twice with different values for `dt`. One very low value that we will assume is a good approximation of the analital solution.
+In order to compare the outcome of the model runs with a "real solution", we need a reference. For that, we two model runs. One with a small time step to represent the exact solution, and one with a larger time step `dt` chosen by you.
 
 <span class="question">
 3.1.3 Copy the last chunk here. Then copy the following lines of code into the end of the chunk.
@@ -480,8 +482,8 @@ This system is technically still analytically solvable, but this is far from tri
 ```{}
 dt = 2.0 # a new dt value to evaluate current scheme
 time = begin.time
-result.state= c(init.state)
-result.time =c(time)
+result.state = c(init.state)
+result.time = c(time)
 current.state = init.state
 while(time < end.time)
 {
@@ -490,19 +492,19 @@ while(time < end.time)
   time = time + dt
   result.time = c(result.time,time)
 }
-lines(result.time,result.state,type='o',col='blue')
+lines(result.time, result.state, type='o',col='blue')
 ```
 
 Replace the already existing plot command with the lines:
 ```{}
-plot(result.time,result.state,type='l', col="grey",lwd=2,xlab="time",ylab="state")
+plot(result.time, result.state, type='l', col="grey", lwd=2, xlab="time", ylab="state")
 ```
 </span>
 
 <span class="answer">
 ```{r Explicit}
 rm(list=ls())
-#Initial parameter values
+# Initial parameter values
 begin.time = 0     # usually this variable is set to 0
 end.time   = 50    # end time of the simulation
 dt         = 0.1   # delta t; time discretisation
@@ -560,28 +562,25 @@ If everything went well, there are two lines in the graph. The grey line is the 
 </span>
 
 # Part 4 - Different integration methods
-So far, you have used the *explicit* integration scheme. This means that  values of the current time step are used to calculate the future. In mathematical notation, this sentence can be formulated as:
+So far, you have used the *explicit* integration scheme. This means that information of the current time step is used to calculate the future. In mathematical notation, this sentence can be formulated as:
 
-$$\frac{ds(t)}{dt} = f(t)$$
-However, other possibilities do exist. In the following sections, you will encounter the implicit, midpoint, and Runge-Kutta time-integration methods.
+$$\frac{ds}{dt} = f(t, s(t))$$
+However, other possibilities do exist. In the following sections, you will encounter the implicit, midpoint, and Runge-Kutta time-integration methods that each have their own specific properties.
 
 ## Section 4.1 - Implicit method
 The implicit integration scheme is based on taking the derivative not with the current information, but with the information from the following time-step. In mathematical formulation it looks like this:
 
-$$\frac{ds(t)}{dt} = f(t+\Delta t)$$
-For the exercise with the emptying reservoir with variable input, this results in the following equation:
-
-$$\frac{ds(t)}{dt} = \frac{1}{A}(\sin(t+\Delta t)+1) - \alpha s(t + \Delta t))$$
-The sense of working this way is explained best with a couple of graphs. The first graph shows the explicit methodology. The grey arrows show the derivative field, the rate of change. In the explicit solution you following the arrow found at the current point for one time-step. This will overshoot the answer in this case but with the second time-step the approximation comes close to the real solution given in red.
+$$\frac{ds}{dt} = f(t+\Delta t, s(t + \Delta t))$$
+The difference between explicit and implicit is explained best with a couple of graphs. The first graph shows the explicit methodology. The grey arrows show the derivative field, the rate of change. In the explicit solution you following the arrow found at the current point for one time-step. This will overshoot the answer in this case but with the second time-step the approximation comes close to the real solution given in red.
 
 ![](vectorfield_explicit.png)
-The implicit method works in a different way. It evaluates the gradient found at the next time-step and works back to the current point. 
+The implicit method works differently. It evaluates the gradient found at the next time-step and works back to the current point. 
 
 ![](vectorfield_implicit.png)
-The methodologies behave very differently. The explicit scheme has oscillatory behavior and has outliers far from the correct solution. The implicit methodology is a bit more conservative. It is more stable and is more likely to keep within physical limitations. However, it is computationally more expensive to run and is generally harder to implement.
+The methodologies behave very differently. The explicit scheme has oscillatory behavior and has outliers far from the correct solution. The implicit methodology is a bit more conservative. It is more stable and is more likely to keep within physical limitations. However, it is computationally more expensive to run and is generally harder to implement, especially for non-linear functions.
 
 <span class="question">
-4.1.1 Derive a new equation for $s(t+\Delta t)$ for the emptying reservoir with variable input using the implicit time-integration method.
+4.1.1 Derive a new equation for $s(t+\Delta t)$ for the emptying reservoir with variable input of Part 3 using the implicit time-integration method.
 </span>
 
 <span class="answer">
@@ -659,10 +658,10 @@ lines(result.time,result.state,type='o',col='blue')
 As you can see in the implementation of the both the explicit and the implicit integration scheme, the results look quite good with a low `dt` but for a larger time-step the results worsen. By closely examining the differences in the the implementation of the explicit and the implicit scheme you can see a phase-shift. 
 
 <span class="question">
-4.2.1 The implicit scheme has a tendency to lie slightly to the left of the true solution, while the explicit scheme lies slightly to the right. Explain why
+4.2.1 The implicit scheme has a tendency to lie slightly to the left of the true solution, while the explicit scheme lies slightly to the right. Explain why this is the case.
 </span>
 
-The midpoint method, discussed here, tries to combine both methods and to keep the good aspects of both. What the midpoint method does is basically to add an extra point to the calculation. There are many ways of constructing midpoint methods, but here we will do the following; the first half a time-step an explicit scheme will be implemented and the second half will have an implicit scheme. In mathematical formulation it looks like this:
+Midpoint methods calculate the solution in two steps and exist in many variants. The midpoint method that you will use, tries to combine the explicit and implicit methods and aims to keep the good properties of both. First, the method takes half a time-step using the explicit method, and subsequently the implicit method will be used for the second half step. In mathematical formulation it is as follows:
 
 $$\widetilde{s} = s(t) + \frac{\Delta t}{2} \ f(t,s(t)) $$
 $\tilde{s}$ is the midpoint
@@ -671,12 +670,12 @@ $$s(t+\Delta t) = \widetilde{s} + \frac{\Delta t}{2} \ f(t+\Delta t,s(t+\Delta t
 
 ![](vectorfield_midpoint.png)
 
-In comparison with the implicit and explicit schemes, the midpoint method converges faster. It is also about twice as expensive to run since it creates a temporary midpoint for calculation. It is, however, often worth the investment in time and effort.
+In comparison with the implicit and explicit schemes, the midpoint method converges faster. It is also twice as expensive to run since it creates a temporary midpoint for calculation. It is, however, often worth the investment in time and effort.
 
 <span class="question"> 
 4.2.1 Copy the chunk with the implicit scheme here. To make the code more readable the following function can be added to the code (before the while loop). This function is the $f(t,s(t))$ as used above. In the emptying bucket with input this formula looks as follows:
 
-$$ f(t,s(t)) = \dfrac{ds(t)}{dt} = \frac{(\sin(t) + 1) - as}{A}$$
+$$ f(t,s(t)) = \dfrac{ds(t)}{dt} = \frac{(\sin(t) + 1) - \alpha s}{A}$$
 ```{}
 f = function(time, state){
   return(((sin(time)+1)-alpha*state)/A)
@@ -756,10 +755,10 @@ Does this midpoint method converge faster or slower than the previous explicit a
 faster
 </span>
 
-This can be proven mathematically. The hard track can do this in exercise 4 of the extended Rmd.
+This can be proven mathematically. If you are up for the challenge, open **Exercise 4** of `Finite_differences_1_challenges.Rmd`.
 
 ## Section 4.3 - Runge-Kutta method
-For many applications, the best compromise between programming, calculation time and numerical accuracy is the Runge-Kutta numerical approximation. Instead of calculating one intermediate or auxiliary state value (Midpoint), four intermediate function evaluations are calculated:
+For many applications, the best compromise between calculation time and numerical accuracy is the Runge-Kutta 4 numerical approximation. RK4 is a explicit method, and therefore very suitable for non-linear differential equations. Instead of calculating one intermediate or auxiliary state value (Midpoint), four intermediate function evaluations are calculated:
 
 $$
 \begin{matrix}
@@ -771,7 +770,7 @@ s(t+\Delta t) &=& s(t)+\dfrac{\kappa_1+2\kappa_2+2\kappa_3+\kappa_4}{6}
 \end{matrix}
 $$
 <span class="question">
-4.3.1 Create a new chunk and copy the Midpoint approximation chunk into it
+4.3.1 Create a new chunk and copy the Midpoint approximation chunk into it.
 </span>
 
 <span class="question">
@@ -1057,11 +1056,6 @@ server <- function(input, output) {
 shinyApp(ui, server)
 ```
 
-<span class="comment">
-Maybe it is a nice idea to let the hard track solve the *coupled reservoir* and the *non-linear* reservoir here.
-**[CvH: We can leave this option open. I think there are already quite some exercises.]**
-</span>
-
 # Part 6 - Real world example
 The reservoir models up till now consider one outlet only. This entails a constant and linear relation between volume change and state change (for the linear reservoirs). For some environmental flow problems a reservoir model with a slow and fast acting component would be the most applicable model.
 
@@ -1074,9 +1068,9 @@ In the graph below, the principle and workings of such a reservoir model is illu
 
 ***   
 
-Depending on the state of the reservoir, the discharge out of the upper outlet is active or inactive and depends on the datum(reference) of the upper outlet. In simple terms this means that if the water-level is high enough it can come out at the upper outlet (left image). If the water level is lower than the outlet the outlet becomes inactive (right image)
+Depending on the state of the reservoir, the discharge out of the upper outlet is active or inactive and depends on the datum(reference) of the upper outlet. In simple terms, this means that if the water-level is high enough it can come out at the upper outlet (left image). If the water level is lower than the outlet the outlet becomes inactive (right image)
 
-<span class="question">6.1 Set up a new ordinary differential equation including the input flux ($Q_{in}$), volume change over time and the output fluxes (discharges). Next, derive a numerical approximation for the state using the explicit integration scheme</span>  
+<span class="question">6.1 Set up a model including the input flux ($Q_{in}$), volume change over time and the output fluxes (discharges). Next, derive a numerical approximation for the state using the explicit integration scheme</span>  
 
 <span class="answer">
 $$
@@ -1339,5 +1333,4 @@ title(main=paste('Observed (grey) vs. calculated discharges ','SS = ',Sumsquares
 * `res.A`:  With the area the total volume in the reservoir is controlled. Small A results in less volume of water resulting in a peaky-er discharge.
 * `res.alpha.lw`:   the lower outlet of the reservoir regulates the dynamics of the discharge; the larger $\alpha$ the directer the discharge occur. Base flow (the tails after the peaks) is reduced.
 * `res.alpha.up/res.lvl.up`:  the activity is regulated with the height of the upper outlet. If the state is below this level, the upper outlet is inactive. If the state is higher than the upper outlet it acts similar as with `res.alpha.lw` 
-
 </span>
