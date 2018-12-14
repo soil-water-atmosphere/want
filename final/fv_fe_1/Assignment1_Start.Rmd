@@ -11,7 +11,7 @@ output:
 <script src="hints.js"></script>
 
 ## Learning goals
-*  Learning the steps to set up a numerical model (stationary, spatial 1D) *(Exercise 1-3,9,10)*
+*  Learning the steps to set up a numerical model (stationary, spatial 1D) *(Exercise 1-3,9,10)* 
 *	 Understanding the concepts of internal and external fluxes; applying different forms of these fluxes *(Exercise 1,2,8,9,13)*
 *  Understanding the difference between linear and nonlinear internal flow functions *(Exercise 8)*
 *  Evaluating the model results by checking convergence, analytical solutions and water/heat balances *(Exercise 4-6,11,13,14)*
@@ -22,7 +22,7 @@ output:
 # Part 1: Stationary groundwater flow
 First of all, make sure you have the package FVFE1D installed. You can find help pages in de bottom right part of your screen, under Packages -> FVFE1D.
 
-## Introduction
+## Introduction 
 The first part of this practical will deal with a hydrological problem: saturated groundwater flow. In the second part the same ideas will be applied to a meteorology case.
 
 In this first example a model will be developed to simulate saturated groundwater flow towards two rivers, left and  right, in a one dimensional domain as shown in the graph below. Here the flow is stationary.
@@ -56,12 +56,12 @@ The graph below illustrates the relation between these variables. Imagine a buck
 
 Figure 2: Elevation and pressure heads in a bucket.
 
-## 1.1 Internal flux
+## 1.1 Internal flux 
 
 In this model we apply a Darcy water flux, using the Dupuit assumption - this means we assume the flow in the aquifer to be mainly horizontal and uniform with depth, allowing us to make volume flow simply proportional to the thickness over which it occurs.   
 We may distinguish two types of internal Darcy fluxes:  
 
-* the _linear_ Darcy flux. Here we assume the thickness of the aquifer is much larger than the differences in groundwater level in the domain. Therefore we take the thickness over which flow occurs as a constant, the aquifer thickness $D$ (type 1 internal flux).  
+* the _linear_ Darcy flux. Here we assume the thickness of the aquifer is much larger than the differences in groundwater level in the domain. Therefore we take the thickness over which flow occurs as a constant, the aquifer thickness $D$ in m (type 1 internal flux).  
 * the _non-linear_ Darcy flux, in which we recognise that the thickness over which flow occurs is smaller when the groundwater level is lower. Here we make the thickness of flow dependent on the calculated groundwater head (the state) at the nodes (type 2 internal flux).
 
 <div class="exercise">
@@ -151,7 +151,7 @@ Create the internal flux function here. It should be the linear (type 1) Darcy f
 
 <div class="answer">
 ```{r}
-kD=45
+kD=45 # transmissivity, m2/d
 type1.flux = function(x,state,gradstate)  
 {
   return(-kD*gradstate) #minus to account for the flow direction
@@ -172,7 +172,7 @@ Make your first groundwater model here.
 
 <div class="answer">
 ```{r}
-grw_model_1 = newFLOW1D(domain=domain,systemfluxfunction = type1.flux) 
+Hydro_1Dmodel_type1 = newFLOW1D(domain=domain,systemfluxfunction = type1.flux) 
 ```
 </div>
 
@@ -181,8 +181,10 @@ grw_model_1 = newFLOW1D(domain=domain,systemfluxfunction = type1.flux)
 </div>  
 Define the required boundary conditions here. These are the prescribed heads (water levels) of both rivers.
 
+<div class="hint">
 <button type="button" onclick="showHint(1)">Show Hint</button>
 <p id="Q1"> </p>
+</div>
 
 <div class="student_answer">
 ```{r}
@@ -192,10 +194,10 @@ Define the required boundary conditions here. These are the prescribed heads (wa
 
 <div class="answer">
 ```{r}
-BCleft=5
-BCright=5
-set.BC.fixedstate(grw_model_1,'left',BCleft) 
-set.BC.fixedstate(grw_model_1,'right',BCright)
+BCleft=5 #m
+BCright=5 #m
+set.BC.fixedstate(Hydro_1Dmodel_type1,'left',BCleft) 
+set.BC.fixedstate(Hydro_1Dmodel_type1,'right',BCright)
 ```
 </div>
 
@@ -213,14 +215,14 @@ Create a __spatial flux__ here.
 <div class="answer">
 ```{r}
 recharge=0.001 #1mm/day --> all length units are in meters
-add.spatialflux(grw_model_1,recharge,"recharge")  
+add.spatialflux(Hydro_1Dmodel_type1,recharge,"recharge")  
 ```
 </div>
 
 <div class="exercise"> 
 9.Giving the model a name  
 </div>     
-You can give the model a specific name. It is not required though.
+You can give the model a specific name. This name will appear when you plot the model. It is not required though.
 
 <div class="student_answer">
 ```{r}
@@ -230,7 +232,7 @@ You can give the model a specific name. It is not required though.
 
 <div class="answer">
 ```{r}
-set.name(grw_model_1,'Type-1 1D groundwater model ')
+set.name(Hydro_1Dmodel_type1,'Hydro type-1 1D groundwater model ')
 ```
 </div>
 
@@ -253,7 +255,7 @@ Make the model discrete using these nodes and set the type of numerical approxim
 <div class="answer">
 ```{r}
 nodes = seq(from=domain[1],to=domain[2],by=10)
-set.discretisation(grw_model_1,nodes,method='FV') 
+set.discretisation(Hydro_1Dmodel_type1,nodes,method='FV') 
 ```
 </div>
 
@@ -271,7 +273,7 @@ set.discretisation(grw_model_1,nodes,method='FV')
 
 <div class="answer">
 ```{r}
-solve.steps(grw_model_1 ,verboselevel=1)
+solve.steps(Hydro_1Dmodel_type1,verboselevel=1)
 ```
 </div>
 
@@ -302,7 +304,7 @@ The RMSM and MAM are measures of the misfits of the model. The misfit of each no
 
 <div class="answer">
 ```{r}
-plot(grw_model_1,stateplot=TRUE,fluxplot=TRUE, FVstyle=T)
+plot(Hydro_1Dmodel_type1,stateplot=TRUE,fluxplot=TRUE, FVstyle=T)
 ```
 </div>
 
@@ -318,11 +320,13 @@ $$
 This formula is based on one of the solutions for the calculation of drain spacings of Hooghoudt (a Dutch hydrologist aug.1901 - aug.1953). Here $H_{river}$ is the river or ditch level, $R$ is the recharge (net rainfall), $x$ is the location in space and $L$ is the distance between two rivers. 
 
 <div class="exercise"> 
-14.Calculate the difference between the hydraulic heads in the numerical and the analytical solution. How well does the numerical solution perform? 
+14. Plot both the analytical and the numerical solution. Also, calculate the difference (in m) between the hydraulic heads in the numerical and the analytical solution. How well does the numerical solution perform? 
 </div>
 
+<div class="hint">
 <button type="button" onclick="showHint(2)">Show Hint</button>
 <p id="Q2"> </p>
+</div>
 
 <div class="student_answer">
 ```{r}
@@ -333,7 +337,9 @@ This formula is based on one of the solutions for the calculation of drain spaci
 <div class="answer">
 ```{r}
 H_anal =  BCleft+(recharge)/(2*kD)*nodes*(200-nodes)
-H_num = dataframe.states(grw_model_1)$state
+H_num = dataframe.states(Hydro_1Dmodel_type1)$state
+plot(nodes,H_anal,type="l",col="red",xlab="x", ylab="groundwater head",main="Analytical (red) vs. numerical (black) solution")
+points(nodes,H_num)
 print(c('difference :',H_anal-H_num))
 ```
 </div>
@@ -354,7 +360,7 @@ A very important tool for a hydrologist is the water balance. With this the flow
 
 <div class="answer">
 ```{r}
-print(dataframe.balance(grw_model_1))
+print(dataframe.balance(Hydro_1Dmodel_type1))
 ```
 </div>
 
@@ -382,7 +388,7 @@ Yes, the total recharge is $200m * 0.001m/d=0.2 m^2/d$. This is equal to the tot
 
 <div class="answer">
 ```{r}
-print(dataframe.boundaries(grw_model_1))
+print(dataframe.boundaries(Hydro_1Dmodel_type1))
 ```
 
 So $0.1 m^2/d$ leaves the system through the left boundary and $0.1 m^2/d$ through the right boundary.
@@ -415,18 +421,18 @@ kDfunc.flux = function(x,state,gradstate)
 {
   return(-kD.func(x)*gradstate)
 }
-kDvar_model = newFLOW1D(domain=domain,systemfluxfunction = kDfunc.flux) 
-recharge = 0.001 
-add.spatialflux(kDvar_model, recharge,"recharge")
-BCleft=5
-BCright=5
-set.BC.fixedstate(kDvar_model,'left',BCleft) 
-set.BC.fixedstate(kDvar_model,'right',BCright)
+Hydro_1Dmodel_kDvar = newFLOW1D(domain=domain,systemfluxfunction = kDfunc.flux) 
+recharge = 0.001 #m/d
+add.spatialflux(Hydro_1Dmodel_kDvar, recharge,"recharge")
+BCleft=5 #m
+BCright=5 #m
+set.BC.fixedstate(Hydro_1Dmodel_kDvar,'left',BCleft) 
+set.BC.fixedstate(Hydro_1Dmodel_kDvar,'right',BCright)
 nodes = seq(from=domain[1],to=domain[2],by=10)
-set.discretisation(kDvar_model,nodes,method='FV') 
-set.name(kDvar_model,"Varying kD model")
-solve.steps(kDvar_model,verboselevel=1)
-plot(kDvar_model,fluxplot=TRUE)
+set.discretisation(Hydro_1Dmodel_kDvar,nodes,method='FV') 
+set.name(Hydro_1Dmodel_kDvar,"1D type-1 groundwater model, varying kD")
+solve.steps(Hydro_1Dmodel_kDvar,verboselevel=1)
+plot(Hydro_1Dmodel_kDvar,fluxplot=TRUE,FVstyle=TRUE)
 ```
 </div>
 
@@ -450,7 +456,7 @@ Fill in your answer here...
 
 <div class="answer">
 ```{r}
-db = dataframe.boundaries(kDvar_model)
+db = dataframe.boundaries(Hydro_1Dmodel_kDvar)
 print(paste('out left :',db[1,4],'out right :',db[2,4]))
 print(paste('fraction of total to right river :',db[2,4]/sum(db[,4])))
 ```
@@ -461,7 +467,7 @@ Until now the model was of a type 1 flow: it assumed a constant saturated thickn
 
 <div class="exercise">
 20.Make a model with a type 2 flow (see [Question 1: Internal flux] ) where the k value varies linearly between 3 and 12 from left to right.  
-As the model is non-linear, the solution of the model will take more than one step. Add a verbose argument to the solve.steps call (see help) to count the number of iterations needed and plot the solution.
+As the model is non-linear, the solution of the model will take more than one step. Add a verbose argument to the `solve.steps` call (see help) to count the number of iterations needed and plot the solution.
 </div>
 
 <div class="student_answer">
@@ -472,23 +478,23 @@ As the model is non-linear, the solution of the model will take more than one st
 
 <div class="answer">
 ```{r}
-k.func = approxfun(c(0,200),c(3,12),rule=2)
+k.func = approxfun(c(0,200),c(3,12),rule=2) #conductivity m/d
 kHfunc.flux = function(x,state,gradstate)  
 {
   return(-k.func(x)*state*gradstate)
 }
-type2_model = newFLOW1D(domain=domain,systemfluxfunction = kHfunc.flux) 
-recharge = 0.001 
-add.spatialflux(type2_model,recharge,"recharge")
-BCleft=5
-BCright=5
-set.BC.fixedstate(type2_model,'left',BCleft) 
-set.BC.fixedstate(type2_model,'right',BCright)
+Hydro_1Dmodel_type2 = newFLOW1D(domain=domain,systemfluxfunction = kHfunc.flux) 
+recharge = 0.001 #m/d
+add.spatialflux(Hydro_1Dmodel_type2,recharge,"recharge")
+BCleft=5 #m
+BCright=5 #m
+set.BC.fixedstate(Hydro_1Dmodel_type2,'left',BCleft) 
+set.BC.fixedstate(Hydro_1Dmodel_type2,'right',BCright)
 nodes = seq(from=domain[1],to=domain[2],by=10)
-set.discretisation(type2_model,nodes,method='FV') 
-set.name(type2_model,"Nonlinear internal flow model")
-solve.steps(type2_model,verbose=TRUE)
-plot(type2_model,fluxplot=TRUE)
+set.discretisation(Hydro_1Dmodel_type2,nodes,method='FV') 
+set.name(Hydro_1Dmodel_type2,"1D type-2 groundwater model")
+solve.steps(Hydro_1Dmodel_type2,verbose=TRUE)
+plot(Hydro_1Dmodel_type2,fluxplot=TRUE,FVstyle=TRUE)
 ```
 </div>
 
@@ -496,8 +502,8 @@ As the solution technique is now an iterative one, a good initialization may hel
 
 <div class="answer">
 ```{r}
-do.initialize(type2_model,5)
-solve.steps(type2_model,verbose=TRUE)
+do.initialize(Hydro_1Dmodel_type2,5)
+solve.steps(Hydro_1Dmodel_type2,verbose=TRUE)
 ```
 </div>
 
@@ -521,8 +527,8 @@ Using this logic, $D$ can be varied by adapting the boundary conditions and kD v
 
 <div class="answer">
 ```{r }
-plot(dataframe.states(kDvar_model),col="black",main=paste("Linear (dots) vs nonlinear model (red); D =",dataframe.boundaries(kDvar_model)[1,3],"m"),xlab="x",ylab="groundwater level")
-lines(dataframe.states(type2_model),col="red")
+plot(dataframe.states(Hydro_1Dmodel_kDvar),col="black",main=paste("Linear (dots) vs nonlinear model (red); D =",dataframe.boundaries(Hydro_1Dmodel_kDvar)[1,3],"m"),xlab="x",ylab="groundwater level")
+lines(dataframe.states(Hydro_1Dmodel_type2),col="red")
 ```
 
 For D=5 m, the linear and nonlinear method give about the same result. When you change D for example to 1 m (see figure below), the linear and nonlinear models start to diverge. When D is small relative to the variation in hydraulic head in the domain, the assumption that groundwater level differences are negligible in determining the flow thickness is no longer valid. A nonlinear internal flux function will then be more appropriate.
@@ -541,7 +547,7 @@ Because the emissivity of the Earth's surface is usually higher than the emissiv
 Figure 3: profiles of potential temperature in the Atmospheric Boundary Layer.
 </div>
 
-The transport of heat through the atmosphere towards the surface can be modelled in a similar way as the groundwater system. You will build a 1D, stationary model to simulate vertical heat flow. Here, the potential temperature $\theta$ is the state variable. 
+The transport of heat through the atmosphere towards the surface can be modelled in a similar way as the groundwater system. You will build a 1D, stationary model to simulate vertical heat flow. Here, the potential temperature $\theta$ [K] is the state variable. The *potential temperature* of a parcel of air is the temperature it would have at a standard (surface) pressure (see also http://glossary.ametsoc.org/wiki/Potential_temperature). 
 
 ## 2.1 Model setup
 
@@ -552,7 +558,7 @@ $$ Q=-K_{eddy} \frac{\partial\theta}{\partial x} $$
 where $Q$ is the internal flux (defined positive upwards), $K_{eddy}$ is the eddy diffusivity and $\frac{\partial\theta}{\partial x}$ is the gradient of the potential temperature.
 The eddy diffusivity can be calculated as: 
 $$ K_{eddy}=ku_* x$$
-where $k$ is the Von Karman constant, $u_*$ is the friction velocity at the surface and $x$ is the location (height above the surface). The Von Karman constant equals $k$ is 0.4 and $u_*$ will be 0.25 m/s. 
+where $k$ is the Von Karman constant [-], $u_*$ is the friction velocity [m/s] at the surface and $x$ is the location (height above the surface). The Von Karman constant $k$ is 0.4 [-] and $u_*$ will be 0.25 [m/s]. 
 
 <div class="exercise"> 
 1.On which quantities does the internal flux depend? 
@@ -617,17 +623,17 @@ Note that upwards flow is defined positive, so **'left' now refers to the lower 
 #create domain
 domain = c(0.5,100.) 
 #create internal flux function
-k = 0.4
-ust = 0.25
+k = 0.4 # von Karman constant
+ust = 0.25 # friction velocity, m/s
 tempflux = function(x,state,gradstate)  
 {
   return(-k*ust*x*gradstate)
 }
 #create the model
-oneDTempModel = newFLOW1D(domain=domain,systemfluxfunction = tempflux)
+Meteo_1Dmodel = newFLOW1D(domain=domain,systemfluxfunction=tempflux,name="Heat flow, no radiative cooling")
 #set boundary conditions
-set.BC.fixedstate(oneDTempModel,'left',291.7) #left=lower boundary condition
-set.BC.fixedstate(oneDTempModel,'right',295.) # right=upper boundary condition
+set.BC.fixedstate(Meteo_1Dmodel,'left',291.7) #left=lower boundary condition [K]
+set.BC.fixedstate(Meteo_1Dmodel,'right',295.) # right=upper boundary condition [K]
 ```
 </div>
 
@@ -635,7 +641,7 @@ set.BC.fixedstate(oneDTempModel,'right',295.) # right=upper boundary condition
 4.Now set up the numerical part of the model.    
 * Use a nodal distance of 2 m.      
 * Solve the model by running the current and the previous chunk.    
-* Use the `dataframe.states` to plot the potential temperature as a function of location (height), with height on the *vertical* axis. 
+* Plot the resulting states and fluxes. The argument `vertical=TRUE` in the `plot` function allows you to plot the profiles vertically.  
 </div>
 
 <div class="student_answer">
@@ -649,19 +655,20 @@ set.BC.fixedstate(oneDTempModel,'right',295.) # right=upper boundary condition
 #create nodes
 nodes = seq(domain[1],domain[2],by=2)
 #set the discretisation
-set.discretisation(oneDTempModel,nodes,'FV')
+set.discretisation(Meteo_1Dmodel,nodes,'FV')
 #solve and plot
-solve.steps(oneDTempModel)
-oneDstates = dataframe.states(oneDTempModel)
-plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]',main="Potential temperature profile, cooling situation")
+solve.steps(Meteo_1Dmodel)
+plot(Meteo_1Dmodel,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 ```
 </div>
 
 ## 2.3 Testing different resolutions
-This system also has an analytical solution:
+In this section you will test how the nodal spacing affects the solution of the model.   
+Like the groundwater case, this system also has an analytical solution:
 $$  \theta(x)=290+\frac{(295-290)}{ln(100/0.03)} ln(\frac{x}{0.03}) $$
 <div class="exercise"> 
-5.Make a plot to compare the numerical results to the analytical solution. Then set the nodal spacing to 20 m and compare again. What is your conclusion? 
+5.Make a plot to compare the numerical results to the analytical solution. You can use `dataframe.states` to get a dataframe of the resulting states, that you can plot just how you like.    
+Then set the nodal spacing to 20 m and compare again. What is your conclusion? 
 </div>
 
 <div class="student_answer">
@@ -672,23 +679,25 @@ $$  \theta(x)=290+\frac{(295-290)}{ln(100/0.03)} ln(\frac{x}{0.03}) $$
 
 <div class="answer">
 ```{r}
-#plot analytical solution
+#find analytical solution
 xanalyt = seq(domain[1],domain[2],by=1)
 thanalyt = 290+5.*log(xanalyt/0.03)/log(100./0.03) 
-plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]', main="Numerical (dots) vs analytical solution (red)")
-lines(thanalyt,xanalyt,col='red')
+#states from numerical solution
+oneDstates = dataframe.states(Meteo_1Dmodel)
 #make a new, coarser model
-oneDmodelcoarse = copy.model(oneDTempModel)
-nodes = seq(domain[1],domain[2],by=20.)
-set.discretisation(oneDmodelcoarse,nodes,'FV')
-solve.steps(oneDmodelcoarse)
+Meteo_1Dmodel_coarse = copy.model(Meteo_1Dmodel)
+set.name(Meteo_1Dmodel_coarse,"Heat flow model, coarse resolution")
+nodescoarse = seq(domain[1],domain[2],by=20.)
+set.discretisation(Meteo_1Dmodel_coarse,nodescoarse,'FV')
+solve.steps(Meteo_1Dmodel_coarse)
+oneDstatescoarse = dataframe.states(Meteo_1Dmodel_coarse)
 #and compare with a plot
-oneDstates = dataframe.states(oneDmodelcoarse)
-plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]', main="Numerical vs analytical, coarse resolution")
+plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]', main="Analytical vs numerical solution, coarse (blue) and fine (black)")
 lines(thanalyt,xanalyt,col='red')
+points(oneDstatescoarse$state,oneDstatescoarse$x, pch=16, col="blue")
 ```
 
-A nodal distance of 20 m is too coarse for this case. If you try out different resolutions, you will find that a resolution of at most 5 m is necessary to get reasonable results. 
+Clearly, a nodal distance of 20 m is too coarse for this case. If you try out different resolutions, you will find that a resolution of at most 5 m is necessary to get reasonable results. 
 </div>
 
 ## 2.4 Stratification-dependent diffusivity
@@ -698,13 +707,13 @@ where MOL is the Monin-Obukhov length in m. The Monin-Obukhov length reflects th
 
 The MOL for the surface layer is often calculated as: 
 $$ MOL=-\frac{u_*^3}{k(g/\theta_{ref})(w'\theta')_0} $$
-where $g$ is the gravitational constant (=9.81 $kg m^2 s^{-1}$), $\theta_{ref}$ is the reference temperature (~ 288 K) and $(w'\theta')_0$ is the energy flux at the surface. 
+where $g$ is the gravitational constant (=9.81 $kg m^2 s^{-1}$), $\theta_{ref}$ is the reference temperature (~ 288 K) and $(w'\theta')_0$ is the energy flux at the surface [Km/s]. 
 
-<button type="button" onclick="showHint(3)">Show Hint</button>
-<p id="Q3"> </p>
+For some more information, you can have a look at:
+http://glossary.ametsoc.org/wiki/Obukhov_length   
 
 <div class="exercise"> 
-6.Create a new model object, implement the new eddy diffusivity $K_{eddy}$ that depends on the surface heat flux. Use a surface heat flux of -0.025 $K m s^{-1}$ (downwards heat flux). Define the surface heat flux, MOL and $K_{eddy}$ separately so you can adapt them easily. Thereafter, solve and plot the model.
+6.Create a new model object, implement the new eddy diffusivity $K_{eddy}$ that depends on the surface heat flux. Use a surface heat flux of -0.025 $K m s^{-1}$ (downwards heat flux). Define the surface heat flux, MOL and $K_{eddy}$ separately as variables so you can adapt them easily. Thereafter, solve and plot the model.
 </div>
 
 <div class="student_answer">
@@ -716,26 +725,25 @@ where $g$ is the gravitational constant (=9.81 $kg m^2 s^{-1}$), $\theta_{ref}$ 
 <div clas="answer">
 ```{r}
 k = 0.4  # Von Karman constant, same as before
-ust = 0.25 # friction velocity, same as before
+ust = 0.25 # friction velocity [m/s], same as before
 SurfFlux = -0.025 #surface heat flux in K m/s
-MOL=-ust^3/(k*(9.81/288.)*SurfFlux)
+MOL=-ust^3/(k*(9.81/288.)*SurfFlux) #Monin-Obukhov length
 Keddy=function (x){return (k*ust*x/(1.+5*x/MOL))} #the eddy diffusivity depends on height and MOL
 #create a new internal flux function
 tempflux = function(x,state,gradstate)  
 {
   return(-Keddy(x)*gradstate)
 }
-oneDmodelstrat = newFLOW1D(domain=domain,systemfluxfunction = tempflux) 
+Meteo_1Dmodel_strat = newFLOW1D(domain=domain,systemfluxfunction = tempflux,name="Heat flow, with stratification") 
 #Boundary conditions and discretisation
-set.BC.fixedstate(oneDmodelstrat,'left',291.7) 
-set.BC.fixedstate(oneDmodelstrat,'right',295.)
+set.BC.fixedstate(Meteo_1Dmodel_strat,'left',291.7) #K
+set.BC.fixedstate(Meteo_1Dmodel_strat,'right',295.) #K
 nodes = seq(domain[1],domain[2],by=2)
-set.discretisation(oneDmodelstrat,nodes,'FV')
+set.discretisation(Meteo_1Dmodel_strat,nodes,'FV')
 
-solve.steps(oneDmodelstrat)
+solve.steps(Meteo_1Dmodel_strat)
 ##plotting
-oneDstates = dataframe.states(oneDmodelstrat)
-plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]',main='Tpot profile, 1D model with stratification')
+plot(Meteo_1Dmodel_strat,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 ```
 </div>
 
@@ -751,9 +759,9 @@ plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]',main='
 
 <div class="answer">
 ```{r}
-dataframe.boundaries(oneDmodelstrat)
+dataframe.boundaries(Meteo_1Dmodel_strat)
 ```
-The heat flux at the lower boundary is close to -0.025 Km/s, but not exactly. Note that the internal fluxes both at the surface and at the top of the SBL are negative, whereas according to `dataframe.boundaries(oneDmodel)` the flux at the top of the SBL is positive. Negative internal fluxes arise as fluxes are directed downwards, whereas the fluxes in `dataframe.boundaries(oneDmodel)` are positive when there is a flux over the boundary into the domain and negative when the flux is going out of the domain. 
+The heat flux at the lower boundary is close to -0.025 Km/s, but not exactly. Note that the internal fluxes both at the surface and at the top of the SBL are negative, whereas according to `dataframe.boundaries(Meteo_1Dmodel_strat)` the flux at the top of the SBL is positive. Negative internal fluxes arise as fluxes are directed downwards, whereas the fluxes in `dataframe.boundaries(Meteo_1Dmodel_strat)` are positive when there is a flux over the boundary into the domain and negative when the flux is going out of the domain. 
 </div>
 
 <div class="exercise">	
@@ -768,25 +776,27 @@ The heat flux at the lower boundary is close to -0.025 Km/s, but not exactly. No
 
 <div class="answer">
 ```{r}
-set.BC.fixedflux(oneDmodelstrat,'left',-0.025) #Not a fixed-state but a fixed-flux boundary (Neumann)
-solve.steps(oneDmodelstrat)
-dataframe.boundaries(oneDmodelstrat)
+set.BC.fixedflux(Meteo_1Dmodel_strat,'left',-0.025) #Not a fixed-state but a fixed-flux boundary (Neumann)
+solve.steps(Meteo_1Dmodel_strat)
+dataframe.boundaries(Meteo_1Dmodel_strat)
 ```
 </div>
 
 <div class="exercise">
-9.Now reset the lower boundary to a fixed value of 291.7 K. Also set the MOL to a fixed value of 50 m to calculate the diffusivity.
+9.Now reset the lower boundary to a fixed value of 291.7 K. Also set the MOL to a fixed value of 50 m. With that, the eddy diffusivity $K_{eddy}$ becomes constant again.
 </div>
 
 <div class="answer">
 ```{r}
-set.BC.fixedstate(oneDmodelstrat,'left',291.7) 
+set.BC.fixedstate(Meteo_1Dmodel_strat,'left',291.7) 
 MOL =50.
+# check if everything is ok
+summary(Meteo_1Dmodel_strat)
 ```
 </div>
 
 ## 2.5 Including a radiative cooling sink
-Until now we have considered a situation where the external fluxes are zero (first external flux option). In many conditions however, there are processes that act as sources and sinks to the state variables. (Detailed modelling of these processes is beyond the scope of the model.) Therefore they should be handled as external fluxes to the system, that may depend on the location and the state. 
+Until now we have considered a situation where the external fluxes are zero (first external flux option, see section 2.1). In many conditions however, there are processes that act as sources and sinks to the state variables. (Detailed modelling of these processes is beyond the scope of the model.) Therefore they should be handled as external fluxes to the system, that may depend on the location and the state. 
 Here we will apply radiative cooling as a sink over the entire domain (second external flux option).
 
 <div class="exercise"> 
@@ -801,8 +811,10 @@ Here we will apply radiative cooling as a sink over the entire domain (second ex
 
 <div class="answer">
 ```{r}
-oneDmodelSink = copy.model(oneDmodelstrat)
-add.spatialflux(oneDmodelSink,-1.0E-4,'RDconst')
+Meteo_1Dmodel_sink = copy.model(Meteo_1Dmodel_strat)
+set.name(Meteo_1Dmodel_sink,"Heat flow model, with radiative cooling")
+add.spatialflux(Meteo_1Dmodel_sink,-1.0E-4,'RDconst')
+summary(Meteo_1Dmodel_sink)
 ```
 </div>
 
@@ -818,25 +830,25 @@ add.spatialflux(oneDmodelSink,-1.0E-4,'RDconst')
 
 <div class="answer">
 ```{r}
-solve.steps(oneDmodelSink)
-statesSink = dataframe.states(oneDmodelSink)
-fluxesSink = dataframe.internalfluxes(oneDmodelSink)
+solve.steps(Meteo_1Dmodel_sink)
+statesSink = dataframe.states(Meteo_1Dmodel_sink)
+fluxesSink = dataframe.internalfluxes(Meteo_1Dmodel_sink)
 #to compare
-solve.steps(oneDmodelstrat)
-statesNoSink = dataframe.states(oneDmodelstrat)
-fluxesNoSink = dataframe.internalfluxes(oneDmodelstrat)
+solve.steps(Meteo_1Dmodel_strat)
+statesNoSink = dataframe.states(Meteo_1Dmodel_strat)
+fluxesNoSink = dataframe.internalfluxes(Meteo_1Dmodel_strat)
 plot(statesSink$state,statesSink$x,xlab='pot.temp. [K]',ylab='height [m]',main='Tpot profile with (black) and without (red) external sink')
 lines (statesNoSink$state,statesNoSink$x, col='red')
 plot(fluxesSink$intflux,fluxesSink$x,xlab='internal flux [K m/s]',ylab='height [m]',main = 'Heat flux with (black) and without (red) external sink')
 lines (fluxesNoSink$intflux,fluxesNoSink$x, col='red')
 ```
 
-The model with a sink predicts lower temperatures, as it has an additional loss of heat over the domain. These differnces remain small due to the top boundary condition which forces the potential temperature to be the same for both models. 
+The model with a sink predicts lower temperatures, as it has an additional loss of heat over the domain. These differences remain small due to the top boundary condition which forces the potential temperature to be the same for both models. 
 The internal fluxes are constant for the zero external flux model. For the radiative sink model, the downward flux becomes larger going upward. (...) 
 </div>
 
 <div class="comment">
-Comment: some extra explanation needed in answer here!
+Comment: I feel like some extra explanation needed in the answer here! Does anyone know how to explain why you see these differences?
 </div>
 
 The `dataframe.balance` function can calculate the balance (of water, heat, or anything else) over the model domain as a whole. It can also calculate the balance over specific parts of the domain. 
@@ -853,7 +865,7 @@ The `dataframe.balance` function can calculate the balance (of water, heat, or a
 
 <div class="answer">
 ```{r}
-dataframe.balance(oneDmodelSink,c(14,15,16))
+dataframe.balance(Meteo_1Dmodel_sink,c(14,15,16))
 ```
 </div>
 
@@ -862,11 +874,11 @@ Until now, we have prescribed the BCs as either fixed states or fixed fluxes (ex
 
 $$ F_S=C_H (T_S-\theta_1 ) $$
 
-where $F_S$ is the heat flux between the surface and the lowest model level; $C_H$ is the drag coefficient for heat, $T_S$ is the surface temperature, and $\theta_1$ is the temperature at the lowest model level.   
+where $F_S$ is the heat flux between the surface and the lowest model level [K m/s]; $C_H$ is the drag coefficient for heat [m/s], $T_S$ is the surface temperature, and $\theta_1$ is the temperature at the lowest model level.   
 This boundary condition is a Cauchy or Robin BC, where the flux is directly coupled to the state of the variable at the boundary. These BCs can be applied using the function `set.BC.fluxstate()`. 
 
 <div class="exercise"> 
-13.Make an R-function that takes the state as an argument and returns the surface heat flux. Use a value for $C_H$ of 1.2E-3 m/s and a value of 289 K for the surface temperature. Adapt your previous model such that this Robin BC is applied as the lower boundary. Then solve and plot the new model. Plot the potential temperature and internal fluxes in separate plots.
+13.Make an R-function that takes the state as an argument and returns the surface heat flux. Use a value for $C_H$ of 1.2E-3 m/s and a value of 289 K for the surface temperature. Adapt your previous model such that this Robin BC is applied as the lower boundary. Then solve and plot the new model, the states as well as the fluxes.
 </div>
 
 <div class="student_answer">
@@ -877,20 +889,21 @@ This boundary condition is a Cauchy or Robin BC, where the flux is directly coup
 
 <div class="answer">
 ```{r}
-boundflux  = function(state)
+boundflux  = function(state)  #surface flux in K m/s
 {  
   boundflux = 1.2E-3*(289.-state)
   return(boundflux)
 }
 
-oneDmodel_robin = copy.model(oneDmodelSink)
-set.BC.fluxstate(oneDmodel_robin,'left',boundflux)
-solve.steps(oneDmodel_robin)
-oneDstates = dataframe.states(oneDmodel_robin)
-oneDfluxes = dataframe.internalfluxes(oneDmodel_robin)
+Meteo_1Dmodel_robin = copy.model(Meteo_1Dmodel_sink)
+set.name(Meteo_1Dmodel_robin,"Heat flow, with Robin BC")
+summary(Meteo_1Dmodel_robin)
+set.BC.fluxstate(Meteo_1Dmodel_robin,'left',boundflux)
+solve.steps(Meteo_1Dmodel_robin)
+oneDstates = dataframe.states(Meteo_1Dmodel_robin)
+oneDfluxes = dataframe.internalfluxes(Meteo_1Dmodel_robin)
 
-plot(oneDstates$state,oneDstates$x,xlab='pot.temp. [K]',ylab='height [m]',main='Tpot profile with Robin/Cauchy boundary')
-plot(oneDfluxes$intflux,oneDfluxes$x,xlab='internal flux [K m/s]',ylab='height [m]',main='Tpot profile with Robin/cauchy boundary')
+plot(Meteo_1Dmodel_robin,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 ```
 </div>
 
@@ -906,17 +919,15 @@ plot(oneDfluxes$intflux,oneDfluxes$x,xlab='internal flux [K m/s]',ylab='height [
 
 <div class="answer">
 ```{r}
-dataframe.balance(oneDmodel_robin)
+dataframe.balance(Meteo_1Dmodel_robin)
 ```
 The external fluxes still equal the boundary fluxes, while the net internal fluxes are zero, as they should be in this steady-state model.
 </div>
 
 <div class="comment">
-Comments:   
-* Section 2.4 needs some background info, in a link or in the hint.    
+Comments:     
+* The meteo part can use a bit more elaborate introduction for the non-meteo students --> Chiel      
 * In the answer to part 2, question 11 there should be some explanation about why you see these differences in internal fluxes. I didn't really know how to explain this, anyone?    
-* The whole thing should maybe still be shorter. I would say it is more valuable to build fewer model variations, and go some deeper into the variants that you do build (real-world application for the applied track, how-does-the-model-work for the in-depth track). Also some more explanation in the answers could be nice.    
+* The whole thing should maybe still be shorter. --> Is the length ok?       
 I already skipped some hydro stuff (quite a bit about sensitivities and two more varying kD fields). I also left out two variants of the meteo model. And I'm not sure if section 2.3 is necessary?    
-* For the in-depth track, section 1.8 could be nice to look further into: how does the model solve linear and nonlinear internal flow? And why are iterations needed in the second case?   
-* I think the hydrological theory in this practical is understandable for everyone (unless people may not know Darcy or what transmissivity is?). The meteo part seems quite feasible for non-meteo people. There are some terms that are probably new to some people, maybe we could add links to web pages here and there?   
 </div>
