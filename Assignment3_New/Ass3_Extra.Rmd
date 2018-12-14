@@ -1,0 +1,136 @@
+---
+title: "In-depth exercise assignment 3"
+author: "EB"
+date: "9 december 2018"
+output: html_document:
+    css: want.css
+    toc: yes
+---
+
+*These in-depth exercises replace exercises 11-13 in section 4*
+In these exercises you will study the tendency of the unsaturated zone model to "crash" and the effect of nonlinearity on this.
+
+<div class="exercise">
+E1.Take your `UnsatStat` model as starting point. Running so far went ok. Leave the soil type at B5, but now replace the upper boundary condition by an outgoing flux of 1 mm/day ( an evaporation surplus). Run the model using `verbose=TRUE`. What happens? Why would this be the case?
+</div>
+
+<div class="answer">
+```{r}
+set.BC.fixedflux(UnsatStat,"right",-0.1)
+do.initialize(UnsatStat,Psi.equi)
+solve.steps(UnsatStat,verbose=TRUE)
+```
+The model tries to find a stationary solution to satisfy the boundary conditions we force on it. In this case, it will try to balance the outgoing flux at the top by an upwards flux from the bottom (capillary rise from the groundwater). However, as the hydraulic conductivity decreases so drastically with lower pressure heads, the model needs an extremely high moisture gradient to reach this. It doesn't manage to solve this.
+</div>
+
+<div class="exercise">
+E2.As you have seen, the conductivity-psi function is extremely nonlinear. You can find this function in the `soil.set` dataset. The function goes from K=52.91 cm/d (Ksat) at psi=0 cm to K=1e-5 cm/d at psi<-16000 cm, but in a very nonlinear way.
+
+Replace the `kfun` function by a linear function, that assumes K goes from Ksat linearly down to 1e-5 at psi=-16000. Make sure the function is defined for all psi values (that is, it should also give a K at psi>0 and at psi<-16000). Again run the model with the 1 mm/day net evaporation flux. What happens?
+</div>
+
+<div class="answer">
+```{r}
+Soil = soil.set[["B5"]]
+kfun=approxfun(c(0,-16000),c(52.91,1e-5),method="linear",yleft=1e-5,yright=52.91)
+unsatdarcy.flux = function(z,psi,dpsidz)
+{
+  return(-kfun(psi)*(dpsidz+1))
+}
+
+################### make the model #################
+UnsatStat_NewK = newFLOW1D(domain,unsatdarcy.flux,"Unsaturated zone, linear K function")
+
+############## Boundary conditions ##################
+set.BC.fixedstate(UnsatStat_NewK,"left",0.0) #Head at the bottom [cm]
+set.BC.fixedflux(UnsatStat_NewK,"right",-0.1) 
+
+####### discretisation #####################
+nodes = seq(from=domain[1],to=domain[2],by=2)
+set.discretisation(UnsatStat_NewK,nodes,"FV")
+Psi.equi = approxfun(c(domain[1],domain[2]),c(domain[2],domain[1]))
+do.initialize(UnsatStat_NewK,Psi.equi)
+
+# We want to avoid pressures to be too negative (<-1E-5)
+Psi.in.range = function(z,Psi) # it has 2 arguments; the position and the state
+{
+  if(Psi<=-1E5) return(FALSE)
+  else return(TRUE)
+}
+set.isacceptable(UnsatStat_NewK,Psi.in.range) 
+
+solve.steps(UnsatStat_NewK,verbose=TRUE)
+
+######## plotting #############################
+#we will create two plots, of the psi profile and the theta profile
+Psi.seq = dataframe.states(UnsatStat_NewK)$state
+z.seq = dataframe.states(UnsatStat_NewK)$x
+Psi.equi.seq = Psi.equi(z.seq) # the equilibrium profile to compare with
+Psi.range=range(Psi.seq,Psi.equi.seq)
+theta.seq = Soil$theta.fun(Psi.seq)
+old.par= par(no.readonly=TRUE)
+par(mfrow=c(1,2)) #this creates two plots next to each other
+
+plot(Psi.seq,z.seq,type="l",xlab="Psi",ylab="z",xlim=Psi.range,col="blue",lwd=2)
+lines(Psi.equi.seq,z.seq,type="l",lty="dashed")
+grid()
+plot(theta.seq,z.seq,type="l",xlab="theta",ylab="z",col="red",lwd=2,
+     xlim=c(0,Soil$theta.sat))
+grid()
+par(old.par)
+mtext(paste(Soil$soiltype,"=",Soil$name),side=3,line=1)
+#a plot of the internal fluxes gives additional insight:
+IntFlux=dataframe.internalfluxes(UnsatStat_NewK)
+plot(IntFlux$intflux,IntFlux$x,type="l",xlab="flux [cm/d]",ylab="z",main="Water fluxes, stationary model, linear K")
+abline(h=0,lty="dashed")
+grid()
+```
+As you see, the model now solves in one step. The psi gradient is constant over the whole depth. 
+</div>
+
+<div class="exercise">
+E3.Do you expect that the nodal distance affects the "crashing" behaviour of the model as you saw in exercise E1?
+</div>
+
+<div class="exercise">
+E4.Reset the model to use the original k-psi function, still with the evaporation of 1 mm/d. Then reduce the nodal distance in the top 5 cm to 1 mm. What do you see?
+</div>
+
+<div class="answer">
+```{r}
+domain=c(-100,0)
+Soil = soil.set[["B5"]]
+unsatdarcy.flux = function(z,psi,dpsidz)
+{
+  return(-Soil$k.fun(psi)*(dpsidz+1))
+}
+
+################### make the model #################
+UnsatStat_Nodes = newFLOW1D(domain,unsatdarcy.flux,"Unsaturated zone, smaller control volumes")
+
+############## Boundary conditions ##################
+set.BC.fixedstate(UnsatStat_Nodes,"left",0.0) #Head at the bottom [cm]
+set.BC.fixedflux(UnsatStat_Nodes,"right",-0.1) 
+
+####### discretisation #####################
+nodes = c(seq(from=domain[1],to=-5,by=2),seq(from=-4.9,to=domain[2],by=0.1))
+set.discretisation(UnsatStat_Nodes,nodes,"FV")
+Psi.equi = approxfun(c(domain[1],domain[2]),c(domain[2],domain[1]))
+do.initialize(UnsatStat_Nodes,Psi.equi)
+
+# We want to avoid pressures to be too negative (<-1E-5)
+Psi.in.range = function(z,Psi) # it has 2 arguments; the position and the state
+{
+  if(Psi<=-1E5) return(FALSE)
+  else return(TRUE)
+}
+set.isacceptable(UnsatStat_Nodes,Psi.in.range) 
+
+solve.steps(UnsatStat_Nodes,verbose=TRUE)
+```
+The model needs a large number of iterations, but does find a solution. The small nodal distance in the top better describes the nonlinear psi-profile that is needed to draw up enough groundwater. 
+</div>
+
+<div class="comment">
+COMMENT: deze kan niet knitten, hoe kan ik dat oplossen?
+</div>
