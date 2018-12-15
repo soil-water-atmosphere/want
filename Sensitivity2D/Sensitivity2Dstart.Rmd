@@ -46,7 +46,6 @@ The model is already built. The following workspace contains the model (called `
 
 ```{r}
 load("IJsselmodel.Rdata")
-IJsselmodel = copy.model(model = model)
 solve.steps(IJsselmodel)
 ```
 
@@ -80,7 +79,7 @@ Discussion:
 
 <div class="answer">
 The balance for the whole model region can be investigated by:
-```{r eval=FALSE}
+```{r}
 A=dataframe.balance(IJsselmodel)
 Net=abs(A$net)
 pie(Net,labels=A$name)
@@ -149,7 +148,7 @@ Most of the domain loses water to the river, though the fluxes are generally ver
 
 ## 1.4 Investigating the mean groundwater depth in the housing area
 
-In what follows we want to investigate the groundwater level in the housing area. For that we need a node that falls within this area. Use the following plot to select a typical node in the housing area (zoom if needed).
+In what follows we want to investigate the groundwater level in the housing area (which will be our "focus result" `MRESULT`. For that we need a node that falls within this area. Use the following plot to select a typical node in the housing area (zoom if needed).
 ```{r}
 plot(IJsselmodel,nodenumbersize=1,
      addpolygons = list(list(housing,col=rgb(0,0,1,0.25))))
@@ -264,7 +263,7 @@ The sensitivity to the recharge is largest near the no-flux boundaries. In the m
 </div>
 
 <div class="exercise">
-7.In section 2.2 to 2.7, calculate the local sensitivities of MRESULT and the states to the other six parameters. For each of them, add a short discussion of the results.
+7.In section 2.2 to 2.7, calculate the local sensitivities to the other six parameters. Do this both for the MRESULT and for all the states. For each of the parameters, add a short discussion of the results.
 </div>
 
 ## 2.2 Sensitivity with respect to the well extraction Qwell
@@ -489,7 +488,8 @@ plot(IJsselmodel,fill=sqrt(varStateTot))
 ```
 
 <div class="exercise">
-9.In the following sections 3.3 to 3.9, the relative contributions of the parameters to the uncertainty in the groundwater levels is calculated. The first example for Qrch is already given; finish the analysis for the other parameters. In section 3.10, add a discussion of how the contributions of all the parameters are distributed over the domain.
+9.In the following sections 3.3 to 3.9, the relative contributions of the parameters to the uncertainty in the groundwater levels is calculated. The first example for Qrch is already given. Finish the analysis for the other parameters.    
+In section 3.10, add a discussion about how the contributions of all the parameters are distributed over the domain.
 </div>
 
 ## 3.3 Contribution of Qrch to variation in groundwater level
@@ -606,8 +606,9 @@ base$river.resist = base$river.resist/2
 ```
 
 <div class="exercise">
-10.In section 4.1 and 4.2, recalculate the local sensitivities of the groundwater levels of the model to the parameters (the way you did in section 2.1-2.7). In section 4.1 you should create a new base run which includes the new river bed resistance. Thereafter in section 4.2, recalculate the local sensitivities of the groundwater levels of the model. There is no need to make all the local sensitivity plots again.
-Then analyse the results in section 4.3-4.5 (see exercises there).
+10.In section 4.1 and 4.2, recalculate the local sensitivities of the groundwater levels (states) (the way you did in section 2.1-2.7).    
+In section 4.1 you should create a new base run that includes the new river bed resistance. In section 4.2, recalculate the local sensitivities of the groundwater levels of the model. There is no need to make all the local sensitivity plots again.
+Finally, analyse the effects of the changed base value in section 4.3-4.5 (see exercises there).
 </div>
 
 <div class="comment">
@@ -820,110 +821,97 @@ river.resist=base$river.resist
 ```
 
 # 5. AVS calculations
-<div class="exercise">
-14.The analysis of variation by sampling is already partly given. Finish the AVS section by selecting a proper sample size (mind the running time!) and by adding the needed code (see also the first sensitivity assignment).     
-In 5.6, describe your conlusions. Is the result different from the local sensitivity analysis?
-</div>
 
 The functions defined in this script will be used:
 ```{r}
 source("samplehelpers.R")
 ```
 
-## 5.1 Constructing the parameter sample
+## 5.1 AVS with a small sample size
+Because the model takes a while to run, you will do a 'try-out' AVS with a (very) small sample size of 5.
 
+**Constructing the parameter sample**
+
+<div class="exercise">
+14.In the chunk below, choose sensible boundaries for the parameters and make the parameter sets.
+</div>
+
+<div class="student_answer">
 ```{r eval=FALSE}
 parnames = names(base)
 parmeans = unlist(base)
 parsd    = unlist(scale)
-parlower = c(0,   -4000,  0,  30, 5,  2, 5)
-parupper = c(0.1, -2000, 500, 70, 7,  4, 500)
-samplesize = XXXX
+parlower = XXXX
+parupper = XXXX
+samplesize = 5
 set.seed(237)
-parsample = GaussianLHS(samplesize,parmeans,parsd,parnames,parlower,parupper) 
-```
-
-<div class="answer">
-```{r}
-parnames = names(base)
-parmeans = unlist(base)
-parsd    = unlist(scale)
-parlower = c(0,   -4000,  0, 0.5, 5,  2, 5)
-parupper = c(0.1, -1500, 500, 10, 7,  4, 500)
-samplesize = 50 # a small sample size, because the model takes a while to run 
-set.seed(237)
-parsample = GaussianLHS(samplesize,parmeans,parsd,parnames,parlower,parupper) 
+parsampleTest = GaussianLHS(samplesize,parmeans,parsd,parnames,parlower,parupper) 
 ```
 </div>
 
+<div class="answer">
 ```{r}
-old.par = par(no.readonly=TRUE)
-par(mfrow=c(3,3))
-par(mar=c(5,5,1,1))
-hist(parsample[,"Qrch"],main="",col="lightblue",prob=TRUE)
-rug(parsample[,"Qrch"],col="red")
-lines(density(parsample[,"Qrch"]),col="red",lwd=2)
-hist(parsample[,"Qwell"],main="",col="lightblue",prob=TRUE)
-rug(parsample[,"Qwell"],col="red")
-lines(density(parsample[,"Qwell"]),col="red",lwd=2)
-hist(parsample[,"kD"],main="",col="lightblue",prob=TRUE)
-rug(parsample[,"kD"],col="red")
-lines(density(parsample[,"kD"]),col="red",lwd=2)
-hist(parsample[,"river.resist"],main="",col="lightblue",prob=TRUE)
-rug(parsample[,"river.resist"],col="red")
-lines(density(parsample[,"river.resist"]),col="red",lwd=2)
-hist(parsample[,"drainage.resist"],main="",col="lightblue",prob=TRUE)
-rug(parsample[,"drainage.resist"],col="red")
-lines(density(parsample[,"drainage.resist"]),col="red",lwd=2)
-hist(parsample[,"north.bnd"],main="",col="lightblue",prob=TRUE)
-rug(parsample[,"north.bnd"],col="red")
-lines(density(parsample[,"north.bnd"]),col="red",lwd=2)
-hist(parsample[,"south.bnd"],main="",col="lightblue",prob=TRUE)
-rug(parsample[,"south.bnd"],col="red")
-lines(density(parsample[,"south.bnd"]),col="red",lwd=2)
-par(old.par)
+parnames = names(base)
+parmeans = unlist(base)
+parsd    = unlist(scale)
+#parlower = XXXX
+#parupper = XXXX
+parlower = c(0,   -4000,  0, 0.5, 5,  2, 5)
+parupper = c(0.1, -1500, 500, 10, 7,  4, 500)
+samplesize = 5 
+set.seed(237)
+parsampleTest = GaussianLHS(samplesize,parmeans,parsd,parnames,parlower,parupper) 
 ```
+</div>
 
-## 5.2 Making all the model runs
+**Making all the model runs**
 
-This is the time consuming part: for each row of the parameter sample a model run is performed. We store here only the Mvalues, and plot the states of two typical results.     
-Note: it can be handy to see how much time the first few runs take, and adapt your sample size if needed. 
+<div class="exercise">
+15.Run the model for your five parameter samples and save the Mvalue of each (this is best done in a loop).    
+Make a plot or histogram of the Mvalues to get a first idea of the variation.
+</div>
 
-```{r eval=FALSE}
-toplot = sample(1:nrow(parsample),size=2)
-Msample = c()
-for(i in 1:nrow(parsample))
-    {
-    print(paste("doing sample",i))
-    Qrch = parsample[i,"Qrch"]
-    Qwell = parsample[i,"Qwell"]
-    kD  = parsample[i,"kD"]
-    river.resist  = parsample[i,"river.resist"]
-    drainage.resist = parsample[i,"drainage.resist"]
-    south.bnd = parsample[i,"south.bnd"]
-    north.bnd = parsample[i,"north.bnd"]
-    control = solve.steps(IJsselmodel)
-    Msample [i] = MRESULT()
-    if(is.element(i,toplot))
-        {
-        set.name(IJsselmodel,"Just one of the sample")
-        plot(IJsselmodel,fill="state")
-        }
-    }
+<div class="student_answer">
+```{r}
+#type your code here...
 ```
+</div>
 
 <div class="answer">
+```{r}
+MsampleTest = c()
+for(i in 1:nrow(parsampleTest))
+    {
+    print(paste("doing sample",i))
+    Qrch = parsampleTest[i,"Qrch"]
+    Qwell = parsampleTest[i,"Qwell"]
+    kD  = parsampleTest[i,"kD"]
+    river.resist  = parsampleTest[i,"river.resist"]
+    drainage.resist = parsampleTest[i,"drainage.resist"]
+    south.bnd = parsampleTest[i,"south.bnd"]
+    north.bnd = parsampleTest[i,"north.bnd"]
+    control = solve.steps(IJsselmodel)
+    MsampleTest [i] = MRESULT()
+    }
+
+hist(MsampleTest,main="Histogram of M values, small parameter sample")
+print(sd(MsampleTest))
+```
+The M values (groundwater level in the housing area) more or less center around their base value, but it is not a nice distribution. This sample size probably does not give an accurate estimates of the standard deviation in M.
+</div>
+
+## 5.2 AVS with a larger parameter set
+
+The AVS has also been run for you with a sample size of 50:
 ```{r}
 rm(Msample,parsample)
 load("AVS_mpsample.Rdata")
+#Combine the M-sample and the parameter-sample into one big matrix:
+Mpsample = cbind(M=Msample,parsample)
+head(Mpsample)
 ```
-</div>
 
-<div class="comment">
-The chunk where you run the model 50 times takes very long (on my computer, almost an hour). Here I just provided the Msample so I could knit the document, but that's not ideal of course. We should maybe test this on another computer! Any ideas how this can be made faster?
-</div>
-
-## 5.3 Analysis of the M-sample
+**Analysis of the M-sample**
 
 First we determine the basic statistics of the M-sample:
 ```{r}
@@ -945,19 +933,17 @@ lines(smoothdens,col="red",lwd=3)
 
 ## 5.4 Conditional expectation of M with relation to parameters
 <div class="exercise">
+16.Plot and analyse the conditional expectations of M with relation to each of the parameters (you can have a look at the first sensitivity assignment to see how to do it).
+</div>
+
+<div class="student_answer">
 ```{r}
 # Add your code here...
 ```
 </div>
 
 <div class="answer">
-First, combine the M-sample and the parameter-sample into one big matrix:
-```{r}
-Mpsample = cbind(M=Msample,parsample)
-head(Mpsample)
-```
-
-Next we approximate the conditional expectation of M given the parameters.
+We approximate the conditional expectation of M given the parameters:
 ```{r}
 plot(Mpsample[,"Qrch"],Mpsample[,"M"],xlab="Qrch",ylab="M",main="Conditional expectation w.r.t. Qrch")
 McondQrch = linloess(M~Qrch,data=Mpsample)
@@ -1003,6 +989,10 @@ points(Mpsample[,"north.bnd"],Mcondnorth.bnd,pch=20,col="red")
 
 ## 5.5 Contributions of the parameters to the M-variance
 <div class="exercise">
+17.Finish the analysis to find the relative contributions of each of the parameters to the variance in M.
+</div>
+
+<div class="student_answer">
 ```{r}
 # add your code here...
 ```
@@ -1021,17 +1011,21 @@ print(sqrt(ANOVA1))
 </div>
 
 ## 5.6 Discussion
+<div class="exercise">
+18.Finally, desribe your conclusions of the AVS analysis in section 5. Do the results differ from the local sensitivity analysis? What is the effect of the parameter sample size? Do you think the parameter set of 50 is large enough?
+</div>
+
 <div class="student_answer">
 Type your answer here...
 </div>
 
 <div class="answer">
 The standard deviation of M is slightly lower than found with the local sensitivity analysis. The conditional expectation curves show that especially the recharge contains a lot of information on M, and also the river resistance and drainage resistance contain some information.    
-Looking at the relative contributions of the parameters, the dominance of Qrch shows, just like before in the local sensitivity analysis. However, the kD now dominates over the river resistance and drainage resistance, while in the local sensitivity they had about equal contributions. This might be caused by the small parameter sample size.
+Looking at the relative contributions of the parameters, Qrch turns out to be dominant, just like before in the local sensitivity analysis. However, the kD now dominates over the river resistance and drainage resistance, while in the local sensitivity they had about equal contributions. This might be influenced by the small parameter sample size (50 is still not that much).
 </div>
 
 <div class="comment">
-COMMENTS:   
-*  AVS calculations duren lang. Ik heb zelf nog iets aan het IJsselmodel model veranderd (boundary conditions toegevoegd - die zaten er niet in- en naam veranderd. Weet niet of dat hem langzamer zou kunnen maken?)      
-*  ook het knitten van het gehele document duurt vrij lang, ook als je de AVS calculations al geeft. Hoeft niet per se erg te zijn misschien?.  
+COMMENTS:
+Ik heb de AVS nu opgelost door ze het zelf te laten doen met een kleine sample en dan de grote sample te geven.
+Het knitten van het hele document duurt nog steeds wel even, maar ik denk niet dat er nog veel aan te doen is.
 </div>
