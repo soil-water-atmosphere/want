@@ -3,13 +3,13 @@ title: "1D Flow & Transport modeling"
 author: "G.Bier, P.Torfs"
 date: "December 2018"
 output:
-  html_notebook:
-    css: want.css
-    number_sections: yes
-    toc: yes
   html_document:
     css : want.css
     df_print: paged
+    toc: yes
+  html_notebook:
+    css: want.css
+    number_sections: yes
     toc: yes
 ---
 
@@ -123,7 +123,7 @@ The following illustration clarifies some dimensions of the flow in the 1D(or qu
 <div class="question">
 
 * How is $q(x)$ in this model derived?
-* How would you derive the velocity velocity this model?
+* How would you derive the flow velocity in this model?
 
 </div>
 
@@ -140,7 +140,7 @@ Figure 2 illustrates the situation;
 <div class="question">
 1. Setup this flow model and give it a distinctive name e.g. Fmodel or Flowmodel or so.  
 2. Run the model and look at the results; head distribution, internal flux and water balance terms.  
-3. Create a plot showing both the calculated head and the bottom of the aquifer.  
+3. Create a plot showing both the calculated heads and the bottom of the aquifer.  
 </div>
 
 
@@ -189,11 +189,11 @@ With:
 * $C$: concentration of the solute ($\mathsf{kg/m^3}$)  
 * $D$: Diffusion/Dispersion coefficient ($\mathsf{m^2/d}$)  
 
-The diffusion/dispersion here is a combination of the molecular diffusion(Brownian movement) and the mechanical dispersion(accounting for the local pore flow and its pore structure) and is assumed to be constant here.  
+The diffusion/dispersion is a combination of the molecular diffusion (Brownian movement) and the mechanical dispersion (accounting for the local pore flow and its pore structure) and is assumed to be constant here.
 
 <div class="question">
 
-* 'Derive' mass flux equation from the above equation, which is the internal flux for the solute transport model and determine its unit.
+* 'Derive' the mass flux equation from the above equation, which is the internal flux for the solute transport model and determine its unit.
 * What is the unit for the concentration for this model?
 * What is the unit for the mass in the model?
 
@@ -218,10 +218,11 @@ Somewhere in the middle of the solute transport model a solute source (pollutant
 
 
 <div class="question">
-Setup the solute transport model.  
+Setup the solute transport model.
+
 * Add the point source  
 * What is the unit for the continuous solute source?
-* Run the model and analyse the results; Concentration, internal flux, mass balance  
+* Run the model and analyse the results; Concentration, internal flux, mass balance.
 </div>
 
 When looking at the results of this  model;  
@@ -232,7 +233,7 @@ When looking at the results of this  model;
 
 1. What are these calculated states?
 2. What is the unit of this balance?
-3. Check for the left boundary (your own calculation) the mass flux leaving the left boundary and what unit does it have?
+3. Check for the left boundary (your own calculation) the mass flux leaving the system; what unit does it have?
 
 </div>
 
@@ -242,7 +243,7 @@ Similar like all models up till now, the main difference between a stationary an
 
 <div class="question">
 * Define the storage flux for the transient model.  
-In determining this flux(rate) and its units; Be aware that the storage flux is a spatial flux, so the 'area' over which the flux rate is integrated is carried out by the FVFE1D package.
+In determining this flux(rate) and its units; be aware that the storage flux is a spatial flux, so the 'area' over which the flux rate is integrated is carried out by the FVFE1D package.
 </div>  
 
 
@@ -261,20 +262,18 @@ Set up a transient solute transport model based on the stationary model.
 At the start of the transient simulation the initial concentration of the solute is the final concentration distribution of the stationary solute transport model.
 Consider the following aspects of this model:  
 
-* make a copy of the stationary transport model to develop the transient one  
-* remove the source from this model
-* calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$
-* create a time stepping loop running for at least one year
-* plot the transient steps in one graph in the time stepping loop
+* Make a copy of the stationary transport model to develop the transient one  
+* Remove the source from this model
+* Calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$
+* Create a time stepping loop running for at least one year
+* Plot the transient steps in one graph in the time stepping loop
 * Store the mass balance terms into different arrays to plot these afterwards. See assignment 2 for details.
 </div>
 
 
-
-
 ##Transient solute transport model with pump & treat  
  As can be seen from the results of the transient model, the solute disappears slowly at the left boundary. To speed up this process an extraction well is implemented at the location of the original source and will have an extraction rate equal to 50% of the recharge of the model.   
-If the solute was some sort op pollutant this way of removing is called pump & treat, where the solute is removed/processed from the extracted groundwater. Pump & treat systems may also inject this cleaned water upstream but could be discarded here.
+If the solute was some sort op pollutant this way of removing is called pump & treat, where the solute is removed/processed from the extracted groundwater. Pump & treat systems may also inject this cleaned water upstream, but this will not be implemented here.
  
 <div class="question">  
 
@@ -288,15 +287,15 @@ If the solute was some sort op pollutant this way of removing is called pump & t
 
 <div class="question">  
 
-* calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$.
+* Calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$.
 </div>
 
 
 
 <div class="question">  
 
-* create a time stepping loop running for at least one year.
-* plot the transient steps in one graph in the time stepping loop.
+* Create a time stepping loop running for at least one year.
+* Plot the transient steps in one graph in the time stepping loop.
 * Store the mass balance terms into different arrays to plot these afterwards. See assignment 2 for details.
 </div>
 
