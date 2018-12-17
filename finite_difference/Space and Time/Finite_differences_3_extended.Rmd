@@ -1,0 +1,189 @@
+---
+title: "Finite differences 2"
+author: "The WANT team"
+date: "24/09/2018"
+output:
+  html_document:
+    css: ../../want.css
+    toc: yes
+    toc_depth: 2
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+---
+<!-- include the hint.js -->
+<script src="../../hints.js"></script>
+
+## Exercise 1
+
+<span class="question">
+2.1.1 Discretise the equation using a forward differencing scheme in time and a central scheme in space (both first and second order derivative). Use the omega notation given above to solve for the explicit, implicit and Crank-Nicolson integration scheme. Make sure to use the notation shown section 1.1 (last equation).
+
+<span class="comment"> 
+Is this too much and too fast?
+</span>
+
+</span>
+
+<span class="answer">
+$$
+\dfrac{s^{n+1}_i - s^{n}_{i}}{\Delta t} = \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2}) + (1-\omega)(-u\dfrac{s^{n+1}_{i+1}-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}-2s^{n+1}_{i}+s^{n+1}_{i+1}}{\Delta x^2})
+$$  
+</span>
+
+This equation can be organised in such a way that it can be inserted in the standard matrix equation:
+$$
+M*s^{n+1} = V
+$$
+
+<span class="question">
+2.1.2 Reorganise the equation from question 2.1.1 to have all terms about the new time-step `n+1` on the left-hand side and everything else on the right-hand side.
+</span>
+
+<span class="answer">
+$$
+\dfrac{s^{n+1}_i}{\Delta t} - (1-\omega)(-u\dfrac{s^{n+1}_{i+1}-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}-2s^{n+1}_{i}+s^{n+1}_{i+1}}{\Delta x^2}) = \dfrac{s^{n}_{i}}{\Delta t} + \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2})
+$$  
+</span>
+
+<span class="question">
+2.1.3 The equation obtained from the previous exercise can be written in the following way:
+$$
+As^{n+1}_{i-1} + Bs^{n+1}_{i} + Cs^{n+1}_{i+1} = E
+$$
+find the coefficients A,B,C and E
+</span>
+
+<span class="answer">
+$$
+As^{n+1}_{i-1} = -(1-\omega)(-u\dfrac{-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}}{\Delta x^2})\\
+A = (\omega-1)(\dfrac{u}{2\Delta x} + \dfrac{D}{\Delta x^2})
+$$
+$$
+Bs^{n+1}_{i} = \dfrac{s^{n+1}_{i}}{\Delta t} - (1-\omega)(D\dfrac{-2s^{n+1}_{i}}{\Delta x^2})\\
+B = \dfrac{1}{\Delta t} + (\omega-1)(\dfrac{-2D}{\Delta x^2})
+$$
+$$
+Cs^{n+1}_{i+1} = -(1-\omega)(-u\dfrac{s^{n+1}_{i+1}}{2\Delta x} + D\dfrac{s^{n+1}_{i+1}}{\Delta x^2})\\
+C = (\omega-1)(\dfrac{-u}{2\Delta x} + \dfrac{D}{\Delta x^2})
+$$
+$$
+E = \dfrac{s^{n}_{i}}{\Delta t} + \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2})
+$$
+</span>
+
+<span class="question">
+2.1.4 Use the coefficients of the previous equation to set up a the following matrix equation (using two Dirichlet boundaries): 
+$$
+M*s^{n+1} = V
+$$
+</span>
+
+<span class="answer">
+$$
+\begin{bmatrix}
+1&.&.&.&.\\
+A&B&C&.&.\\
+.&A&B&C&.\\
+.&.&A&B&C\\
+.&.&.&.&1
+\end{bmatrix} * 
+\begin{bmatrix}
+s^{n+1}_{1}\\
+s^{n+1}_{2}\\
+s^{n+1}_{3}\\
+s^{n+1}_{4}\\
+s^{n+1}_{5}
+\end{bmatrix} = 
+\begin{bmatrix}
+b_l\\
+E_2\\
+E_3\\
+E_4\\
+b_r
+\end{bmatrix}
+$$
+</span>
+
+<span class="question">
+2.1.5 Are the matrix and the vector space or time dependent?
+</span>
+
+<span class="answer">
+Matrix is completely independent. Vector is dependent on both space and time.
+</span>
+
+## Exercise 2
+<span class="question">
+Construct the time stepping while loop like the chunks in the *time*-tutorial and plot the results.
+</span>
+
+<span class="comment"> Here ffmpeg might be a great idea but I don't know how to implement that </span>
+
+<span class="answer">
+```{R}
+# Input variables
+domain  = c(0,100)
+endtime = 20
+dx      = 1
+dt      = 1
+u       = 1
+D       = 1
+bl      = 0
+br      = 0
+omega   = 0
+
+# Function that gives the states for the first time-step
+initfun = function(x){
+  # Gaussian distribution
+  exp(-(x-domain[2]/2)^2/2^2)
+}
+
+# Calculation preparation
+x           = seq(domain[1],domain[2],by=dx)
+N           = length(x)
+init.state  = initfun(x)
+
+# MATRIX CONSTRUCTION
+M = matrix(0,nrow=N,ncol=N)
+
+# for now a dirichlet boundary is used for the solution
+M[1,1] = 1
+M[N,N] = 1
+A      = (omega-1) * ( u/(2*dx) +   D/dx^2 )
+B      = (omega-1) * (          - 2*D/dx^2 ) + 1/dt
+C      = (omega-1) * (-u/(2*dx) +   D/dx^2 )
+
+for(i in 2:(N-1)){
+  M[i,i-1] = A
+  M[i,i  ] = B
+  M[i,i+1] = C
+}
+
+Minv = solve(M)
+
+# Time stepping variable
+time        = 0
+new.state   = init.state
+plotlim     = c(-0.2,1.2)
+
+while(time<endtime){
+    plot(x,new.state,ylim=plotlim,type="l", xlab="x", ylab ="state")
+    prev.state = new.state
+    
+    V    = c()
+    V[1] = bl
+    
+    for(i in 2:(N-1))
+    {
+      V[i]= prev.state[i]/dt + omega*(-u*(prev.state[i+1]-prev.state[i-1])/(2*dx) +D*(prev.state[i+1]-2*prev.state[i]+prev.state[i-1])/dx^2)
+    }
+    
+    V[N] = br
+    new.state = Minv %*% V
+    
+    time = time + dt
+}
+```
+</span>
+
