@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
-
-This is a temporary script file.
+Parser for the WANT practicals
 """
+
 import os
 import re
 import copy
@@ -51,6 +50,9 @@ def create_versions(filename, output_directory  = "++",
         
         # set closing tags
         pattern = re.compile(r'</[^\n<]*?{}[^\n]*?>'.format("span"),re.S)    
+        RMD_file = re.sub(pattern,"</span>",RMD_file)
+        
+        pattern = re.compile(r'</[^\n<]*?{}[^\n]*?>'.format("div"),re.S)    
         RMD_file = re.sub(pattern,"</span>",RMD_file)
         
         if css:
