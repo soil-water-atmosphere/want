@@ -585,14 +585,14 @@ The methodologies behave very differently. The explicit scheme has oscillatory b
 
 <span class="answer">
 $$\begin{matrix}
-\frac{ds(t)}{dt} &=& f(t+\Delta t)\\
+\dfrac{ds(t)}{dt} &=& f(t+\Delta t)\\
 f(t) &=& (sin(t)+1) - \alpha s(t)\\
-\frac{ds(t)}{dt} &=& \frac{1}{A}((sin(t+\Delta t)+1) - \alpha s(t + \Delta t))\\
-\frac{ds(t)}{dt} &=& \dfrac {s(t+\Delta t)-s(t)} {\Delta t}\\
-s(t+\Delta t) &=& s(t) + \frac{\Delta t}{A}(sin(t+\Delta t)+1) - \frac{\Delta t}{A}\alpha s(t + \Delta t))\\
-s(t+\Delta t) + \frac{\Delta t}{A}\alpha s(t + \Delta t)) &=& s(t) + \frac{\Delta t}{A}(sin(t+\Delta t)+1)\\
-s(t+\Delta t)(1 + \alpha\frac{\Delta t}{A}) &=& s(t) + \frac{\Delta t}{A}(sin(t+\Delta t)+1)\\
-s(t+\Delta t) &=& \frac{1}{1 + \alpha\frac{\Delta t}{A}}(s(t) + \frac{\Delta t}{A}(sin(t+\Delta t)+1))\\
+\dfrac{ds(t)}{dt} &=& \dfrac{1}{A}((sin(t+\Delta t)+1) - \alpha s(t + \Delta t))\\
+\dfrac{ds(t)}{dt} &=& \dfrac {s(t+\Delta t)-s(t)} {\Delta t}\\
+s(t+\Delta t) &=& s(t) + \dfrac{\Delta t}{A}(sin(t+\Delta t)+1) - \dfrac{\Delta t}{A}\alpha s(t + \Delta t))\\
+s(t+\Delta t) + \dfrac{\Delta t}{A}\alpha s(t + \Delta t)) &=& s(t) + \dfrac{\Delta t}{A}(sin(t+\Delta t)+1)\\
+s(t+\Delta t)(1 + \alpha\dfrac{\Delta t}{A}) &=& s(t) + \dfrac{\Delta t}{A}(sin(t+\Delta t)+1)\\
+s(t+\Delta t) &=& \dfrac{1}{1 + \alpha\dfrac{\Delta t}{A}}(s(t) + \dfrac{\Delta t}{A}(sin(t+\Delta t)+1))\\
 \end{matrix}$$
 </span>
 
@@ -688,6 +688,9 @@ f = function(time, state){
 </span>
 
 <span class="answer">
+
+<span class="comment"> Is this the best way to implement the midpoint scheme? </span>
+
 ```{r Midpoint}
 rm(list=ls())
 #Initial parameter values
@@ -704,16 +707,19 @@ result.state     = c(init.state)
 result.time      = c(time)
 current.state    = init.state
 
-# System function
-
-f = function(time, state){
+# System functions
+f_explicit = function(time, state){
   return(((sin(time)+1)-alpha*state)/A)
+}
+
+f_implicit = function(time, state, dt){
+  return(1/(1+alpha*dt/A)*(state + dt/A*(sin(time+dt)+1)))
 }
 
 sys.fun = function(state)
 {
-  s.aux    = state + dt/2*f(time,state)
-  newstate = s.aux + dt/2*f(time+dt/2,s.aux)
+  s.aux    = state + dt/2*f_explicit(time   , state)
+  newstate =              f_implicit(time+dt, s.aux, dt/2)
   return(newstate)
 }
 
@@ -731,7 +737,7 @@ plot(result.time,result.state,type='l', col="grey",lwd=2,xlab="time",ylab="state
 title(main='Emptying reservoir with input, Midpoint')
 grid()
 
-dt = 2.0 # a new dt value to evaluate current scheme
+dt = 2 # a new dt value to evaluate current scheme
 time = begin.time
 result.state= c(init.state)
 result.time =c(time)
@@ -745,6 +751,7 @@ while(time < end.time)
 }
 lines(result.time,result.state,type='o',col='blue')
 ```
+
 </span>
 
 <span class="question">
@@ -880,8 +887,7 @@ compare = function(dt,runge_kutta,midpoint,explicit,implicit){
   l          = c()   # empty list for legend entries
   lines_l    = c()   # empty list for legend lines
   
-  f = function(time,state)
-  {
+  f = function(time,state){
     return(((sin(time)+1)-alpha*state)/A)
   }
   
@@ -936,10 +942,19 @@ compare = function(dt,runge_kutta,midpoint,explicit,implicit){
   }
   
   ###########Midpoint##################
+  # System functions
+  f_explicit = function(time, state){
+    return(((sin(time)+1)-alpha*state)/A)
+  }
+  
+  f_implicit = function(time, state, dt){
+    return(1/(1+alpha*dt/A)*(state + dt/A*(sin(time+dt)+1)))
+  }
+  
   sys.fun = function(state)
   {
-    s.aux    = state + dt/2*f(time,state)
-    newstate = s.aux + dt/2*f(time+dt/2,s.aux)
+    s.aux    = state + dt/2*f_explicit(time,state)
+    newstate = f_implicit(time+dt, s.aux, dt/2)
     return(newstate)
   }
   
