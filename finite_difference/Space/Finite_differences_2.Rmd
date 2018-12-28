@@ -19,7 +19,7 @@ output:
 
 # Part 1 - Introduction
 ## Section 1.1 - Advection Diffusion Equation 
-The aim of the finite difference approach is to learn a basic method to discretize differential equations in space and time. A prominent example in our field, is the advection diffusion equation. The formula for this equation is as follows:
+The aim of the finite difference approach is to learn a basic method to discretize differential equations in space and time. A prominent example in our field, is the advection-diffusion equation. The formula for this equation is as follows:
 
 $$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 where $s$ can be any species that can be transported, $u$ is the fluid (water or air) velocity, $D$ is the diffusivity, $x$ is the position, and $t$ is time. This equation contains space and time derivatives and is therefore a *partial differential equation*. For this tutorial, you will study first this equation under stationary conditions ($\frac{\partial s}{\partial t} = 0$):
@@ -33,27 +33,23 @@ $$\dfrac{ds}{dt} \approx \dfrac{s(t+\Delta t) - s(t)}{\Delta t}$$
 This is called the *forward differencing method*. It calculates derivatives based on the actual time value ($t$) and that one step ahead ($t + \Delta t$) The methodology of solving equations in space is exactly the same, only the mathematical formulation changes slightly:
 
 $$\dfrac{ds}{dx} \approx \dfrac{s(x+\Delta x) - s(x)}{\Delta x}$$
-The only change in this equation is that time has been substituted by space. By using this formulation you change the dimension, meaning that in time integration you end up with a graph that displays a time - state plot. Here you end up with a space - state plot. The x-axis will be a system, displayed from left to right (or top to bottom for example), with the states on the y-axis. This is a stationary plot, time has no influence. 
+The only change in this equation is that time has been substituted by space. By using this formulation you change the dimension, meaning that you will find out the how fast variable $s$ changes in space rather than in time.
 
-There is a however a difference between space and time; time only goes forward but space does not have a direction. Therefore space integration can be approached in different ways than time. Time integration only has a forward differencing scheme (at least in a practical point of view), space also has a backward and central scheme that we will discuss here (forward is a slightly confusing convention here, it basically signifies from left to right).
+There is generally a difference in perspective in how space and time are used. In the case of time, you use the derivative to advance a system in time: you want to know the state of the system $s$ at a next time step. In space, however, in most usecases, you are presented with the spatial field of $s$, where the gradients are unknown. In space, next to the forward differencing methods, we also often make use of the *backward differencing method* and the *centered differencing* method.
 
-First the mathematical derivation. The forward differencing method was formally derived by using the following taylor series:
+First, we will go through the mathematical derivation. The forward differencing method in space, uses the location at which the derivatives are calculated and the point right (forward in space) of it:
 
-$$s(t + \Delta t) = s(t) + \Delta t \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} +\ ...$$
+$$s(x + \Delta x) = s(x) + \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ \cdots     $$
 
-In the space dimension this becomes:
+The backward scheme looks back along the space axis (in negative direction) and is defined as follows:
 
-$$s(x + \Delta x) = s(x) + \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ...     $$
-
-The backward scheme (from right to left) is defined as follows: replace $\Delta x$ with $-\Delta x$.
-
-$$s(x - \Delta x) = s(x) - \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ...     $$
+$$s(x - \Delta x) = s(x) - \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ \cdots     $$
 
 Reworking this equation leads to the backward differencing scheme:
 
-$$\frac{s(x) - s(x  - \Delta x)}{dx} = \frac{ds}{dx}$$
+$$\frac{s(x) - s(x  - \Delta x)}{dx} = \frac{ds}{dx} + \cdots$$
 
-The *central differencing scheme* is created by substracting the taylor series used for the forward and bacward schemes:
+The *central differencing scheme* is created by substracting the Taylor series used for the forward and backward schemes. It is called centered because it is symmetric. It uses one point forward (right) of where the derivative is calculated, and one point (left) backward.
 
 \begin{alignat*}{3}
 s(x + \Delta x) &= s(x) + && \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + \dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + &&& \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ... \\    
@@ -68,7 +64,12 @@ s(x + \Delta x) - s(x - \Delta x) &=  &&\dfrac{2\Delta x}{1!}\dfrac{ds}{dx} +  &
 
 It can be seen quite easily that this is an efficient scheme. The second and fourth derivative are canceled out by substraction, leaving an error term in the final equation that has the third derivative as largest contributor instead of the second. This reduces the error significantly. The final equation to express the first derivative is as follows:
 
-$$\frac{s(x + \Delta x) - s(x - \Delta x)}{2\Delta x} = \frac{ds}{dx}$$
+$$\frac{s(x + \Delta x) - s(x - \Delta x)}{2\Delta x} = \frac{ds}{dx} + \cdots$$
+<span class="exercise">
+X.1 Calculate for each of the approximations the first error term (the next term that should come at the $\ldots$).
+<br><br>
+X.2 Can you explain from the error why the forward and backward differencing method have first-order error convergence, and the centered scheme has second-order error convergence?
+</span>
 
 # Part 2 - Matrix calculation intermezzo
 ### Exercise 1
@@ -1296,17 +1297,17 @@ In order to be able to solve the *stationary* advection diffusion equation one o
 
 $$0 = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 
-This can be done by going back to the taylor series of the forward and backward method. What needs to be done is come to a solution that does not include the first order derivative anymore. The simplest way to do this is by adding the equations up in the following way:
+This can be done by going back to the Taylor series of the forward and backward method. What needs to be done is come to a solution that does not include the first order derivative anymore. The simplest way to do this is by adding the equations up in the following way:
 
 <span class="comment">
 might be done by the hard track
 </span>
 
 \begin{alignat*}{3}
-s(x + \Delta x) &= &&s(x) + \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + &&&\dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + &&&&\dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ... \\    
+s(x + \Delta x) &= &&s(x) + \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + &&&\dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + &&&&\dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ \cdots \\    
 
 
-s(x - \Delta x) &= &&s(x) - \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + &&&\dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + &&&&\dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} - \ ...  \\
+s(x - \Delta x) &= &&s(x) - \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + &&&\dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + &&&&\dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} - \ \cdots  \\
 
 \hline +\\
 
