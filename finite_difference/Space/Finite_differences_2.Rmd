@@ -12,29 +12,28 @@ output:
 <script src="../../hints.js"></script>
 
 # Learning goals
-* Understand the forward, backward and central scheme
-* Understand how to construct a matrix for a dynamical system
-* Understand how to solve an ODE in the space dimension with the use of matrix algebra
-* Understand the advection diffusion equation and how to solve a stationary form
+* Understand the forward, backward and central spatial differencing scheme.
+* Understand how to construct a matrix to solve a system of equations.
+* Understand how to solve a steady-state system with spatial derivatives using matrix algebra.
+* Understand the advection-diffusion equation and how to solve a stationary form.
 
 # Part 1 - Introduction
 ## Section 1.1 - Advection Diffusion Equation 
-The final result of this part of the course, the finite difference approach, is to be able to model in a time and space continuum. A very common example is the advection diffusion equation that was presented during the lecture. The formula for this equation is as follows:
+The aim of the finite difference approach is to learn a basic method to discretize differential equations in space and time. A prominent example in our field, is the advection diffusion equation. The formula for this equation is as follows:
 
 $$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
-
-It describes how a phenomena, such as a wave, moves. This equation looks both at space and time. For this practical we will be looking at a simplification of this equation: the stationary situation ($\frac{\partial s}{\partial t} = 0$):
+where $s$ can be any species that can be transported, $u$ is the fluid (water or air) velocity, $D$ is the diffusivity, $x$ is the position, and $t$ is time. This equation contains space and time derivatives and is therefore a *partial differential equation*. For this tutorial, you will study first this equation under stationary conditions ($\frac{\partial s}{\partial t} = 0$):
 
 $$0 = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 
 
 ## Section 1.2 - Backward and Central Differencing method
 In the previous practical, we have been working with the following formula:
-$$\dfrac{s(t+\Delta t) - s(t)}{\Delta t} = \dfrac{ds(t)}{dt}$$
-This is called the *forward differencing method*. It calculates the state after a given time-step by using the information of the current state $s(t)$. The methodology of solving equations in space is exactly the same, only the mathematical formulation changes slightly:
+$$\dfrac{ds}{dt} \approx \dfrac{s(t+\Delta t) - s(t)}{\Delta t}$$
+This is called the *forward differencing method*. It calculates derivatives based on the actual time value ($t$) and that one step ahead ($t + \Delta t$) The methodology of solving equations in space is exactly the same, only the mathematical formulation changes slightly:
 
-$$\dfrac{s(x+\Delta x) - s(x)}{\Delta x} = \dfrac{ds(x)}{dx}$$
-The only change in this equation is that time has been replaced by space. By using this formulation you change the dimension, meaning that in time integration you end up with a graph that displays a time - state plot. Here you end up with a space - state plot. The x-axis will be a system, displayed from left to right (or top to bottom for example), with the states on the y-axis. This is a stationary plot, time has no influence. 
+$$\dfrac{ds}{dx} \approx \dfrac{s(x+\Delta x) - s(x)}{\Delta x}$$
+The only change in this equation is that time has been substituted by space. By using this formulation you change the dimension, meaning that in time integration you end up with a graph that displays a time - state plot. Here you end up with a space - state plot. The x-axis will be a system, displayed from left to right (or top to bottom for example), with the states on the y-axis. This is a stationary plot, time has no influence. 
 
 There is a however a difference between space and time; time only goes forward but space does not have a direction. Therefore space integration can be approached in different ways than time. Time integration only has a forward differencing scheme (at least in a practical point of view), space also has a backward and central scheme that we will discuss here (forward is a slightly confusing convention here, it basically signifies from left to right).
 
@@ -74,7 +73,7 @@ $$\frac{s(x + \Delta x) - s(x - \Delta x)}{2\Delta x} = \frac{ds}{dx}$$
 # Part 2 - Matrix calculation intermezzo
 ### Exercise 1
 
-For the calculations in this pracical we will lean heavily on matrix algebra. This part is a quick summary of how to implement and work with matrices in the R environment.
+For the calculations in this pracical we will lean heavily on matrix algebra. This part is a short tutorial in working with with matrices in the R environment.
 
 A matrix is a collection of numbers organized in rows and columns. The following lines of codes construct a matrix:
 
