@@ -71,9 +71,15 @@ X.1 Calculate for each of the approximations the first error term (the next term
 X.2 Can you explain from the error why the forward and backward differencing method have first-order error convergence, and the centered scheme has second-order error convergence?
 </span>
 
-In order to visualize the effects of the three different approximations, you will now implement each of them. You will compute the derivatives of $s(x) = \sin(x)$.
+In order to visualize the effects of the three different approximations, you will now implement each of them. You will compute the derivatives of $s(x) = \sin(x)$. This you will do for each of the three methods: forward, backward, and centered.
 
 <span class="question">
+X.1 Implement the calculations for the three different methods below.
+<br><br>
+X.2 Which of the three methods performs the best?
+<br><br>
+X.3 Decrease `dx`. Do all three methods converge to the correct result? Which one convergest fastest, and why?
+
 ```{r}
 # Initial parameter values
 left  = 0     # left x-coordinate
@@ -82,9 +88,10 @@ dx    = pi/6  # delta x; time discretisation (0.25)
 
 # Simulation initialisation
 space.sequence = seq(left, right, by=dx)
-dsdx.forward = rep(0, length(space.sequence))
+dsdx.forward  = rep(0, length(space.sequence))
 dsdx.backward = rep(0, length(space.sequence))
 dsdx.centered = rep(0, length(space.sequence))
+s = sin(space.sequence)
 
 # Add the calculations of forward, backward, centered derivative below.
 
@@ -106,7 +113,7 @@ grid()
 # Initial parameter values
 left  = 0     # left x-coordinate
 right = 2*pi  # right x-coordinate
-dx    = pi/12  # delta x; time discretisation (0.25)
+dx    = pi/6  # delta x; time discretisation (0.25)
 
 # Simulation initialisation
 space.sequence = seq(left, right, by=dx)
