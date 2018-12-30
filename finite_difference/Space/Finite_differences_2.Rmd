@@ -71,6 +71,76 @@ X.1 Calculate for each of the approximations the first error term (the next term
 X.2 Can you explain from the error why the forward and backward differencing method have first-order error convergence, and the centered scheme has second-order error convergence?
 </span>
 
+In order to visualize the effects of the three different approximations, you will now implement each of them. You will compute the derivatives of $s(x) = \sin(x)$.
+
+<span class="question">
+```{r}
+# Initial parameter values
+left  = 0     # left x-coordinate
+right = 2*pi  # right x-coordinate
+dx    = pi/6  # delta x; time discretisation (0.25)
+
+# Simulation initialisation
+space.sequence = seq(left, right, by=dx)
+dsdx.forward = rep(0, length(space.sequence))
+dsdx.backward = rep(0, length(space.sequence))
+dsdx.centered = rep(0, length(space.sequence))
+
+# Add the calculations of forward, backward, centered derivative below.
+
+# Plotting
+plot(space.sequence, dsdx.forward, type='o', xlab="x (m)", ylab="dsdx", ylim = c(-1.5, 1.5), col="blue")
+lines(space.sequence, dsdx.backward, type='o', col="red")
+lines(space.sequence, dsdx.centered, type='o', col="green")
+space.sequence = seq(left, right, by=0.01)
+analyt.state = cos(space.sequence)
+lines(space.sequence, analyt.state, col='black', lty=3)
+legend("top", legend=c("forward", "backward", "centered", "analytical"), col=c("blue", "red", "green", "black"), lty=c(1,1,1,3), bty="n")
+title(main='Numerical and analytical solution compared')
+grid()
+```
+</span>
+
+<span class="answer">
+```{r}
+# Initial parameter values
+left  = 0     # left x-coordinate
+right = 2*pi  # right x-coordinate
+dx    = pi/12  # delta x; time discretisation (0.25)
+
+# Simulation initialisation
+space.sequence = seq(left, right, by=dx)
+dsdx.forward = rep(0, length(space.sequence))
+dsdx.backward = rep(0, length(space.sequence))
+dsdx.centered = rep(0, length(space.sequence))
+s = sin(space.sequence)
+
+# Add the calculations of forward, backward, centered derivative below.
+dsdx.forward [1:(length(s)-1)] = (s[2:length(s)] - s[1:(length(s)-1)]) / dx
+dsdx.backward[2:length(s)]     = (s[2:length(s)] - s[1:(length(s)-1)]) / dx
+dsdx.centered[2:(length(s)-1)] = (s[3:length(s)] - s[1:(length(s)-2)]) / (2*dx)
+
+# Add the boundaries on the left
+dsdx.backward[1] = (s[2]-s[1]) / dx
+dsdx.centered[1] = (s[2]-s[1]) / dx
+
+# Add the boundaries on the right
+dsdx.forward [length(s)] = (s[length(s)]-s[length(s)-1]) / dx
+dsdx.centered[length(s)] = (s[length(s)]-s[length(s)-1]) / dx
+
+# Plotting
+plot(space.sequence, dsdx.forward, type='o', xlab="x (m)", ylab="dsdx", ylim = c(-1.5, 1.5), col="blue")
+lines(space.sequence, dsdx.backward, type='o', col="red")
+lines(space.sequence, dsdx.centered, type='o', col="green")
+space.sequence = seq(left, right, by=0.01)
+analyt.state = cos(space.sequence)
+lines(space.sequence, analyt.state, col='black', lty=3)
+legend("top", legend=c("forward", "backward", "centered", "analytical"), col=c("blue", "red", "green", "black"), lty=c(1,1,1,3), bty="n")
+title(main='Numerical and analytical solution compared')
+grid()
+```
+</span>
+
 # Part 2 - Matrix calculation intermezzo
 ### Exercise 1
 
