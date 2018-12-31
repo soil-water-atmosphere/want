@@ -150,10 +150,9 @@ grid()
 
 # Part 2 - Matrix calculation intermezzo
 ### Exercise 1
+Further in this tutorial, and the next one, we will use matrix algebra intensively. This part is a short tutorial in working with with matrices in the R environment.
 
-For the calculations in this pracical we will lean heavily on matrix algebra. This part is a short tutorial in working with with matrices in the R environment.
-
-A matrix is a collection of numbers organized in rows and columns. The following lines of codes construct a matrix:
+A formal definition of a matrix is a collection of numbers organized in rows and columns. The following lines of codes construct a matrix:
 
 ```{R}
 M = matrix (c(1, 2, 3, 4, 5, 6) , nrow=2)
@@ -208,14 +207,13 @@ M = matrix(c(1, 2, 3, 4, 5, 6) , nrow=2 , ncol=3 , byrow=TRUE)
 </span>
 
 ### Exercise 2
-Exercise 2
 The matrix constructions in the previous question where very explicit. Many
 matrices (certainly large ones) can more efficiently be constructed by loops. The following lines of code give an example (and prints the result):
 
 ```{R}
-M = matrix(0,nrow=5,ncol=7)
+M = matrix(0, nrow=5, ncol=7)
 for(i in 1:nrow(M)) {
-  for(j in 1:ncol(M)){
+  for(j in 1:ncol(M)) {
     M[i,j]=i+j
   }
 }
@@ -299,16 +297,16 @@ x_1\\x_2\\x_2
 \end{bmatrix}
 \end{matrix}
 $$
-This system of equations can be solved in the following way.
+This system of equations can be solved in the following way, where $I$ is the [identity matrix](https://en.wikipedia.org/wiki/Identity_matrix).
 $$
 Ax = b\\
 A^{-1}Ax = A^{-1}b\\
 Ix = A^{-1}b\\
 x = A^{-1}b
 $$
-By hand this can be done with gaussian eliminitation. If unfamiliar with this method or if in need of a quick refresher, the following video might be instructive; https://www.youtube.com/watch?v=xCIXkm3-ocQ 
+By hand this can be done with [Gaussian elimination](https://en.wikipedia.org/wiki/Gaussian_elimination). If unfamiliar with this method or if in need of a quick refresher, the following video might be instructive; https://www.youtube.com/watch?v=xCIXkm3-ocQ 
 
-After implementing the matrices the system can be solved for x in the following in R:
+After implementing the matrices the system can be solved for $x$ in the following in R:
 
 ```{}
 x = solve(A,b)
@@ -350,12 +348,11 @@ print(solve(A,b))
 ```
 </span>
 
-<span class="question">
-3.3 The equations above can be generalized for any integer N into:
+The equations above can be generalized for any integer N into:
 $$ 
 \begin{matrix}
 & &&x_1 &=& 4\\
-&for\ i\ in\ 2:(N-1) && -x_{i-1} + 2x_i-x_{i+1} &=& 1\\
+&\ i\ \in\ \left[2, N-1 \right] && -x_{i-1} + 2x_i-x_{i+1} &=& 1\\
 & &&x_N &=& 2
 \end{matrix}
 $$
@@ -364,17 +361,17 @@ Write code that generates the matrices for the equations above and
 solves them. Use the following lines as a starter:
 
 ```{R}
-N      = 5
-A      = matrix(0,nrow=N,ncol=N)
-b      = rep(1,length=N)
-A[1,1] = 1
-b[1]   = 4
+N = 5
+A = matrix(0,nrow=N,ncol=N)
+b = rep(1,length=N)
 ```
 
 <span class="question">
-* finish this code
-* check that for N=5 the result of the previous question is recalculated
-* make for N=25 a plot of the result
+3.3 Finish this code.
+<br><br>
+3.4 Check that for N=5 the result of the previous question is recalculated.
+<br><br>
+3.5 Make a plot of the result for N=25.
 </span>
 
 <span class="answer">
