@@ -71,15 +71,18 @@ X.1 Calculate for each of the approximations the first error term (the next term
 X.2 Can you explain from the error why the forward and backward differencing method have first-order error convergence, and the centered scheme has second-order error convergence?
 </span>
 
-In order to visualize the effects of the three different approximations, you will now implement each of them. You will compute the derivatives of $s(x) = \sin(x)$. This you will do for each of the three methods: forward, backward, and centered.
+In order to visualize the effects of the three different approximations, you will now implement each of them for an example containing a *standing wave*. You will compute the derivatives of $s(x) = \sin(x)$. This you will do for each of the three methods: forward, backward, and centered.
 
 <span class="question">
 X.1 Implement the calculations for the three different methods below.
 <br><br>
 X.2 Which of the three methods performs the best?
 <br><br>
-X.3 Decrease `dx`. Do all three methods converge to the correct result? Which one convergest fastest, and why?
+X.3 Decrease `dx`. Do all three methods converge to the correct result? Which one converges fastest, and why?
+</span>
 
+<span class="student_answer">
+Work out the code below.
 ```{r}
 # Initial parameter values
 left  = 0     # left x-coordinate
@@ -593,7 +596,7 @@ This is the easiest way of implementing and solving systems with matrices. There
 Exercise 6 in the pdf could be useful
 </span>
 
-# Part 3 - Standing wave
+# Part 3 - Bringing matrix algebra and finite differences together
 For the first example with the three differencing schemes we will examine the simplest wave equation possible, a sinus-function ($s(x) = \sin(x)$) with it's derivative that is the opposite cosine wave ($\frac{ds}{dx}=\cos(x)$). The first chunk is fully preprogrammed, it is exactly the same as the approach used for time integration. Easiest way to understand it is to work from left to right (instead of from the beginning to the end as we did with the time dimension). An forward integration scheme is used, meaning that information of one point is used to calculate the point directly to the right of it. Still the same stuff as in the previous practical but it's maybe a bit less intuitive. The following information about the system is available:
 
 $$
