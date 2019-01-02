@@ -400,10 +400,10 @@ In what follows, flow problems will be defined by graphs such as:
 </br>
 ![](example_1.png){width=30%}
 
-* the circles stand for cylinders with unknown fluid level for which a name is suggested inside this circle
-* some of the levels inside the cylinders are prescribed (as is the case in the top cylinder of the example above); these prescribed values will be called boundary conditions.
-* these cylinders are connected with pipes, whose cross sectional area are indicated inside the pipes by numbers. The flux between these cylinders is given by this area times the level differences between the cylinders connected
-* there are external amounts of fluids added to the cylinders, as e.g. the flux 3 to the top.
+* The circles stand for cylinders with unknown fluid level for which a name is suggested inside this circle ($x_i$).
+* Some of the levels inside the cylinders are prescribed (as is the case in the top cylinder of the example above); these prescribed values are boundary conditions.
+* These cylinders are connected with pipes, whose cross sectional area are indicated inside the pipes by numbers. The flux between these cylinders is given by this area times the level differences between the cylinders connected.
+* There can be external amounts of fluids added to the cylinders, as, for instance, the flux with number 3 to the top.
 
 the fluxes between the cylinders is calculated by multiplying the gradient between the two cylinders and the cross sectional area. For example between $x_1$ and $x_2$ there is the following flow:
 
@@ -468,18 +468,17 @@ $$
 <span class="question">
 4.4 Plug the previous equations in a matrix in the following way:
 
-<span class="comment"> index </span>
 $$
 \begin{align}
-A * x &= b\\
+Ax &= b\\
 \begin{bmatrix}
-a&a&a\\b&b&b\\c&c&c
-\end{bmatrix} *
+a_{1} & b_{1} & c_{1}\\a_{2} & b_{2} & c_{2}\\a_{3} & b_{3} & c_{3}
+\end{bmatrix} \cdot
 \begin{bmatrix}
 x_1\\x_2\\x_3
 \end{bmatrix} &=
 \begin{bmatrix}
-d\\d\\d
+d_1\\d_2\\d_3
 \end{bmatrix}
 \end{align}
 $$
@@ -585,10 +584,10 @@ M[1,1] = 1
 b = c(2,0,0)
 print(solve(M,b))
 ```
-Nothing to disturb the system so it will become a static state with equal states everywhere
+There is nothing to disturb the system, so it will become a static state with a uniform final state.
 </span>
 
-This is the easiest way of implementing and solving systems with matrices. There are however smarter and faster ways of doing this. If you want to take a look, go to exercise 0 in the Finite_difference_2_extra.Rmd file.
+This is the easiest way of implementing and solving systems with matrices. There are, however, smarter and faster ways of doing this. If you want to do a challenging exercise, open Exercise 0 in the `Finite_difference_2_extra.Rmd` file.
 
 <span class="comment">
 Exercise 6 in the pdf could be useful
