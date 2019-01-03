@@ -28,24 +28,24 @@ In this tutorial, you will analyse and develop models of ordinary differential e
 
 # Part 1 - Simple models in time
 ## Section 1.1 - Introduction ordinary differential equations
-The first model that you will study, is that of an emptying bucket (see Figure). This is a very illustrative example, because this model has an analytical solution against which the outcome of the numerical models, that you will implement, can be compared (and it's intuitively understandable).
+The first model that you will study, is that of an emptying bucket (see Figure). This is a very illustrative example, because this model has an analytical solution against which the outcome of the numerical models, that you will implement, can be compared and it's intuitively understandable.
 
 ![](reservoir_properties.png) 
 
 *Sketch of the emptying bucket*
 
 This system can be represented by the following ODE:
-$$ \dfrac{ds}{dt} = -\alpha s(t) \tag{1}$$
+$$ \dfrac{ds(t)}{dt} = -\alpha s(t) \tag{1}$$
 This equation shows that change in the state variable $s$, in this case the water level, is proportional to the water level itself, multiplied with a positive constant $\alpha$ that describes the properties of the outlet. The larger $\alpha$, the easier water can flow out of the reservoir. Later in this tutorial, you will derive this model in detail, but first you will learn about its basic properties.
 
 The mathematical definition of a **time derivative of** the function $s(t)$ is as follows
 
-$$\dfrac{ds}{dt} = \lim_{\Delta t\to\ 0}\frac{s(t+\Delta t)-s(t)}{\Delta t} \tag{2}$$
-which teaches us that we can approximate the gradient of a function by taking the difference between to adjacent values and dividing it by the step size. If we take a step size that approximates zero, the derivative is exact. In this case, $\Delta t$ is an **infinitesimal difference**.
+$$\dfrac{ds(t)}{dt} = \lim_{\Delta t\to\ 0}\frac{s(t+\Delta t)-s(t)}{\Delta t} \tag{2}$$
+which teaches us that we can approximate the gradient of a function by taking the difference between two adjacent values and dividing it by the step size. If we take a step size that approximates zero, the derivative is exact. In this case, $\Delta t$ is an **infinitesimal difference**.
 
 For most practical applications, it is impossible to take an infinitesimal step size if we want to approximate the derivative. Instead, we mostly use a finite step size such that the approximation is equal to:
 
-$$ \dfrac{ds}{dt} \approx \frac{s(t+\Delta t)-s(t)}{\Delta t} \tag{3}$$
+$$ \dfrac{ds(t)}{dt} \approx \frac{s(t+\Delta t)-s(t)}{\Delta t} \tag{3}$$
 Note that this solution is no longer exact. The difference between $t$ and $t + \Delta t$ is a **finite difference** and has an associated approximation error (we will come back to this later). Generally, we can state that the larger the step size, the larger the error.
 
 With equation 3, we can build models in which we can approximate the value of the state $s$ at a future time step $t + \Delta t$.
@@ -59,14 +59,13 @@ $$ s(t+\Delta t) = s(t) - \Delta t *\alpha  s(t) \tag{4}$$
 $$ s(t+\Delta t) = s(t)(1-\alpha \Delta t) \tag{5}$$
 </span>
 
-In order to refresh your mathematics, calculate the analytical solution to equation 1, so we can use it later to validate your models against.
-
 <span class="question">
-1.1.2 Derive the exact solution of ordinary differential equation (ODE) of the emptying reservoir (equation 1). 
+1.1.2 In order to refresh your mathematics, calculate the analytical solution to equation 1, so we can use it later to validate your models against. Use the following initial condition $s(t = 0) = s_{0}$
 </span>
 
 <span class = "answer">
-$$\begin{align}
+$$
+\begin{align}\tag{6}
 ds &= -as \ dt\\
 \dfrac{1}{-as} ds &= dt\\
 \int \dfrac{1}{-as} ds &= \int dt\\
@@ -75,7 +74,8 @@ ds &= -as \ dt\\
 \ln(s) &= -at - aC\\
 s &= \mathrm{e}^{-aC}\mathrm{e}^{-at}\\
 s &= s_{0}\mathrm{e}^{-at}
-\end{align}$$
+\end{align}
+$$
 </span>
 
 ## Section 1.2 - Implementing emptying reservoir model
@@ -84,7 +84,7 @@ s &= s_{0}\mathrm{e}^{-at}
 </span>
 
 <span class="student_answer">
-```{r chunk1_question}
+```{r chunk1_question, eval=FALSE}
 sys.fun = function(state)
 {
     newstate = ...
@@ -136,7 +136,7 @@ grid()
 </span>
 
 <span class="question">
-1.2.3 Vary the `dt` parameter between 0.001 and 25. Are there any numerical problems arising beyond a certain value for `dt`? What are the problems arising when choosing a value for `dt` close to or on the high/low end of this range? Can you interpret your results in terms of convergence, oscillations and stability?
+1.2.3 Vary the `dt` parameter between 0.001 and 25. Are there any numerical problems arising beyond a certain value for `dt`? What are the problems when choosing a value for `dt` close to or on the high/low end of this range? Can you interpret your results in terms of convergence, oscillations and stability?
 </span>
 
 <span class="answer">
@@ -154,6 +154,7 @@ $\alpha$ | physically correct | convergent | stability | explanation
 15       | | | |  
 20       | | | |  
 25       | | | |  
+
 </span>
 
 <span class="answer">
@@ -222,18 +223,20 @@ Around `dt = 1` the analytical solution and the numerical approximation come qui
 
 # Part 2 - Taylor series
 ## Section 2.1 - Introduction of Taylor Series 
-The previous exercise can also be done in a more formal way, such that the error of the numerical approximation can be calculated. For that you will make us of **Taylor series**. Taylor series (https://en.wikipedia.org/wiki/Taylor_series) can be used to make approximations of complex mathematical functions using extrapolation <span class="comment">**[LM]** expansion</span>. If you use an infinite series, the approximation is exact. The finite difference approximation that you have derived earlier, can also be derived using a Taylor series. **TIP**: if you are unfamiliar with this topic or you simply want a refresher, you can watch the following video by *3Blue1Brown*: https://www.youtube.com/watch?v=3d6DsjIBzJ4
+The previous exercise can also be done in a more formal way, such that the error of the numerical approximation can be calculated. For that you will make use of **Taylor series**. Taylor series (https://en.wikipedia.org/wiki/Taylor_series) can be used to make approximations of complex mathematical functions using extrapolation. 
+<span class="comment">**[LM]** expansion</span>
+If you use an infinite series, the approximation is exact. The finite difference approximation that you have derived earlier, can also be derived using a Taylor series. **TIP**: if you are unfamiliar with this topic or you simply want a refresher, you can watch the following video by *3Blue1Brown*: https://www.youtube.com/watch?v=3d6DsjIBzJ4
 
 The mathematical definition of a Taylor series is as follows:
-$$f(x + \Delta x) = \sum_{n=0}^{\infty} f^{n}(x) \dfrac{\Delta x^{n}}{n!} \tag{6}$$
+$$f(x + \Delta x) = \sum_{n=0}^{\infty} f^{n}(x) \dfrac{\Delta x^{n}}{n!} \tag{7}$$
 
 Expansion of this function gives:
 
-$$f(x + \Delta x) = f(x) + f'(x)\frac{\Delta x}{1!} + f''(x)\frac{\left(\Delta x\right)^2}{2!} + f'''(x)\frac{\left(\Delta x\right)^3}{3!} + f''''(x)\frac{\left(\Delta x\right)^4}{4!} + \ ... \tag{7}$$
+$$f(x + \Delta x) = f(x) + f'(x)\frac{\Delta x}{1!} + f''(x)\frac{\left(\Delta x\right)^2}{2!} + f'''(x)\frac{\left(\Delta x\right)^3}{3!} + f''''(x)\frac{\left(\Delta x\right)^4}{4!} + \ ... \tag{8}$$
 
 If we use the definitions and notation of exercise 1, we find:
 
-$$s(t + \Delta t) = s(t) + \Delta t \frac{ds}{dt} \bigg\rvert_{t} + \frac{(\Delta t)^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{(\Delta t)^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{(\Delta t)^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{8}$$
+$$s(t + \Delta t) = s(t) + \Delta t \frac{ds}{dt} \bigg\rvert_{t} + \frac{(\Delta t)^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{(\Delta t)^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{(\Delta t)^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{9}$$
 
 In simple words, this formula estimates the exponential decay, starting from a specified time $t$ to a specific time-step into the future $\Delta t$, using only information that is known at $t$. The more terms are taken into account, the more accurate this approximation gets. 
 
@@ -258,10 +261,10 @@ $$ error = \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\De
 </div>
 
 ##Section 2.2 - Error of estimation
-If you prefer a **challenging exercise**, you can open Exercise 3 in the `Finite_differences_1_challenges.Rmd` file. If not, you can proceed with this exercise.
+If you prefer a **challenging exercise**, you can open Exercise 3 in the `Finite_differences_1_extended.Rmd` file. If not, you can proceed with this exercise.
 
 <span class="question">
-2.1.1 1 Run the chunk below, which will open a new window. The chunk calculates the state s of the reservoir at $t_0 + \Delta t$ (the first timestep), using a defined number of terms of the Taylor series. It also shows the error at $t_0 + \Delta t$ (compared with the analytical solution). The approximation we used so far (which gives the black line) is based on two Taylor terms. Use the arrows to change the number of terms of the Taylor series that are implemented and write down the errors between the Taylor series implementation and the true emptying bucket.
+2.1.1 1 Run the chunk below, which will open a new window. The chunk calculates the state s of the reservoir at $t_0 + \Delta t$ (the first timestep), using a defined number of terms of the Taylor series. It also shows the error at $t_0 + \Delta t$ (compared with the analytical solution). The approximation we used so far (which gives the black line) is based on the first two terms of the Taylor series. Use the arrows to change the number of terms of the Taylor series that are implemented and write down the errors between the Taylor series implementation and the true emptying bucket.
 
 terms | error 
 ----- | ----- 
@@ -394,9 +397,9 @@ terms | error
 
 #Part 3 - An emptying reservoir with input.
 ##Section 3.1 - Introducing input
-In this exercise, the emptying reservoir model will be adapted to make it more realistic, by adding an input source that depends on time. This introduces an extra source of fluctuation and makes the output graph more complex. Therefore, it is an excellent model to investigate the accuracy of different type of integration methods.We introduce a simple input function that could for instance describe a time-varying precipitation $\sin(time)+1$:
+In this exercise, the emptying bucket model will be adapted to make it more realistic, by adding an input source that depends on time. This introduces an extra source of fluctuation and makes the output graph more complex. Therefore, it is an excellent model to investigate the accuracy of different type of integration methods. We introduce a simple input function that could, for instance, be described as time-varying precipitation $\sin(time)+1$:
 
-```{r chunk6}
+```{R chunk6}
 time = seq(0, 50, by=0.5)
 plot(time, sin(time)+1, type='o', xlab="time", ylab="state")
 ```
@@ -431,19 +434,19 @@ $$
 \begin{matrix}
 \dfrac {dV}{dt} &=& Q_{in} - Q_{out}\\
 Q_{in} &=& \sin(t) + 1 \\
-Q_{out} &=& \alpha \,s(t) \\
+Q_{out} &=& \alpha \ s(t) \\
 V &=& A\,s(t) \\
-A\dfrac{ds}{dt} &=& {(\sin(t)+1)} - \alpha\,s(t) \\
-\dfrac {s(t+\Delta t)-s(t)} {\Delta t} &=& \dfrac 1 A((\sin(t)+1) - \alpha\,s(t)) \\
-s(t+\Delta t) &=& s(t) + \dfrac{\Delta t}{A} ((\sin(t)+1) - \alpha\,s(t))
+A\dfrac{ds}{dt} &=& {(\sin(t)+1)} - \alpha\ s(t) \\
+\dfrac {s(t+\Delta t)-s(t)} {\Delta t} &=& \dfrac{1}{A}((\sin(t)+1) - \alpha\,s(t)) \\
+s(t+\Delta t) &=& s(t) + \dfrac{\Delta t}{A} ((\sin(t)+1) - \alpha\ s(t))
 \end{matrix}
 $$
 </span>
 
 <span class="question"> 
-3.1.2 Copy chunk three here and add a new, updated `sys.fun` that represents the equation derived in question 3.1.1. Use the following parameter values:
+3.1.2 Copy `chunk3` here and add a new, updated `sys.fun` that represents the equation derived in question 3.1.1. Replace the parameter section with the following:
 
-```{r chunk7}
+```{}
 rm(list=ls())
 # Initial parameter values
 begin.time = 0     # usually this variable is set to 0
@@ -457,6 +460,15 @@ A          = 4     # surface of the bucket
 
 <span class="answer">
 ```{r chunk8}
+rm(list=ls())
+# Initial parameter values
+begin.time = 0     # usually this variable is set to 0
+end.time   = 50    # end time of the simulation
+dt         = 0.1   # delta t; time discretisation
+init.state = 3     # state of the system at the beginning of the simulation
+alpha      = 1     # decay constant
+A          = 4     # surface of the bucket
+
 # Simulation initialisation
 time             = begin.time
 result.state     = c(init.state)
@@ -576,20 +588,20 @@ If everything went well, there are two lines in the graph. The grey line is the 
 # Part 4 - Different integration methods
 So far, you have used the *explicit* integration scheme. This means that information of the current time step is used to calculate the future. In mathematical notation, this sentence can be formulated as:
 
-$$\frac{dV}{dt} = f(t, s(t))$$
+$$\frac{dV}{dt} = A\dfrac{ds}{dt} = f(t, s(t)) \tag{15}$$
 However, other methods do exist. In the following sections, you will encounter the implicit, midpoint, and Runge-Kutta time-integration methods that each have their own specific properties.
 
 ## Section 4.1 - Implicit method
 The implicit integration scheme is based on taking the derivative not with the current information, but with the information from the next time-step. In mathematical formulation it looks like this:
 
-$$\frac{dV}{dt} = f(t+\Delta t, s(t + \Delta t))$$
-The difference between explicit and implicit is explained best with a couple of graphs. The first graph shows the explicit methodology. The grey lines show the derivative field, the rate of change. In the explicit solution you following the line found at the current point for one time-step. This will overshoot the answer in this case but with the second time-step the approximation comes close to the real solution given in red.
+$$\frac{dV}{dt} = A\dfrac{ds}{dt} = f(t+\Delta t, s(t + \Delta t)) \tag{16}$$
+The difference between explicit and implicit is explained best with a couple of graphs. The first graph shows the explicit method. The grey lines show the derivative field, the rate of change. In the explicit solution you following the line found at the current point for one time-step. This will overshoot the answer in this case but with the second time-step the approximation comes close to the real solution given in red.
 
 ![](vectorfield_explicit.png)
 The implicit method works differently. It evaluates the gradient found at the next time-step and works back to the current point. 
 
 ![](vectorfield_implicit.png)
-The methods behave very differently. The explicit scheme has oscillatory behavior and has outliers far from the correct solution. The implicit method is a bit more conservative. It is more stable and is more likely to keep within physical limitations. However, it is computationally more expensive to run and is generally harder to implement, especially for non-linear functions, as you will see in the next exercises.
+The methods behave very differently. The explicit scheme has oscillatory behaviour and has outliers far from the correct solution. The implicit method is a bit more conservative. It is more stable and is more likely to keep within physical limitations. However, it is computationally more expensive to run and is generally harder to implement, especially for non-linear functions, as you will see in the next exercises.
 
 <span class="question">
 4.1.1 Derive a new equation for $s(t+\Delta t)$ for the emptying reservoir with variable input of Part 3 using the implicit time-integration method.
@@ -597,7 +609,7 @@ The methods behave very differently. The explicit scheme has oscillatory behavio
 
 <span class="answer">
 $$\begin{matrix}
-\dfrac{dV(t)}{dt} &=& f(t+\Delta t)\\
+\dfrac{dV(t)}{dt} &=& f(t+\Delta t,s(t+\Delta t))\\
 f(t,s(t)) &=& (sin(t)+1) - \alpha s(t)\\
 \dfrac{ds(t)}{dt} &=& \dfrac{1}{A}((sin(t+\Delta t)+1) - \alpha s(t + \Delta t))\\
 \dfrac{ds(t)}{dt} &=& \dfrac {s(t+\Delta t)-s(t)} {\Delta t}\\
@@ -609,7 +621,7 @@ s(t+\Delta t) &=& \dfrac{1}{1 + \alpha\frac{\Delta t}{A}}(s(t) + \dfrac{\Delta t
 </span>
 
 <span class="question"> 
-4.1.2 Copy the previous chunk with the explicit scheme and replace the `sys.fun` with the implicit version.
+4.1.2 Copy the previous chunk with the explicit scheme here and replace the `sys.fun` with the implicit version.
 </span>
 
 <span class="answer">
@@ -681,10 +693,10 @@ Most natural systems have a negative feedback on themselves. In this case, the s
 
 Midpoint methods calculate the solution in two steps and exist in many variants. The midpoint method that you will use, tries to combine the explicit and implicit methods and aims to keep the good properties of both. First, the method takes half a time-step using the explicit method, and subsequently the implicit method will be used for the second half step. In mathematical formulation it works as follows:
 
-$$\widetilde{s} = s(t) + \frac{\Delta t}{2} \ f(t,s(t)) $$
+$$\widetilde{s} = s(t) + \frac{\Delta t}{2} \ f(t,s(t)) \tag{17}$$
 $\tilde{s}$ is the midpoint. Then we calculate s at $t+\Delta t$:
 
-$$s(t+\Delta t) = \widetilde{s} + \frac{\Delta t}{2} \ f(t+\Delta t,s(t+\Delta t))$$
+$$s(t+\Delta t) = \widetilde{s} + \frac{\Delta t}{2} \ f(t+\Delta t,s(t+\Delta t)) \tag{18}$$
 
 ![](vectorfield_midpoint.png)
 
@@ -693,7 +705,7 @@ In comparison with the implicit and explicit schemes, the midpoint method conver
 <span class="question"> 
 4.2.2 Copy the chunk with the implicit scheme here. To make the code more readable the following function can be added to the code (before the `sys.fun` function). This function performs the explicit half step. In the emptying bucket with input this formula looks as follows:
 
-$$ g_{explicit}(t,s(t)) = \widetilde{s} = s(t) + \dfrac{dt}{2A}((\sin(t) + 1) - \alpha s(t))$$
+$$ g_{explicit}(t,s(t)) = \widetilde{s} = s(t) + \dfrac{dt}{2A}((\sin(t) + 1) - \alpha s(t)) \tag{19}$$
 ```{}
 g_explicit = function(time, state){
   return(state + dt/(2*A)*((sin(time)+1)-alpha*state))
@@ -736,7 +748,6 @@ g_explicit = function(time, state){
 }
 
 g_implicit = function(time, state){
-  
   return(1/(1+(dt*alpha)/(2*A))*(state + dt/(2*A)*(sin(time+dt/2)+1)))
 }
 
@@ -795,7 +806,7 @@ Is this correct and readable?
 </span>
 
 $$
-\begin{matrix}
+\begin{matrix}\tag{20}
 \kappa_1 &=& \Delta t\:f(t,s(t))\\
 \kappa_2 &=& \Delta t\:f(t + \frac{1}{2} \Delta t,\: s(t) + \frac{1}{2} \kappa_1)\\
 \kappa_3 &=& \Delta t\:f(t + \frac{1}{2} \Delta t,\: s(t) + \frac{1}{2} \kappa_2)\\
@@ -804,7 +815,7 @@ s(t+\Delta t) &=& s(t)+\dfrac{\kappa_1+2\kappa_2+2\kappa_3+\kappa_4}{6}
 \end{matrix}
 $$
 <span class="comment">
-maybe an interesting addition, that the error for RK4 is usually estimated with RK5?
+**[LM]** maybe an interesting addition, that the error for RK4 is usually estimated with RK5?
 </span>
 
 <span class="question">
@@ -1090,6 +1101,7 @@ server <- function(input, output) {
 
 shinyApp(ui, server)
 ```
+
 <span class="student_answer">
 
 dt|Explicit|Implicit|Midpoint|Runge-Kutta
@@ -1113,11 +1125,9 @@ Its practical use may for example be found in meteorology, where you could have 
 
 *Double piped reservoir with both outlets active (left) and with lower outlet active (right).*  
 
-***   
-
 Depending on the state of the reservoir, the discharge out of the upper outlet is active or inactive and depends on the exact location of the upper outlet. In simple terms, this means that if the water-level is high enough it can come out at the upper outlet (left image). If the water level is lower than the upper outlet the outlet becomes inactive (right image).
 
-For this situation, we will still use the same equation for the outflows: $Q_{out}=\alpha*H$, where H is the height of water above the outlet. Note that before we used only a lower outlet, located at the bottom of the reservoir, so that $H=s$ and $Q_{out}=\alpha*s$. For the upper outlet, H depends on the height of the outlet pipe. Besides a different height, the two outlets might also have a different $\alpha$.
+For this situation, we will still use the same equation for the outflows: $Q_{out}=\alpha*H$, where H is the height of water above the outlet. Note that before we used only a lower outlet, located at the bottom of the reservoir, so that $H = s$ and $Q_{out}=\alpha*s$. For the upper outlet, H depends on the height of the outlet pipe. Besides a different height, the two outlets might also have a different $\alpha$.
 
 <span class="question">6.1 Set up a model including the input flux ($Q_{in}$), volume change over time and the output fluxes (discharges). Next, derive a numerical approximation for the state using the explicit integration scheme</span>  
 
@@ -1143,11 +1153,13 @@ s(t + \Delta t)&=&s(t)+\dfrac{\Delta t}{A} \left(Q_{in}-\alpha_{res.up}(s(t)-lev
 $$
 </span>
 
-The script below implements this type of double-output reservoir model for a real-world case. The script simulates the discharge of the Hupselse Beek (Gelderland). The input Q_in is based on the recharge in the catchment of the Hupselse Beek. The discharge calculated by the model can be compared to the discharge observed at the weir downstream of the brook. The time series in ???hupsel.dat??? contains 500 days of recharge and discharge data (daily time steps)
+The script below implements this type of double-output reservoir model for a real-world case. The script simulates the discharge of the Hupselse Beek (Gelderland). The input Q_in is based on the recharge in the catchment of the Hupselse Beek. The discharge calculated by the model can be compared to the discharge observed at the weir downstream of the brook. The time series in `hupsel.dat` contains 500 days of recharge and discharge data (daily time steps)
 This script creates two different plots containing:
 *   the modeled balance
 *   the observed and calculated discharge of the brook including a statistic on the performance  
-<span class="question">6.2 Implement the numerical approximation in the `sys.fun` function and run the model.   
+
+<span class="question">
+6.2 Implement the numerical approximation in the `sys.fun` function and run the model.   
 </span>
 
 <span class="student_answer">
@@ -1382,8 +1394,8 @@ title(main=paste('Observed (grey) vs. calculated discharges ','SS = ',Sumsquares
 6.3  Analyse the effect of the different reservoir parameters (`res.A`, `res.alpha.lw`, `res.alpha.up` and `res.level.up`) on the behavior of the model. Explain your findings.
 </span>
 
-<span class="answer">The four reservoir parameters: 
-
+<span class="answer">
+The four reservoir parameters: 
 * `res.A`:  With the area the total volume in the reservoir is controlled. Small A results in less volume of water resulting in a peaky-er discharge.
 * `res.alpha.lw`:   the lower outlet of the reservoir regulates the dynamics of the discharge; the larger $\alpha$ the directer the discharge occur. Base flow (the tails after the peaks) is reduced.
 * `res.alpha.up/res.lvl.up`:  the activity is regulated with the height of the upper outlet. If the state is below this level, the upper outlet is inactive. If the state is higher than the upper outlet it acts similar as with `res.alpha.lw` 
