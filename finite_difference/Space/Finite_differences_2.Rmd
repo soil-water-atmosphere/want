@@ -788,7 +788,7 @@ plot(xcoor, v_forward, ylab="state (m)", xlab="x (m)", type='o', col='blue', yli
 # ADD THE OTHER TWO LINES
 x_sol = seq(left, right, by=0.05)
 lines(x_sol, cos(x_sol), type='l', col="grey", lwd=2)
-title(main='Forward differencing scheme with matrices')
+title(main='Differencing scheme with matrices')
 grid()
 ```
 </span>
@@ -858,7 +858,7 @@ lines(xcoor, v_backward, type='o', col='red') # numerical approximation
 lines(xcoor, v_centered, type='o', col='green') # numerical approximation
 x_sol = seq(left, right, by=0.05)
 lines(x_sol, cos(x_sol), type='l', col="grey", lwd=2)
-title(main='Forward differencing scheme with matrices')
+title(main='Differencing scheme with matrices')
 grid()
 ```
 </span>
@@ -1038,13 +1038,14 @@ s(x - \Delta x) & = s(x) - \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} +
 
 <div class="exercise">
 X.X.1 Combine the two equations such that the term containing the first derivative falls out of the equation.
+</div>
 
 <div class="answer">
 $$
 s(x + \Delta x) + s(x - \Delta x)
 = 2 s(x) + (\Delta x)^2 \dfrac{d^{2}s}{dx^{2}} + \dfrac{(\Delta x)^2}{12} \dfrac{d^4 s}{dx^4}
 $$
-</span>
+</div>
 
 <div class="exercise">
 X.X.2 Rewrite the equation such, that the operator (thus all instances of $s(x-\Delta x)$, $s(x)$, and $s(x+\Delta x)$) is on the lefthand side, and the second derivative and the error is on the righthand side.
@@ -1055,7 +1056,7 @@ $$
 \dfrac{ s(x + \Delta x) - 2s(x) + s(x - \Delta x)}{(\Delta x)^2} 
 = \dfrac{d^{2}s}{dx^{2}} + \dfrac{(\Delta x)^2}{12} \dfrac{d^4 s}{dx^4}
 $$
-</span>
+</div>
 
 <div class="exercise">
 4.2.1 Use the derived operator to construct a matrix that can be used to compute the second derivative. Copy the block of forward differencing operator and adapt it to show the second derivative. Keep in mind that you also have to prescribe the correct analytical solution!
@@ -1066,9 +1067,9 @@ Implement your code here
 ```{r}
 # WHOOP WHOOP NEW CODE.
 ```
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{r central_second_derivative}
 rm(list=ls()) 
 
@@ -1101,7 +1102,107 @@ lines(x_sol,-sin(x_sol),type='l', col="grey",lwd=2)
 title(main='Second derivative computed with matrices')
 grid()
 ```
-</span>
+</div>
+
+# Part X: Solving equations using matrix inversions.
+Before solving the advection diffusion equation directly, you will learn how to combine the spatial operators and the matrix inversion that you have learned before. 
+
+Imagine now, that rather than knowing the state $s(x)$ of the system, you know the values of the first derivative at each node. Assume that the value of the derivative is given by $\cos(x)$, we can invert the system to acquire the values of $s(x)$ at each node. Let us assume, we use the forward differencing operator as worked out in *Exercise X*.
+
+We can now define the system as a set of equations in the form
+$$
+M s = v
+$$
+where $v$ in this case is the the vector $( (ds/dx)_1, (ds/dx)_2, \ldots, (ds/dx)_n)$. In order to acquire the state vector $s$, we need to apply matrix algebra.
+
+<div class="exercise">
+X.X.X Write out the matrix operations that provide the values of $s$.
+</div>
+
+<div class="answer">
+$$
+\begin{matrix}
+M  s &=& v\\
+M^{-1}M s &=& M^{-1}v\\
+I s &=& M^{-1}v\\
+s &=& M^{-1}v
+\end{matrix}
+$$
+</div>
+
+Now, you will put the mathematics above into code.
+
+<div class="exercise">
+X.X.X Implement the matrix $M$ that contains the spatial operator, work out the vector $v$ that contains the derivatives evaluated using $\cos(x)$, and use these two to solve for $s$.
+
+X.X.X Most likely, the developed system does not solve, because you did not implement a boundary condition. Fix the value at $x = 2 \pi$ to $0$ and solve it again. Does the system converge to the correct solution if you decrease `dx`?
+</div>
+
+<div class="student_answer">
+Work out the code below:
+```{r forward_derivative_inversion, eval=FALSE}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/2
+left  = 0
+right = 2*pi
+xcoor = seq(left, right, by=dx) # builds a list of all coordinates
+
+M = matrix(0, nrow=length(xcoor), ncol=length(xcoor)) # an empty matrix for the differencing scheme
+
+# DEFINE THE VECTOR v WHICH CONTAINS THE DERIVATIVES.
+
+# CREATE THE MATRIX.
+nx = length(xcoor)
+
+# SOLVE THE SYSTEM IN ORDER TO ACQUIRE THE VECTOR s WHICH CONTAINS THE STATE.
+
+# plotting
+plot(xcoor, s, ylab="state (m)", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+x_sol = seq(left, right, by=0.05)
+
+# ADD A THICK GREY LINE CONTAINING THE ANALYTICAL SOLUTION.
+
+title(main='Inversion of the forward finite difference operator for the derivative')
+grid()
+```
+</div>
+
+```{r forward_derivative_inversion_answer}
+rm(list=ls()) 
+
+# setting up initial parameters
+dx    = pi/2
+left  = 0
+right = 2*pi
+xcoor = seq(left, right, by=dx) # builds a list of all coordinates
+
+M = matrix(0, nrow=length(xcoor), ncol=length(xcoor)) # an empty matrix for the differencing scheme
+v = cos(xcoor)
+
+# populating vector and matrix
+nx = length(xcoor)
+for (j in 1:(nx-1))
+{
+  M[j,j+1] = +1/dx
+  M[j,j]   = -1/dx
+}
+
+M[nx,nx] = 1
+v[nx] = sin(xcoor[nx])
+
+# Apply the derivative operator using matrix multiplication.
+s = solve(M,v)
+
+# plotting
+plot(xcoor, s, ylab="state (m)", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+x_sol = seq(left, right, by=0.05)
+lines(x_sol, sin(x_sol), type='l', col="grey", lwd=2)
+title(main='Inversion of the forward finite difference operator for the derivative')
+grid()
+```
+
 
 For the first example with the three differencing schemes we will examine the simplest wave equation possible, a sinus-function ($s(x) = \sin(x)$) with it's derivative that is the opposite cosine wave ($\frac{ds}{dx}=\cos(x)$). The first chunk is fully preprogrammed, it is exactly the same as the approach used for time integration. Easiest way to understand it is to work from left to right (instead of from the beginning to the end as we did with the time dimension). An forward integration scheme is used, meaning that information of one point is used to calculate the point directly to the right of it. Still the same stuff as in the previous practical but it's maybe a bit less intuitive. The following information about the system is available:
 
@@ -1404,11 +1505,17 @@ grid()
 
 # Part 5 - Solving the advection-diffusion equation.
 ## Section 5.1 - Boundary conditions
-Part 3 and 4 handled only the simplest of differential equations but some useful insights might be obtained. The first and most important one is that there are two different ways of solving the equations; one after the other (as the method used in the *time* practical) and one levaraging the power and simplicity of matrix algebra. The more comlex the equations become, the harder it becomes to implement the first methodology while the solution based on matrix algebra does not get much more difficult. Especially in the next practical, when we will be looking at both time and space integration at the same time, the matrix solution is much more straightforward. The other important message is that boundary conditions are important to solve ODEs. In the "time" practical this was present in an initial state and in the chunks above left and right boundary conditions had to be implemented. So far we have only implemented one type of boundary condition; the dirichlet boundary condition. This method assumes a fixed state on one or all boundaries. If the state directly next to this border has (more or less) the same state, it means that no flux goes over the boundary while a large difference leads to a high flux. Another option is to implement a fixed gradient boundary condition (Neumann boundary condition) that does not specify the state but only the gradient between the boundary cell and the cell right next to it. This can be very usefull as will be shown in the next sections but at the same time it can be problematic. If all boundaries are fixed gradient boundaries, the system is not solvable. If only gradients are defined the solution will be relative and no absolute solution *can* exist. To account for this at least one Dirichlet boundary is needed to anchor the solution. It works as a reference for all other values. The last type of boundary condition is the Cauchy/Robin boundary condition. It specifies both the state and the gradient. Summarising;
+In the final part of the exercise, you will apply everything that you have learned in order to solve the advection diffusion equation. The steady-state advection-diffusion equation
+$$
+0 = -u \dfrac{ds}{dx} + D \dfrac{d^2s}{dx^2}
+$$
+contains both first- and second-order derivatives. In order to solve such an equation, you need to apply boundary conditions, in order to make the matrix invertible. So far we have only implemented one type of boundary condition; the **Dirichlet boundary condition**. This method assumes a fixed state at one or all boundaries. If the state directly next to this border has (more or less) the same state, it means that there is no flux over the boundary, whereas a large difference leads to a large flux. 
 
-* Dirichlet (fixed state)
-* Neumann (fixed gradient)
-* Cauchy/Robin (fixed state and fixed gradient)
+Another option is to implement a so-called **Neumann boundary condition** in which the gradient is fixed. Such a boundary condition is often used if we desire to control the flux through the boundary. The final type of boundary condition is the **Cauchy/Robin boundary condition**, in which both the state and the gradient are specified. To summarize, the three possible boundary conditions are:
+
+* Dirichlet (fixed state: $s = c$)
+* Neumann (fixed gradient $ds/dx = c$)
+* Cauchy/Robin (fixed state and fixed gradient $as + b\,ds/dx = c$)
 
 <span class="comment">
 This is a quick summary of boundary conditions, but do we want to give it like this or should the students find this out for themselves?
