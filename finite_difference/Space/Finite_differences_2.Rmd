@@ -408,7 +408,7 @@ In what follows, flow problems will be defined by graphs such as:
 * These cylinders are connected with pipes, whose cross sectional area are indicated inside the pipes by numbers. The flux between these cylinders is given by this area times the level differences between the cylinders connected.
 * There can be external amounts of fluids added to the cylinders, as, for instance, the flux with number 3 to the top.
 
-the fluxes between the cylinders is calculated by multiplying the gradient between the two cylinders and the cross sectional area. For example between $x_1$ and $x_2$ there is the following flow:
+the fluxes between the cylinders is calculated by multiplying the difference between the two cylinders and the cross sectional area. For example between $x_1$ and $x_2$ there is the following flow:
 
 $$q_{1\to2} = 7(x_1-x_2)$$
 which is equal to the flux going in the other direction:
