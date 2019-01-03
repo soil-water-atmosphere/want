@@ -7,7 +7,7 @@ import os
 import re
 import copy
 
-def create_versions(filename, output_directory  = "++",
+def parse(filename, output_directory  = "++",
                     start  = True , start_name  = "",
                     answer = False, answer_name = "",
                     origin = False, origin_name = "",
@@ -16,8 +16,8 @@ def create_versions(filename, output_directory  = "++",
     # filename of Rmd file, this can be a pathname if required
     #
     # output_directory where files will be written to
-    # default is "." which means it will be written to the current directory of python file
-    # output_directory = ++ creates the files in the same folder as the Rmd file
+    # output_directory = "." means it will be written to the current directory
+    # output_directory = "++" creates the files in the same folder as the Rmd file
     #
     # start,answer,origin -> toggles for creation of files (start is True by default)
     # _name -> output file name
@@ -45,15 +45,15 @@ def create_versions(filename, output_directory  = "++",
             list_classes = ("answer", "student_answer", "question", "comment")
             for html_class in list_classes:
                 pattern = re.compile(r'<[^\n<]*?"{}"[^\n]*?>'.format(html_class),re.S)
-                RMD_file = re.sub(pattern,'<span class="{}">'.format(html_class),RMD_file)
+                RMD_file = re.sub(pattern,'<div class="{}">'.format(html_class),RMD_file)
             
         
         # set closing tags
         pattern = re.compile(r'</[^\n<]*?{}[^\n]*?>'.format("span"),re.S)    
-        RMD_file = re.sub(pattern,"</span>",RMD_file)
+        RMD_file = re.sub(pattern,"</div>",RMD_file)
         
         pattern = re.compile(r'</[^\n<]*?{}[^\n]*?>'.format("div"),re.S)    
-        RMD_file = re.sub(pattern,"</span>",RMD_file)
+        RMD_file = re.sub(pattern,"</div>",RMD_file)
         
         if css:
             #find css file insertion
@@ -69,7 +69,7 @@ def create_versions(filename, output_directory  = "++",
                 folders = filename.split("/")
                 count_folders = len(folders)
                 
-                css_file = ("/".join(folders[:count_folders-back-1])+"/" + file)[1:]
+                css_file = ("/"+"/".join(folders[:count_folders-back-1])+"/" + file)[1:]
                 with open(css_file,"r") as f:
                     css_text = f.read()
                     
@@ -98,7 +98,7 @@ def create_versions(filename, output_directory  = "++",
                 folders = filename.split("/")
                 count_folders = len(folders)
                 
-                js_file = ("/".join(folders[:count_folders-back-1])+"/" + file)[1:]
+                js_file = ("/"+"/".join(folders[:count_folders-back-1])+"/" + file)[1:]
                 with open(js_file,"r") as f:
                     js_text = f.read()
                 
@@ -121,12 +121,12 @@ def create_versions(filename, output_directory  = "++",
             # Create copy of the Rmd file 
             RMD_file_start = copy.copy(RMD_file)
                 
-            # remove answer class 
-            pattern = re.compile(r'<span class="answer">.*?</span>',re.S)
-            RMD_file_start = re.sub(pattern, "", RMD_file_start)
-                
             # remove comment class
-            pattern = re.compile(r'<span class="comment">.*?</span>',re.S)
+            pattern = re.compile(r'<div class="comment">.*?</div>',re.S)
+            RMD_file_start = re.sub(pattern, "", RMD_file_start)
+            
+            # remove answer class 
+            pattern = re.compile(r'<div class="answer">.*?</div>',re.S)
             RMD_file_start = re.sub(pattern, "", RMD_file_start)
                 
             # write file
@@ -141,12 +141,12 @@ def create_versions(filename, output_directory  = "++",
             # Create copy of the Rmd file 
             RMD_file_answer = copy.copy(RMD_file)
             
-            # remove student_answer class 
-            pattern = re.compile(r'<span class="student_answer">.*?</span>',re.S)
-            RMD_file_answer = re.sub(pattern, "", RMD_file_answer)
-    
             # remove comment class
-            pattern = re.compile(r'<span class="comment">.*?</span>',re.S)
+            pattern = re.compile(r'<div class="comment">.*?</div>',re.S)
+            RMD_file_answer = re.sub(pattern, "", RMD_file_answer)
+            
+            # remove student_answer class 
+            pattern = re.compile(r'<div class="student_answer">.*?</div>',re.S)
             RMD_file_answer = re.sub(pattern, "", RMD_file_answer)
                 
             # write file
@@ -162,7 +162,7 @@ def create_versions(filename, output_directory  = "++",
             RMD_file_origin = copy.copy(RMD_file)    
         
             # remove comment class
-            pattern = re.compile(r'<span class="comment">.*?</span>',re.S)
+            pattern = re.compile(r'<div class="comment">.*?</div>',re.S)
             RMD_file_origin = re.sub(pattern, "", RMD_file_origin)
                 
             # write file
@@ -181,21 +181,23 @@ def find_all_Rmd():
         print(f)
     return(files)
     
-  
-# creates only a start version in the same directory as the python script
-# create_versions("Finite_differences_1.Rmd")
+#### EXAMPLES
+# create start versions of all RMD's in the base folder
+#os.chdir("/Users/jroebroek/WANT")
+#for f in find_all_Rmd():
+#    parse(f,".")
 
-# creates only a start version in the directory of the Rmd file
-# create_versions("test/t_Finite_differences_1.Rmd", output_directory = "++")
+# create start version of FD_time in the folder of the parser with css and js 
+# baked into the RMD
+#parse("/Users/jroebroek/WANT/finite_difference/Time/Finite_differences_1.Rmd",
+#      output_directory = ".", js = True, css = True)
 
-
-# command to turn all Rmds of all subdirectories into all versions
-# for f in find_all_Rmd():
-#    create_versions(f,"versions",answer=True,origin=True)
-
-# change working directory
-# os.chdir("/Users/jroebroek/WANT")   
-# find_all_Rmd() 
-
-os.chdir("/Users/jroebroek/WANT/finite_difference/Start Automation")   
-create_versions("Finite_differences_1.Rmd", js=True, css=True)
+# create start versions of all RMD's in their own folder
+#os.chdir("/Users/jroebroek/WANT")
+#for f in find_all_Rmd():
+#    parse(f) 
+    
+# create start, original and answer version in a folder named versions in the base folder
+os.chdir("/Users/jroebroek/WANT")
+for f in find_all_Rmd():
+    parse(f, "versions", answer=True) 
