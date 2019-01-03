@@ -7,6 +7,12 @@ import os
 import re
 import copy
 
+def clean_RMD(RMD, classes):
+    for html_class in classes:
+        pattern = re.compile(r'<div class="{}">.*?</div>'.format(html_class),re.S)
+        RMD     = re.sub(pattern, "", RMD)
+    return RMD
+
 def parse(filename, output_directory  = "++",
                     start  = True , start_name  = "",
                     answer = False, answer_name = "",
@@ -42,7 +48,7 @@ def parse(filename, output_directory  = "++",
         #print(filename)
         with open(filename, "r") as f:
             RMD_file = f.read()
-            list_classes = ("answer", "student_answer", "question", "comment")
+            list_classes = ("answer", "student_answer", "question", "comment", "exercise")
             for html_class in list_classes:
                 pattern = re.compile(r'<[^\n<]*?"{}"[^\n]*?>'.format(html_class),re.S)
                 RMD_file = re.sub(pattern,'<div class="{}">'.format(html_class),RMD_file)
@@ -57,10 +63,11 @@ def parse(filename, output_directory  = "++",
         
         if css:
             #find css file insertion
-            pattern = re.compile(r'css.*?css',re.S)
+            pattern = re.compile(r'[^\n]*css.*?css.*?[\n]',re.S)
             css     = re.findall(pattern,RMD_file)
+            css     = css[0].rstrip()
             if len(css)>0:
-                css_file = css[0].split(" ")[-1]
+                css_file = css.split(" ")[-1]
                 path     = css_file.split("/")
                 
                 back     = path.count("..")
@@ -77,12 +84,12 @@ def parse(filename, output_directory  = "++",
             
             pattern = re.compile(r'---',re.S)
             head    = [m.span() for m in re.finditer(pattern,RMD_file)]
-            css_write_text = "<style>\n"+css_text+ "\n</style>"
+            css_write_text = "<style>\n" + css_text + "\n</style>"
             
             RMD_file = RMD_file[:head[1][1]+1] + '\n' + css_write_text + RMD_file[head[1][1]:]
         
         if js:
-            #find css file insertion
+            #find js file insertion
             pattern = re.compile(r'<script.*?</script>',re.S)
             js      = re.findall(pattern,RMD_file)
             
@@ -115,19 +122,19 @@ def parse(filename, output_directory  = "++",
             
         if(start):  
             ####### make start version #####    
-            if start_name == "": start_name = "start_" + filename
-            else: start_name = start_name + ".Rmd"
+            if start_name == "": 
+                start_name = "start_" + filename
+            elif use_name_as_prefix: 
+                start_name = start_name + filename + ".RMD"
+            else: 
+                start_name = start_name + ".Rmd"
             
             # Create copy of the Rmd file 
             RMD_file_start = copy.copy(RMD_file)
-                
-            # remove comment class
-            pattern = re.compile(r'<div class="comment">.*?</div>',re.S)
-            RMD_file_start = re.sub(pattern, "", RMD_file_start)
             
-            # remove answer class 
-            pattern = re.compile(r'<div class="answer">.*?</div>',re.S)
-            RMD_file_start = re.sub(pattern, "", RMD_file_start)
+            # remove the following classes from the RMD-file
+            remove_classes = ["comment","answer"]
+            RMD_file_start = clean_RMD(RMD_file_start,remove_classes)
                 
             # write file
             with open(output_directory + "/" + start_name, "w") as f:
@@ -135,35 +142,39 @@ def parse(filename, output_directory  = "++",
             
         if(answer):    
             ####### make answer version #####
-            if answer_name == "": answer_name = "answer_" + filename
-            else: answer_name = answer_name + ".Rmd"
+            if answer_name == "": 
+                answer_name = "answer_" + filename
+            elif use_name_as_prefix: 
+                answer_name = answer_name + filename + ".RMD"
+            else: 
+                answer_name = answer_name + ".Rmd"
             
             # Create copy of the Rmd file 
             RMD_file_answer = copy.copy(RMD_file)
+    
+            # remove the following classes from the RMD-file
+            remove_classes = ["comment","student_answer"]
+            RMD_file_answer = clean_RMD(RMD_file_answer,remove_classes)
             
-            # remove comment class
-            pattern = re.compile(r'<div class="comment">.*?</div>',re.S)
-            RMD_file_answer = re.sub(pattern, "", RMD_file_answer)
-            
-            # remove student_answer class 
-            pattern = re.compile(r'<div class="student_answer">.*?</div>',re.S)
-            RMD_file_answer = re.sub(pattern, "", RMD_file_answer)
-                
             # write file
             with open(output_directory + "/" + answer_name, "w") as f:
                 f.write(RMD_file_answer)
                 
         if(origin):
             ####### create original version without comments ###### 
-            if origin_name == "": origin_name = "origin_" + filename
-            else: origin_name = origin_name + ".Rmd" 
+            if origin_name == "": 
+                origin_name = "origin_" + filename
+            elif use_name_as_prefix: 
+                origin_name = origin_name + filename + ".RMD"
+            else: 
+                origin_name = origin_name + ".Rmd" 
             
             # Create copy of the Rmd file 
             RMD_file_origin = copy.copy(RMD_file)    
         
-            # remove comment class
-            pattern = re.compile(r'<div class="comment">.*?</div>',re.S)
-            RMD_file_origin = re.sub(pattern, "", RMD_file_origin)
+            # remove the following classes from the RMD-file
+            remove_classes = ["comment"]
+            RMD_file_origin = clean_RMD(RMD_file_origin,remove_classes)
                 
             # write file
             with open(output_directory + "/" + origin_name, "w") as f:
@@ -179,7 +190,7 @@ def find_all_Rmd():
     files = [file[l:] for file in files if file[-3:]=="Rmd"]
     for f in files:
         print(f)
-    return(files)
+    return files
     
 #### EXAMPLES
 # create start versions of all RMD's in the base folder
@@ -187,10 +198,10 @@ def find_all_Rmd():
 #for f in find_all_Rmd():
 #    parse(f,".")
 
-# create start version of FD_time in the folder of the parser with css and js 
-# baked into the RMD
+# create start version of FD_time in the folder of the parser with css and js
+# baked into the RMD. Output filename -> "X.RMD"
 #parse("/Users/jroebroek/WANT/finite_difference/Time/Finite_differences_1.Rmd",
-#      output_directory = ".", js = True, css = True)
+#      output_directory = ".", js = True, css = True, use_name_as_prefix=False,start_name = "X")
 
 # create start versions of all RMD's in their own folder
 #os.chdir("/Users/jroebroek/WANT")
@@ -198,6 +209,6 @@ def find_all_Rmd():
 #    parse(f) 
     
 # create start, original and answer version in a folder named versions in the base folder
-os.chdir("/Users/jroebroek/WANT")
-for f in find_all_Rmd():
-    parse(f, "versions", answer=True) 
+#os.chdir("/Users/jroebroek/WANT")
+#for f in find_all_Rmd():
+#    parse(f, "versions", answer=True) 
