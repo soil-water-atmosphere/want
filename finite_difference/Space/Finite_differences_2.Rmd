@@ -1025,35 +1025,47 @@ shinyApp(ui, server)
 </span>
 
 ## Section 4.2 - Second order derivative
-In order to be able to solve the *stationary* advection diffusion equation one other thing remains to be explained; how to solve the second order derivative in the equation:
+In order to be able to solve the *stationary* advection diffusion equation later, there is still one other thing remains to be explained; how to compute the second order derivative in the equation
 
 $$0 = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
+Also, the second derivative finite differences operator can be derived from the Taylor series. To do so, we need to combine the forward and backward differencing methods that are written below:
 
-This can be done by going back to the Taylor series of the forward and backward method. What needs to be done is come to a solution that does not include the first order derivative anymore. The simplest way to do this is by adding the equations up in the following way:
+\begin{align*}
+s(x + \Delta x) & = s(x) + \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + \dfrac{(\Delta x)^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \dfrac{(\Delta x)^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \dfrac{(\Delta x)^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ \cdots \\    
 
-<span class="comment">
-might be done by the hard track
+s(x - \Delta x) & = s(x) - \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + \dfrac{(\Delta x)^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \dfrac{(\Delta x)^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \dfrac{(\Delta x)^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} - \ \cdots
+\end{align*}
+
+<div class="exercise">
+X.X.1 Combine the two equations such that the term containing the first derivative falls out of the equation.
+
+<div class="answer">
+$$
+s(x + \Delta x) + s(x - \Delta x)
+= 2 s(x) + (\Delta x)^2 \dfrac{d^{2}s}{dx^{2}} + \dfrac{(\Delta x)^2}{12} \dfrac{d^4 s}{dx^4}
+$$
 </span>
 
-\begin{alignat*}{3}
-s(x + \Delta x) &= &&s(x) + \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + &&&\dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + &&&&\dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ \cdots \\    
+<div class="exercise">
+X.X.2 Rewrite the equation such, that the operator (thus all instances of $s(x-\Delta x)$, $s(x)$, and $s(x+\Delta x)$) is on the lefthand side, and the second derivative and the error is on the righthand side.
+</div>
 
-
-s(x - \Delta x) &= &&s(x) - \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + &&&\dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + &&&&\dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} - \ \cdots  \\
-
-\hline +\\
-
-s(x + \Delta x) + s(x - \Delta x) &=  &&2s(x) + &&&\dfrac{2\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + &&&&\dfrac{2\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x}
-\end{alignat*}
-
-This leads to the following approximation for the second derivate (also called a Central scheme):
-
+<div class="answer">
 $$
-\dfrac{ s(x + \Delta x) - 2s(x) + s(x - \Delta x)}{\Delta x^2} = \dfrac{d^{2}s}{dx^{2}}
+\dfrac{ s(x + \Delta x) - 2s(x) + s(x - \Delta x)}{(\Delta x)^2} 
+= \dfrac{d^{2}s}{dx^{2}} + \dfrac{(\Delta x)^2}{12} \dfrac{d^4 s}{dx^4}
 $$
+</span>
 
-<span class="question">
-4.2.1 Use this equation to estimate the second order derivative of the sinus wave, the same way as was done in section 4.1. TIP! The second derivative of $\sin(x)$ is $-\sin(x)$ which you can plot behind the approximation to check if everything went fine.
+<div class="exercise">
+4.2.1 Use the derived operator to construct a matrix that can be used to compute the second derivative. Copy the block of forward differencing operator and adapt it to show the second derivative. Keep in mind that you also have to prescribe the correct analytical solution!
+</div>
+
+<div class="student_answer">
+Implement your code here
+```{r}
+# WHOOP WHOOP NEW CODE.
+```
 </span>
 
 <span class="answer">
@@ -1065,37 +1077,31 @@ dx    = pi/2
 left  = 0
 right = 2*pi
 xcoor = seq(left,right, by=dx) # builds a list of all coordinates
-N     = length(xcoor)
+s = sin(xcoor)
 
-M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+nx = length(xcoor)
+
+M = matrix(0, nrow=nx, ncol=nx) # an empty matrix for the differencing scheme
 
 # populating vector and matrix
-for(j in 2:(length(xcoor)-1))
+for (j in 2:(nx-1))
 {
   M[j,j+1] = 1/(dx^2)
   M[j,j  ] = -2/(dx^2)
   M[j,j-1] = 1/(dx^2)
 }
 
-s = sin(xcoor)
-
-# solve matrix equation
-V = M %*% s
+# Compute the second derivative
+v = M %*% s
 
 # plotting
-N = length(xcoor)
-plot(xcoor[2:(N-1)],V[2:(N-1)],ylab="state (m)",xlab="x (m) ",type='o',col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+plot(xcoor[2:(nx-1)], v[2:(nx-1)], ylab="state (m)", xlab="x (m) ", type='o', col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
 x_sol = seq(left,right,by=0.05)
 lines(x_sol,-sin(x_sol),type='l', col="grey",lwd=2)
-title(main='Forward differencing scheme with matrices')
+title(main='Second derivative computed with matrices')
 grid()
 ```
 </span>
-
-
-
-
-
 
 For the first example with the three differencing schemes we will examine the simplest wave equation possible, a sinus-function ($s(x) = \sin(x)$) with it's derivative that is the opposite cosine wave ($\frac{ds}{dx}=\cos(x)$). The first chunk is fully preprogrammed, it is exactly the same as the approach used for time integration. Easiest way to understand it is to work from left to right (instead of from the beginning to the end as we did with the time dimension). An forward integration scheme is used, meaning that information of one point is used to calculate the point directly to the right of it. Still the same stuff as in the previous practical but it's maybe a bit less intuitive. The following information about the system is available:
 
@@ -1219,9 +1225,9 @@ $$
 To solve the states, matrix algebra is used:
 $$
 \begin{matrix}
-M * s &=& V\\
-M^{-1}M * s &=& M^{-1}V\\
-I * s &=& M^{-1}V\\
+M  s &=& V\\
+M^{-1}M s &=& M^{-1}V\\
+I s &=& M^{-1}V\\
 s &=& M^{-1}V
 \end{matrix}
 $$
@@ -1325,7 +1331,7 @@ N     = length(xcoor)
 
 br    = 0                      # left boundary condition
 V     = c()                    # build an empty vector for the solutions
-M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+M     = matrix(0, nrow=length(xcoor), ncol=length(xcoor)) # an empty matrix for the differencing scheme
 
 # populating vector and matrix
 for(j in 1:(length(xcoor)-1))
@@ -1396,9 +1402,7 @@ grid()
 
 <span class="comment"> I remove central scheme here because it's slightly tricky but I come back to this in Part 4 </span>
 
-
-
-# Part 5 - Advection diffusion continued 
+# Part 5 - Solving the advection-diffusion equation.
 ## Section 5.1 - Boundary conditions
 Part 3 and 4 handled only the simplest of differential equations but some useful insights might be obtained. The first and most important one is that there are two different ways of solving the equations; one after the other (as the method used in the *time* practical) and one levaraging the power and simplicity of matrix algebra. The more comlex the equations become, the harder it becomes to implement the first methodology while the solution based on matrix algebra does not get much more difficult. Especially in the next practical, when we will be looking at both time and space integration at the same time, the matrix solution is much more straightforward. The other important message is that boundary conditions are important to solve ODEs. In the "time" practical this was present in an initial state and in the chunks above left and right boundary conditions had to be implemented. So far we have only implemented one type of boundary condition; the dirichlet boundary condition. This method assumes a fixed state on one or all boundaries. If the state directly next to this border has (more or less) the same state, it means that no flux goes over the boundary while a large difference leads to a high flux. Another option is to implement a fixed gradient boundary condition (Neumann boundary condition) that does not specify the state but only the gradient between the boundary cell and the cell right next to it. This can be very usefull as will be shown in the next sections but at the same time it can be problematic. If all boundaries are fixed gradient boundaries, the system is not solvable. If only gradients are defined the solution will be relative and no absolute solution *can* exist. To account for this at least one Dirichlet boundary is needed to anchor the solution. It works as a reference for all other values. The last type of boundary condition is the Cauchy/Robin boundary condition. It specifies both the state and the gradient. Summarising;
 
