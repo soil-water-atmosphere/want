@@ -725,6 +725,9 @@ g_implicit and g_explicit step might be combined in one single formula, but this
 </span>
 
 <span class="answer">
+
+<span class="comment"> Is this the best way to implement the midpoint scheme? </span>
+
 ```{r Midpoint}
 rm(list=ls())
 #Initial parameter values
@@ -741,13 +744,14 @@ result.state     = c(init.state)
 result.time      = c(time)
 current.state    = init.state
 
-# System function
-
-g_explicit = function(time, state){
+# System functions
+g_explicit = function(time, state)
+{
   return(state + dt/(2*A)*((sin(time)+1)-alpha*state))
 }
 
-g_implicit = function(time, state){
+g_implicit = function(time, state)
+{
   return(1/(1+(dt*alpha)/(2*A))*(state + dt/(2*A)*(sin(time+dt/2)+1)))
 }
 
@@ -772,7 +776,7 @@ plot(result.time,result.state,type='l', col="grey",lwd=2,xlab="time",ylab="state
 title(main='Emptying reservoir with input, Midpoint')
 grid()
 
-dt = 2.0 # a new dt value to evaluate current scheme
+dt = 2 # a new dt value to evaluate current scheme
 time = begin.time
 result.state= c(init.state)
 result.time =c(time)
@@ -786,6 +790,7 @@ while(time < end.time)
 }
 lines(result.time,result.state,type='o',col='blue')
 ```
+
 </span>
 
 <span class="question">
@@ -919,8 +924,7 @@ compare = function(dt,runge_kutta,midpoint,explicit,implicit){
   l          = c()   # empty list for legend entries
   lines_l    = c()   # empty list for legend lines
   
-  f = function(time,state)
-  {
+  f = function(time,state){
     return(((sin(time)+1)-alpha*state)/A)
   }
   
@@ -983,7 +987,8 @@ compare = function(dt,runge_kutta,midpoint,explicit,implicit){
     return(1/(1+(dt*alpha)/(2*A))*(state + dt/(2*A)*(sin(time+dt/2)+1)))
   }
 
-  sys.fun = function(state){
+  sys.fun = function(state)
+  {
     s.aux    = g_explicit(time     , state)
     newstate = g_implicit(time+dt/2, s.aux)
     return(newstate)
@@ -1000,7 +1005,8 @@ compare = function(dt,runge_kutta,midpoint,explicit,implicit){
     time = time + dt
     result.time = c(result.time,time)
   }
-  if(midpoint){
+  if(midpoint)
+  {
     lines(result.time,result.state,type='o',col='red')
     l       = c(l,'Midpoint')
     lines_l = c(lines_l,"red")
