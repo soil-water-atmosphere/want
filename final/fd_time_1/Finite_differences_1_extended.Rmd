@@ -8,24 +8,24 @@ output:
 ---
 
 ## Exercise 1
-<span class="question">
-Add the analytical solution of equation to chunk3.
-</span>
+<div class="exercise">
+Derive the analytical solution and add its calculation to chunk3 in the standard notebook.
+</div>
 
-<span class = "answer">
+<div class="answer">
 ```{r eval=FALSE}
 time.sequence = seq(begin.time,end.time,by=0.1)
 analyt.state=init.state * exp(-time.sequence*alpha)
 lines(time.sequence,analyt.state,col='grey',lwd=2)
 ```
-</span>
+</div>
 
 ## Exercise 2
-<span class="question">
+<div class="exercise">
 Set up an equation to calculate the error. Use equations 3 and 8.
-</span>
+</div>
 
-<span class = "answer">
+<div class = "answer">
 Starting from equation 8:
 $$s(t + \Delta t) = s(t) + \frac{\Delta t}{1!} \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t^{2}}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{4}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ...     \tag{10}$$
 Rearranging this equation:
@@ -33,15 +33,14 @@ Rearranging this equation:
 $$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{11}$$
 Comparing this with the implementation in exercise 1 leads to the quantification of the error:
 
-$$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + error    \tag{12}$$
+$$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + \text{error}    \tag{12}$$
 
-$$ error = \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{13}$$
-</span>
+$$ \text{error} = \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{13}$$
+</div>
 
 ## Exercise 3
-<span class="question">
-
-use the R-functions *expression()*, *D()* (derivative) and *eval()* to implement the first six terms of equation 10 incremently in chunk5 below and plot this result on top of the existing plot. Note down the error every time a term is added.
+<div class="exercise">
+Use the R-functions `expression()`, `D()` (derivative) and `eval()` to implement the first six terms of Equation 10 incremently in `chunk5` below and plot this result on top of the existing plot. Note down the error each time a term is added.
 
 terms | error 
 ----- | ----- 
@@ -51,7 +50,9 @@ terms | error
 4 |
 5 | 
 6 | 
+</div>
 
+<div class="student_answer">
 ```{r chunk5_question, eval=FALSE}
 # Initial parameter values
 begin.time = 0     # usually this variable is set to 0
@@ -97,7 +98,7 @@ lines(DT,p, lwd=2, col="green")
 
 DT = dt
 correct.state = ...     # state at 1 step (dt)
-error = ...             # determine the distance between the correct.state and the value calculated with the taylor series 
+error = ...             # determine the distance between the correct.state and the value calculated with the Taylor series 
 points(dt,eval(g),col="green",pch=19)
 points(dt,correct.state,pch=19)
 segments(dt,correct.state,dt,eval(g),col="red",lwd=2)
@@ -105,12 +106,9 @@ title(main=paste('Numerical and analytical solution compared. Error: ',error))
       
 grid()
 ```
+</div>
 
-</span>
-
-<span class="answer">
-answer hard question
-
+<div class="answer">
 ```{r chunk5_answer}
 rm(list=ls())
 # Initial parameter values
@@ -177,75 +175,47 @@ terms | error
 5 | 0.013 
 6 | 0.002 
 
-The error rapidly decreases every time the next term of the taylor series is added.
+The error rapidly decreases every time the next term of the Taylor series is added.
 
-</span>
+</div>
 
 ## Exercise 4
-<span class="question">
-<span class="comment">  Is this question too complex for the hard track? </span>
+A more advanced usage of Taylor series, is the calculation of numerical errors for mid-point methods. Here, you will calculate the numerical error of the midpoint method that is being used in the tutorial exactly.
 
-calculate the following ratio and explain it's meaning (limit $\Delta t$ to 0):
+<div class="exercise">
+4.1 Use Taylor series to calculate the numerical error of the midpoint method that consist of an explicit and implicit step. This is a complex calculation.
 
-$$ \lim_{\Delta t\to0}\dfrac{Error_{explicit}}{Error_{midpoint}} $$
-by making the following assumption ($i$ equals every positive integer):
+4.2 Explain why this scheme has a second-order convergence rate. This is not entirely trivial.
+</div>
 
+<div class="answer">
+First, we compute the intermediate value $\widetilde{s}$ from both sides.
 $$
-\dfrac{d^is}{dt^i}\bigg\rvert_{t} = \dfrac{d^is}{dt^i}\bigg\rvert_{t+\Delta t} = 1
+\widetilde{s} = s(t)
++ \dfrac{(\Delta t)}  {2}  \left. \dfrac{ds}{dt}     \right|_t
++ \dfrac{(\Delta t)^2}{8}  \left. \dfrac{d^2s}{dt^2} \right|_t
++ \dfrac{(\Delta t)^3}{48} \left. \dfrac{d^3s}{dt^3} \right|_t \\
+\widetilde{s} = s(t + \Delta t) 
+- \dfrac{(\Delta t)}  {2}  \left. \dfrac{ds}{dt}     \right|_{t + \Delta t}
++ \dfrac{(\Delta t)^2}{8}  \left. \dfrac{d^2s}{dt^2} \right|_{t + \Delta t}
+- \dfrac{(\Delta t)^3}{48} \left. \dfrac{d^3s}{dt^3} \right|_{t + \Delta t}
 $$
-</span>
+Second, we eliminate $\widetilde{s}$ and compute the derivative.
+$$
+s \left( t + \Delta t \right) - s \left( t \right) = 
+  \dfrac{(\Delta t)}  {2}  \left( \left. \dfrac{ds}{dt}     \right|_t + \left. \dfrac{ds}{dt}     \right|_{t + \Delta t} \right)
++ \dfrac{(\Delta t)^2}{8}  \left( \left. \dfrac{d^2s}{dt^2} \right|_t - \left. \dfrac{d^2s}{dt^2} \right|_{t + \Delta t} \right)
++ \dfrac{(\Delta t)^3}{48} \left( \left. \dfrac{d^3s}{dt^3} \right|_t + \left. \dfrac{d^3s}{dt^3} \right|_{t + \Delta t} \right)\\
+\dfrac{ s \left( t + \Delta t \right) - s \left( t \right)}{\Delta t} = 
+  \dfrac{1}{2}             \left( \left. \dfrac{ds}{dt}     \right|_t + \left. \dfrac{ds}{dt}     \right|_{t + \Delta t} \right)
++ \dfrac{(\Delta t)}{8}    \left( \left. \dfrac{d^2s}{dt^2} \right|_t - \left. \dfrac{d^2s}{dt^2} \right|_{t + \Delta t} \right)
++ \dfrac{(\Delta t)^2}{48} \left( \left. \dfrac{d^3s}{dt^3} \right|_t + \left. \dfrac{d^3s}{dt^3} \right|_{t + \Delta t} \right)\\
+$$
+From the latter expression, it is clear that the first term on the righthand side contains the mean of the derivatives at $t$ and $t + \Delta t$. The second term contains the first-order error, but due to the subtraction of the two derivatives, the term becomes quickly negligible. The dominant error term is therefore the third term.
+</div>
 
-<span class="answer">
 
-Defenition $Error_{midpoint}$
 
-\begin{matrix}
-
-s(t+\frac{1}{2}\Delta t) = s(t) + \frac{1}{2}\Delta t \dfrac{ds}{dt}\bigg\rvert_{t} + \sum_{i=2}^{\infty} \dfrac{(\frac{1}{2}\Delta t)^i}{i!}\dfrac{d^is}{dt^i}\bigg\rvert_{t}\\
-
-\tilde{s} = s(t) + \frac{1}{2}\Delta t \dfrac{ds}{dt}\bigg\rvert_{t} \approx s(t+\frac{1}{2}\Delta t)\\
-
-s(t+\Delta t) = s(t+\frac{1}{2}\Delta t) + \frac{1}{2}\Delta t \dfrac{ds}{dt}\bigg\rvert_{t+\Delta t} + \sum_{i=2}^{\infty} \dfrac{(\frac{1}{2}\Delta t)^i}{i!}\dfrac{d^is}{dt^i}\bigg\rvert_{t+\Delta t}\\
-
-s(t+\Delta t) \approx s(t+\frac{1}{2}\Delta t) + \frac{1}{2}\Delta t \dfrac{ds}{dt}\bigg\rvert_{t + \Delta t}\\
-
-Error_{midpoint} = \sum_{i=2}^{\infty} \dfrac{(\frac{1}{2}\Delta t)^i}{i!} (\dfrac{d^is}{dt^i}\bigg\rvert_{t} + \dfrac{d^is}{dt^i}\bigg\rvert_{t+\Delta t})\\
-
-Error_{midpoint} = \sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{2^{i-1}i!} \dfrac{d^is}{dt^i}\bigg\rvert_{t}
-
-\end{matrix}
-
-Defenition $Error_{explicit}$
-
-\begin{matrix}
-
-s(t+\Delta t) = s(t) + \Delta t \dfrac{ds}{dt}\bigg\rvert_{t} + \sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{i!} \dfrac{d^is}{dt^i}\bigg\rvert_{t} \\
-
-s(t+\Delta t) \approx s(t) + \Delta t \dfrac{ds}{dt}\bigg\rvert_{t}\\
-
-Error_{explicit} = \sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{i!} \dfrac{d^is}{dt^i}\bigg\rvert_{t} 
-
-\end{matrix}
-
-Calculating the ratio:
-\begin{align}
-
-Error_{explicit}/Error_{midpoint} &=& \dfrac{\sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{i!} \dfrac{d^is}{dt^i}\bigg\rvert_{t} }{\sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{2^{i-1}i!} \dfrac{d^is}{dt^i}\bigg\rvert_{t}}\\
-
-Error_{explicit}/Error_{midpoint} &=& \dfrac{\sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{i!}}{\sum_{i=2}^{\infty} \dfrac{(\Delta t)^i}{2^{i-1}i!}}\\
-
-Error_{explicit}/Error_{midpoint} &=& \dfrac{-\Delta t + e^{\Delta t} - 1}{-\Delta t + 2e^{\frac{\Delta t}{2}} - 2}
-
-\end{align}
-
-\begin{align}
-\lim_{\Delta t\to0}\dfrac{-\Delta t + e^{\Delta t} - 1}{-\Delta t + 2e^{\frac{\Delta t}{2}} - 2} = 2
-
-\end{align}
-
-with a $\Delta t$ approximating 0 the error of the midpoint method is twice as low as the explicit methodology, which makes sense because of the "fake" extra point that is added. The real value of this methodology becomes apparent with increasing $\Delta t$ when the ratio increases rapidly.
-
-</span>
 
 
 
