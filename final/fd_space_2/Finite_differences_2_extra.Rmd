@@ -1,5 +1,5 @@
 ---
-title: "Finite differences 2"
+title: "Finite differences 2 challenges"
 author: "The WANT team"
 date: "24/09/2018"
 output:
@@ -12,7 +12,7 @@ output:
 <script src="../../hints.js"></script>
 
 ## Exercise 1
-<span class="question">
+<div class="exercise">
 4.8 The following code reaches the same result as the answer on 4.6. Explain briefly how this code works.
 
 ```{R}
@@ -39,13 +39,13 @@ M[1,1] = 1
 b = c(2,-1,-2)
 print(solve(M,b))
 ```
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 It solves the system by adding the fluxes one after the other instead of implementing the matrix by hand.
-</span>
+</div>
 
-<span class="question">
+<div class="exercise">
 4.9 The following code is a more elegant way of constructing the matrix in the previous exercise. Give proper names to the vectors *f,t* and *a* and explain what happens.
 
 ```{R}
@@ -54,41 +54,41 @@ M = matrix(0,nrow=3,ncol=3)
 f = c(1,2,3)
 t = c(2,3,1)
 a = c(7,8,5)
-for(i in 1:length(f)){
+for (i in 1:length(f))
+{
   M[f[i],f[i]] = M[f[i],f[i]] - a[i]
   M[f[i],t[i]] = M[f[i],t[i]] + a[i]
   M[t[i],t[i]] = M[t[i],t[i]] - a[i]
   M[t[i],f[i]] = M[t[i],f[i]] + a[i]
 }
 ```
-</span>
+</div>
 
-<span class="answer">
-</span>
+<div class="answer">
+</div>
 
-<span class="question">
+<div class="exercise">
 
 4.10 Solve the following system:</br>
 ![](example_3.png){width=40%}
+</div>
 
-</span>
-
-<span class="question">
-<span class="comment">Maybe for the hard question</span></br>
+<div class="exercise">
+<div class="comment">Maybe for the hard question</div></br>
 4.11 Solve the following system </br>
 ![](example_4.png){width=40%}
-</span>
+</div>
 
 ## Exercise 2
 
-<span class="question">
+<div class="exercise">
 Check for the speed of conversion for the central and forward scheme by creating a graph that displays `dx` on the x-axis and the error on the y-axis (average of the absolute differences)
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R error_calculation}
-f = function(dx=(pi/2)){
-  
+f = function(dx=(pi/2))
+{
   # scheme C = central
   # scheme F = forward
   
@@ -96,14 +96,14 @@ f = function(dx=(pi/2)){
   dx    = dx
   left  = 0
   right = 2*pi
-  xcoor = seq(left,right, by=dx) # builds a list of all coordinates
+  xcoor = seq(left, right, by=dx) # builds a list of all coordinates
   N     = length(xcoor)
   s     = sin(xcoor)
   c     = cos(xcoor)
   
   ##### CENTRAL SCHEME WITH FORWARD AND BACKWARD VALUES ON THE OUTER NODES
   
-  M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+  M     = matrix(0, nrow=length(xcoor), ncol=length(xcoor)) # an empty matrix for the differencing scheme
   
   # populating vector and matrix
   for(j in 2:(length(xcoor)-1))
@@ -121,7 +121,7 @@ f = function(dx=(pi/2)){
   
   ##### FORWARD SCHEME WITH BACKWARD RIGHT NODE
   
-  M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
+  M = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) # an empty matrix for the differencing scheme
   
   # populating vector and matrix
   for(j in 1:(length(xcoor)-1))
@@ -154,14 +154,14 @@ plot(x, error_list$F, type="l", col="grey",ylim=c(0,0.5))
 lines(x, error_list$C, type="l", col="darkblue")
 legend("topleft", c("Central", "Forward"), col = c("darkblue","grey"), lty = c(1,1), pch = c(-1,-1))
 ```
-</span>
+</div>
 
-<span class="comment">
+<div class="comment">
 This is not really a pretty graph but it should be clear that the central scheme converges faster right?
-</span>
+</div>
 
 ## Exercise 3
-<span class="question">
+<div class="exercise">
 Solve the following equation with a Dirichlet boundary on both sides using matrix algebra:
 
 $$0 = -u \frac{s(x+\Delta x) - s(x - \Delta x)}{2\Delta x} + D\frac{s(x + \Delta x) - 2s(x) + s(x-\Delta x)}{\Delta x^{2}} \tag{4.1}$$
@@ -175,9 +175,9 @@ bl    = 0    # left boundary
 br    = 1    # right boundary
 n     = 5    # amount of nodes
 ```
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R}
 dx    = 5    # step size
 D     = 5    # diffusion coefficient
@@ -232,15 +232,15 @@ for(j in 1:(length(xcooranalyt)))
 lines(xcooranalyt,sanalyt,col="grey",lwd=2) # analytical solution
 legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,1), pch = c(-1,-1))
 ```
-</span>
+</div>
 
 ## Exercise 4
 
-<span class="question">
+<div class="exercise">
 2.1 What would be the mathematical notation of a 0-gradient condition (no flux) by using $s[4]$ and $s[5]$ and what would this look like in matrix notation (starting from the matrix defined for the Dirichlet boundary condition).
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
 s[5] = s[4]\\
 s[5] - s[4] = 0
@@ -268,13 +268,13 @@ V_4\\
 b_r = 0\\
 \end{bmatrix}
 $$
-</span>
+</div>
 
-<span class="question">
+<div class="exercise">
 2.2 Implement this matrix equation in the last chunk of section 5.2. 
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R}
 dx    = 0.1    # step size
 D     = 5    # diffusion coefficient
@@ -316,6 +316,6 @@ plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
 title(main='Advection Diffusion Equation, Neumann boundary')
 grid()
 ```
-</span>
+</div>
 
 
