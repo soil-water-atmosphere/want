@@ -1,5 +1,5 @@
 ---
-title: "Finite differences 3"
+title: "Finite differences 3: Space and Time"
 author: "The WANT team"
 date: "24/09/2018"
 output:
@@ -15,61 +15,61 @@ output:
 <script src="../../hints.js"></script>
 
 # Introduction
-In this you will combine the topics of the previous two tutorials. Until now, you have dealt with system that have a state that is a function of time $s(t)$, as the emptying reservoir, as well as systems that are steady state in time $s(x)$, such as the stationary advection-diffusion equation. Here, you will analyze systems that have a state that is varying in time and space $s(x,t)$.
+In this you will combine the topics of the previous two tutorials. Until now, you have dealt with system that have a state that is a function of time $s(t)$, as the emptying reservoir, as well as systems that are steady state in time $s(x)$, such as the stationary advection-diffusion equation. Here, you will analyze systems that have a state that varies in time and space $s(x,t)$.
 
 # Part 1 - Clarifying the last missing parts
 ## Section 1.1 - Notation
-So far we have been using two different notations when talking about discretisation of equations. Namely the following;
+Until now, we have been using two different notations when talking about discretisation of equations. Namely the following;
 
 $$
-s[i]\\
+s_i\\
 s(x)\ \text{or} \ s(t)
 $$
-The first notation signifies the location in the corresponding matrix. $i$ is therefore always a positive integer. The second one is a specific value. It describes the state of a system at for example `x = 12.5` meters or the state at a specific time. When talking about space and time at the same time these notations tend to become quite cumbersome as you can see in the following example:
+The first notation signifies the location in discrete space, which also refers to its location in the corresponding vector. $i$ is therefore always a positive integer. The second one is a specific value. It describes the state of a system at for example `x = 12.5` meters or the state at a specific time. When talking about space and time at the same time these notations tend to become quite cumbersome as you can see in the following example:
 
 $$
 s(x + \Delta x, t + \frac{1}{2}\Delta t)
 $$
-It's still understandable but with longer equations it can become hard to keep track of. To solve this issue we will use the following notation during this tutorial:
+To solve this issue we will use the following notation during this tutorial:
 
 $$
 s^{t + \frac{1}{2}\Delta t}_{x + \Delta x}
 $$
-This equation means exactly the same as the equation above but in a much shorter notation. The convention is to put time above and space below. The same goes for the matrix form:
+This equation means exactly the same as the equation above but in a much shorter notation. The convention is to put time above and space below. The same goes for the discrete form, where $n$ refers to the time index, and $i$ to the space index:
 
 $$
 s^{n + 1}_{i}
 $$
-This equation means the state at the following time-step `n+1` (current time step: `n`) and at the current location `i`.
+Thus, this specific location refers to the next time-step `n+1` (current time step: `n`) and at the current location `i`.
 
 ## Section 1.2 - Crank-Nicolson
-The Crank-Nicolson methodology is another way of solving ODEs in time. What it does in simple words, it averages each time step the solution of an explicit and implicit scheme. In mathematical formulation it would look like this:
+The Crank-Nicolson methodology is another way of solving ODEs in time. What it does in simple words, it averages each time step the solution of an explicit and implicit scheme. In mathematics, it looks as follows:
 
 $$
-\dfrac{ds(t)}{dt} = \frac{1}{2}f(t) + \frac{1}{2}f(t+\Delta t)
+\dfrac{ds}{dt} = \frac{1}{2}f(t) + \frac{1}{2}f(t+\Delta t)
 $$
-A strategy that is often used to be able to solve the explicit, implicit and Crank-Nicolson (CN) scheme at once in an analitical way is to use the omega notation:
+A strategy that is often used to be able to solve the explicit, implicit and Crank-Nicolson (CN) scheme at once in an analytical way is to use the omega notation:
 
 $$
-\dfrac{ds(t)}{dt} = \omega (f(t)) + (1-\omega)f(t+\Delta t)
+\dfrac{ds}{dt} = \omega f(t) + (1-\omega)f(t+\Delta t)
 $$
-This is a trick to solve all three at the same time. If you plug in $\omega = 1$ you get the explicit solution, $\omega = 0$ the implicit solution and $\omega = \frac{1}{2}$ the Crank-Nicolson version. This convention makes programming the three down the line much more convenient.
+By setting up a solver using $\omega$, you can solve for all three methods, and easily switch. If you plug in $\omega = 1$ you get the explicit solution, $\omega = 0$ the implicit solution and $\omega = \frac{1}{2}$ the Crank-Nicolson version. This convention makes programming the three down the line much more convenient.
 
 # Part 2 - The advection-diffusion equation revisited
 ## Section 2.1 - Setting up the equations
-Back to the advection difussion equation, introduced in the second pratical. In the second pratical we worked with this equation only in the stationary case; $\dfrac{ds}{dt} = 0$. This is the full version of the equation.
+We will go back to the advection difussion equation now, which was introduced in the second pratical. In the second practical, we worked with this equation only in the stationary case; $\dfrac{ds}{dt} = 0$. This is the full version of the equation.
 
 $$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 
-If you want, you can go to exercise 1 in the extended Rmd to discretise this equation yourself. Otherwise you can follow along in this section. 
+If you are in for a **challenging** assignment, you can open **Exercise 1** from the `Finite_difference_3_extended.Rmd` markdown.
 
 ### Discretisation
 The first step in the discretisation is choosing the differencing scheme for the time and space derivatives. An often used approach is the forward in time and central in space scheme (FTCS scheme). We will follow that scheme here.
 
-First we apply the forward scheme in time (first in the original notation and than in the short notation of section 1.1:
+First, we apply the forward scheme in time (first in the original notation and than in the short notation of section 1.1):
 $$
-\dfrac{ds}{dt} = \dfrac{s(t+\Delta t) - s(t)}{\Delta t} = f(t,s(t))\\
-\dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = f(t,s(t))
+\dfrac{ds}{dt} = \dfrac{s(x, t+\Delta t) - s(x, t)}{\Delta t} = f(x,t,s(x,t))\\
+\dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = f(x,t,s(x,t))
 $$
 
 The second step is the realisation that the omega implementation (as discussed in section 1.2) will change the right-hand side of this equation to:
@@ -78,58 +78,60 @@ $$
 \dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = \omega\ f(t,s(t)) + (1-\omega)\ f(t+\Delta t,s(t+\Delta t))
 $$
 
-<span class="question">
+<div class="exercise">
 2.1.1 Complete the equation above by using the central scheme for both the first and second order derivative in space. 
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
-\dfrac{s^{n+1}_i - s^{n}_{i}}{\Delta t} = \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2}) + (1-\omega)(-u\dfrac{s^{n+1}_{i+1}-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}-2s^{n+1}_{i}+s^{n+1}_{i+1}}{\Delta x^2})
+\dfrac{s^{n+1}_i - s^{n}_{i}}{\Delta t} = 
+\omega\ \left(-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2} \right) 
++ (1-\omega) \left(-u\dfrac{s^{n+1}_{i+1}-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}-2s^{n+1}_{i}+s^{n+1}_{i+1}}{\Delta x^2} \right)
 $$ 
-</span>
+</div>
 
 The final result of this discretisation is the matrix equation
-$$M*s^{n+1} = V$$
+$$M s^{n+1} = v$$
 In order to achieve that the answer of question 2.1.1 can be rewritten in the form:
 
 $$
-As^{n+1}_{i-1} + Bs^{n+1}_{i} + Cs^{n+1}_{i+1} = E
+as^{n+1}_{i-1} + b s^{n+1}_{i} + c s^{n+1}_{i+1} = d
 $$
 
-<span class="question">
-2.1.2 Rewrite the equation obtained in question 2.1.1 in the form above. Find the coefficients A,B,C and E. TIP!: move as a first step all states of the next time step to the left-hand side and the states of the current time step to the right-hand side;
+<div class="exercise">
+2.1.2 Rewrite the equation obtained in question 2.1.1 in the form above. Find the coefficients `a`, `b`, `c` and `d`. TIP!: move as a first step all states of the next time step to the left-hand side and the states of the current time step to the right-hand side;
 $$
 f(s^{n+1}) = g(s^{n})
 $$
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
-As^{n+1}_{i-1} = -(1-\omega)(-u\dfrac{-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}}{\Delta x^2})\\
-A = (\omega-1)(\dfrac{u}{2\Delta x} + \dfrac{D}{\Delta x^2})
-$$
-$$
-Bs^{n+1}_{i} = \dfrac{s^{n+1}_{i}}{\Delta t} - (1-\omega)(D\dfrac{-2s^{n+1}_{i}}{\Delta x^2})\\
-B = \dfrac{1}{\Delta t} + (\omega-1)(\dfrac{-2D}{\Delta x^2})
+a s^{n+1}_{i-1} = -(1-\omega) \left(-u\dfrac{-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}}{\Delta x^2} \right)\\
+a = (\omega-1)\left(\dfrac{u}{2\Delta x} + \dfrac{D}{\Delta x^2} \right)
 $$
 $$
-Cs^{n+1}_{i+1} = -(1-\omega)(-u\dfrac{s^{n+1}_{i+1}}{2\Delta x} + D\dfrac{s^{n+1}_{i+1}}{\Delta x^2})\\
-C = (\omega-1)(\dfrac{-u}{2\Delta x} + \dfrac{D}{\Delta x^2})
+bs^{n+1}_{i} = \dfrac{s^{n+1}_{i}}{\Delta t} - (1-\omega) \left(D\dfrac{-2s^{n+1}_{i}}{\Delta x^2} \right)\\
+b = \dfrac{1}{\Delta t} + (\omega-1)\left(\dfrac{-2D}{\Delta x^2}\right)
 $$
 $$
-E = \dfrac{s^{n}_{i}}{\Delta t} + \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2})
+c s^{n+1}_{i+1} = -(1-\omega) \left(-u\dfrac{s^{n+1}_{i+1}}{2\Delta x} + D\dfrac{s^{n+1}_{i+1}}{\Delta x^2} \right)\\
+c = (\omega-1) \left(\dfrac{-u}{2\Delta x} + \dfrac{D}{\Delta x^2} \right)
 $$
-</span>
+$$
+d = \dfrac{s^{n}_{i}}{\Delta t} + \omega\ \left(-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2} \right)
+$$
+</div>
 
 The matrix equation will then look like this:
 $$
 \begin{bmatrix}
 1&.&.&.&.\\
-A&B&C&.&.\\
-.&A&B&C&.\\
-.&.&A&B&C\\
+a&b&c&.&.\\
+.&a&b&c&.\\
+.&.&a&b&c\\
 .&.&.&.&1
-\end{bmatrix} * 
+\end{bmatrix} \cdot 
 \begin{bmatrix}
 s^{n+1}_{1}\\
 s^{n+1}_{2}\\
@@ -139,19 +141,19 @@ s^{n+1}_{5}
 \end{bmatrix} = 
 \begin{bmatrix}
 b_l\\
-E_2\\
-E_3\\
-E_4\\
+d_2\\
+d_3\\
+d_4\\
 b_r
 \end{bmatrix}
 $$
 
 ## Section 2.2 - Setting up the program
-In the time practical, all calculations needed an initial state to calculate the future time-steps. To solve an equation in space and time, exactly the same initial state is needed. The difference is however, that a state on all locations needs to be given. The initial state is therefore a vector. 
+In the time practical, all calculations required an initial state to calculate the future time-steps. To solve an equation in space and time, exactly the same initial state is needed. The difference is, however, that a state on all locations needs to be given. The initial state is therefore a vector. 
 
-A conventient initial state vector for the advection diffusion equation is a guassian distribution. This could be thought of as a wave going through the system.
+In this tutorial, we choose a Gaussian as an initial state vector for the advection-diffusion equation, because of its ability to show the performance of a numerical scheme visually. This could be thought of as a pulse going through the system.
 
-<span class="question">
+<div class="exercise">
 2.2.1 Run the following chunk and plot the `init.state` variable. 
 ```{R}
 # Input variables
@@ -166,7 +168,8 @@ br      = 0
 omega   = 0
 
 # Function that gives the states for the first time-step
-initfun = function(x){
+initfun = function(x)
+{
   # Gaussian distribution
   exp(-(x-domain[2]/2)^2/2^2)
 }
@@ -176,93 +179,96 @@ x           = seq(domain[1],domain[2],by=dx)
 N           = length(x)
 init.state  = initfun(x)
 ```
-</span>
+</div>
 
-<span class="question">
-2.2.2 Construct the matrix and invert it. Make use of the coefficients A,B and C defined in section 2.1.
-</span>
+<div class="exercise">
+2.2.2 Construct the matrix and invert it. Make use of the coefficients `a`, `b` and `c` defined in section 2.1.
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R matrix_construction}
 # MATRIX CONSTRUCTION
 M = matrix(0,nrow=N,ncol=N)
 
-# for now a dirichlet boundary is used for the solution
+# For now a dirichlet boundary is used for the solution
 M[1,1] = 1
 M[N,N] = 1
-A      = (omega-1) * ( u/(2*dx) +   D/dx^2 )
-B      = (omega-1) * (          - 2*D/dx^2 ) + 1/dt
-C      = (omega-1) * (-u/(2*dx) +   D/dx^2 )
+a      = (omega-1) * ( u/(2*dx) +   D/dx^2 )
+b      = (omega-1) * (          - 2*D/dx^2 ) + 1/dt
+c      = (omega-1) * (-u/(2*dx) +   D/dx^2 )
 
 for(i in 2:(N-1)){
-  M[i,i-1] = A
-  M[i,i  ] = B
-  M[i,i+1] = C
+  M[i,i-1] = a
+  M[i,i  ] = b
+  M[i,i+1] = c
 }
 
 Minv = solve(M)
 ```
-</span>
+</div>
 
-The hard track can go to exercise 1 in the extended Rmd to implement the time loop themselves. The rest can continue with the following questions.
+If you would like to construct the entire loop yourself, you can go to **Exercise 2**` in the `Finite_differences_3_extended.Rmd` document.
 
-<span class="question">
+<div class="exercise">
 2.2.3 Fill in the XXX in the following chunk
-</span>
+</div>
 
-<span class="student_answer">
+<div class="student_answer">
 ```{R, eval=F}
 # Time stepping variable
 time        = 0
 new.state   = init.state
 plotlim     = c(-0.2,1.2)
 
-while(time<endtime){
+while (time<endtime)
+{
     plot(x,new.state,ylim=plotlim,type="l", xlab="x", ylab ="state")
     prev.state = new.state
     
-    V    = c()
-    V[1] = bl
+    v    = c()
+    v[1] = bl
     
     for(i in 2:(N-1))
     {
-      V[i]= XXX
+        v[i]= XXX
     }
     
-    V[N] = br
-    new.state = Minv %*% V
+    v[N] = br
+    new.state = Minv %*% v
     
     time = time + dt
 }
 ```
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R}
 # Time stepping variable
 time        = 0
 new.state   = init.state
 plotlim     = c(-0.2,1.2)
 
-while(time<endtime){
-    plot(x,new.state,ylim=plotlim,type="l", xlab="x", ylab ="state")
+while(time<endtime)
+{
+    plot(x, new.state, ylim=plotlim, type="l", xlab="x", ylab="state")
     prev.state = new.state
     
-    V    = c()
-    V[1] = bl
+    v    = c()
+    v[1] = bl
     
     for(i in 2:(N-1))
     {
-      V[i]= prev.state[i]/dt + omega*(-u*(prev.state[i+1]-prev.state[i-1])/(2*dx) +D*(prev.state[i+1]-2*prev.state[i]+prev.state[i-1])/dx^2)
+        v[i] = prev.state[i]/dt + omega*(-u*(prev.state[i+1]-prev.state[i-1])/(2*dx)
+             + D*(prev.state[i+1]-2*prev.state[i]+prev.state[i-1])/dx^2)
     }
     
-    V[N] = br
-    new.state = Minv %*% V
+    v[N] = br
+    new.state = Minv %*% v
     
     time = time + dt
 }
 ```
-</span>
+</div>
 
 ## Section 2.3 - Stability of the solution
 The advection-diffusion equation is an equation that tends to get unstable pretty fast. To examine this behaviour before performing the calculations two different parameters are used; the Von Neumann and Courant number. These are defined in the following way:
@@ -272,7 +278,7 @@ V = \dfrac{2D\Delta t}{\Delta x^2}\\
 C = \dfrac{u\Delta t}{\Delta x}
 $$
 
-<span class="question>
+<div class="question>
 2.3.1 Fill in the following table by using the chunk below. Use the filled in part of the table as settings for the model and write the Von Neumann and Courant number down and classify the performence of the model as:
 
 * Good (G)
@@ -280,9 +286,9 @@ $$
 * Oscillating (O)
 * Unstable (U)
 
-</span>
+</div>
 
-<span class="student_answer">
+<div class="student_answer">
 
 u|D|$\Delta t$|$\Delta x$| Scheme|Von Neumann number (V) |Courant number (C)|Classification|
 -|-|-|-|-|-|-|-|
@@ -532,11 +538,11 @@ server <- function(input, output) {
 shinyApp(ui, server)
 ```
 
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 
-u|D|$\Delta t$|$\Delta x$| Scheme|Von Neumann number (V) |Courant number (C)|Classification|
+u|D|$\Delta t$|$\Delta x$| Scheme| Von Neumann number (V) | Courant number (C)| Classification |
 -|-|-|-|-|-|-|-|
 1|0|1  |0.2|Implicit|0   |5  |A|
 1|0|1  |0.2|Explicit|0   |5  |U|
@@ -551,12 +557,12 @@ u|D|$\Delta t$|$\Delta x$| Scheme|Von Neumann number (V) |Courant number (C)|Cla
 1|1|1  |2.5|Implicit|0.32|0.4|G/A|
 1|1|1  |2.5|Explicit|0.32|0.4|G/A|
 
-</span>
+</div>
 
-<span class="question">
+<div class="exercise">
 2.3.2 Explain the effect of the different values u,D, $\Delta t$,$\Delta x$ and the different schemes on the performance and stability of the solutions. TIP!: use the von Neumann and Courant number
-</span>
+</div>
 
-<span class="answer">
-Without diffusion the solutions gets unstable. Decrease $\Delta t$ and the solution gets more stable. Increase $\Delta x$ and the solution gets more stable. Implicit scheme is always stable but the amplitude tends to be too low. Explicit schemes tends to get unstable very fast. CN scheme lies in the middle. It doensn't really get unstable, the amplitude is quite okay, but the tail oscillates pretty easily.
-</span>
+<div class="answer">
+Without diffusion the solutions gets unstable. Decrease $\Delta t$ and the solution gets more stable. Increase $\Delta x$ and the solution gets more stable. Implicit scheme is always stable but the amplitude tends to be too low. Explicit schemes tends to get unstable very fast. CN scheme lies in the middle. It does not get unstable, the amplitude is well-preserved, but the tail oscillates pretty easily.
+</div>
