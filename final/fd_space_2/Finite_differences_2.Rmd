@@ -1,5 +1,5 @@
 ---
-title: "Finite differences 2"
+title: "Finite differences 2 - FD in space"
 author: "The WANT team"
 date: "24/09/2018"
 output:
@@ -12,10 +12,10 @@ output:
 <script src="../../hints.js"></script>
 
 # Learning goals
-* Understand the forward, backward and central spatial differencing scheme.
-* Understand how to construct a matrix to solve a system of equations.
-* Understand how to solve a steady-state system with spatial derivatives using matrix algebra.
-* Understand the advection-diffusion equation and how to solve a stationary form.
+* Understand the forward, backward and central spatial differencing scheme *(Section 1)*
+* Understand how to construct a matrix to solve a system of equations *(Section 2)*
+* Understand how to solve a steady-state system with spatial derivatives using matrix algebra *(Section 3)*
+* Understand the advection-diffusion equation and how to solve a stationary form *(Section 4)*
 
 # Part 1 - Introduction
 ## Section 1.1 - Advection Diffusion Equation 
@@ -35,7 +35,7 @@ This is called the *forward differencing method*. It calculates derivatives base
 $$\dfrac{ds}{dx} \approx \dfrac{s(x+\Delta x) - s(x)}{\Delta x}$$
 The only change in this equation is that time has been substituted by space. By using this formulation you change the dimension, meaning that you will find out the how fast variable $s$ changes in space rather than in time.
 
-There is generally a difference in perspective in how space and time are used. In the case of time, you use the derivative to advance a system in time: you want to know the state of the system $s$ at a next time step. In space, however, in most usecases, you are presented with the spatial field of $s$, where the gradients are unknown. In space, next to the forward differencing methods, we also often make use of the *backward differencing method* and the *centered differencing* method.
+There is generally a difference in perspective in how space and time are used. In the case of time, you use the derivative to advance a system in time: you want to know the state of the system $s$ at a next time step. In space, however, in most cases, you are presented with the spatial field of $s$, where the gradients are unknown. You often need these spatial gradients for your model calculations. In space, next to the forward differencing methods, we also often make use of the *backward differencing method* and the *centered differencing* method.
 
 First, we will go through the mathematical derivation. The forward differencing method in space, uses the location at which the derivatives are calculated and the point right (forward in space) of it:
 
@@ -43,7 +43,7 @@ $$s(x + \Delta x) = s(x) + \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta
 
 The backward scheme looks back along the space axis (in negative direction) and is defined as follows:
 
-$$s(x - \Delta x) = s(x) - \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ \cdots     $$
+$$s(x - \Delta x) = s(x) - \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} - \ \cdots     $$
 
 Reworking this equation leads to the backward differencing scheme:
 
@@ -66,37 +66,45 @@ It can be seen quite easily that this is an efficient scheme. The second and fou
 
 $$\frac{s(x + \Delta x) - s(x - \Delta x)}{2\Delta x} = \frac{ds}{dx} + \cdots$$
 <span class="exercise">
-X.1 Calculate for each of the approximations the first error term (the next term that should come at the $\ldots$).
+1.2.1 Give for each of the approximations the first error term (the next term that should come at the $\ldots$).
 <br><br>
-X.2 Can you explain from the error why the forward and backward differencing method have first-order error convergence, and the centered scheme has second-order error convergence?
+1.2.2 Can you explain from the error why the forward and backward differencing method have first-order error convergence, and the centered scheme has second-order error convergence?
 </span>
+
+<div class="answer">
+For both the forward and backward scheme, the first error term equals:
+$$ \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \frac{1}{\Delta x} = \frac{\Delta x}{2!} \frac{d^{2}s}{dx^{2}}$$
+
+For the centered scheme, the second derivative is eliminated and the first (largest) error term is only formed by the third derivative:
+$$ \dfrac{2\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \frac{1}{2\Delta x} = \dfrac{\Delta x^{2}}{3!} \dfrac{d^{3}s}{dx^{3}}$$
+</div>
 
 In order to visualize the effects of the three different approximations, you will now implement each of them for an example containing a *standing wave*. You will compute the derivatives of $s(x) = \sin(x)$. This you will do for each of the three methods: forward, backward, and centered.
 
-<span class="question">
-X.1 Implement the calculations for the three different methods below.
+<span class="exercise">
+1.2.3 Implement the calculations for the three different methods below.
 <br><br>
-X.2 Which of the three methods performs the best?
+1.2.4 Which of the three methods performs the best?
 <br><br>
-X.3 Decrease `dx`. Do all three methods converge to the correct result? Which one converges fastest, and why?
+1.2.5 Decrease `dx` in steps. Do all three methods converge to the correct result? Which one converges fastest, and why?
 </span>
 
 <span class="student_answer">
 Work out the code below.
-```{r}
+```{r eval=FALSE}
 # Initial parameter values
 left  = 0     # left x-coordinate
 right = 2*pi  # right x-coordinate
-dx    = pi/6  # delta x; time discretisation (0.25)
+dx    = pi/6  # delta x; space discretisation
 
 # Simulation initialisation
 space.sequence = seq(left, right, by=dx)
-dsdx.forward  = rep(0, length(space.sequence))
-dsdx.backward = rep(0, length(space.sequence))
-dsdx.centered = rep(0, length(space.sequence))
+dsdx.forward  = rep(0, length(space.sequence)) #derivative with forward method
+dsdx.backward = rep(0, length(space.sequence)) #derivative with backward method
+dsdx.centered = rep(0, length(space.sequence)) #derivative with centered method
 s = sin(space.sequence)
 
-# Add the calculations of forward, backward, centered derivative below.
+# Add the calculations of forward, backward, centered derivative below (filling the three dsdx vectors)
 
 # Plotting
 plot(space.sequence, dsdx.forward, type='o', xlab="x (m)", ylab="dsdx", ylim = c(-1.5, 1.5), col="blue")
@@ -111,12 +119,12 @@ grid()
 ```
 </span>
 
-<span class="answer">
+<div class="answer">
 ```{r}
 # Initial parameter values
 left  = 0     # left x-coordinate
 right = 2*pi  # right x-coordinate
-dx    = pi/6  # delta x; time discretisation (0.25)
+dx    = pi/6  # delta x; space discretisation 
 
 # Simulation initialisation
 space.sequence = seq(left, right, by=dx)
@@ -149,11 +157,13 @@ legend("top", legend=c("forward", "backward", "centered", "analytical"), col=c("
 title(main='Numerical and analytical solution compared')
 grid()
 ```
-</span>
+
+The centered method performs better than the other two. When dx is decreased, all three methods finally converge to the correct solution, but the centered method converges much faster.
+</div>
 
 # Part 2 - Matrix calculation intermezzo
-### Exercise 1
-Further in this tutorial, and the next one, we will use matrix algebra intensively. This part is a short tutorial in working with with matrices in the R environment.
+### Section 2.1
+Further in this tutorial, and the next one, we will use matrix algebra intensively. This part is a short tutorial in working with matrices in the R environment.
 
 A formal definition of a matrix is a collection of numbers organized in rows and columns. The following lines of codes construct a matrix:
 
@@ -164,16 +174,16 @@ print(M)
 
 The code lines above made a matrix by giving all the values in the construction itself. Once constructed, values of a matrix can be changed in different ways.
 
-<span class="question">
-1.1 How many rows and how many columns has this matrix?
+<span class="exercise">
+2.1.1 How many rows and how many columns has this matrix?
 </span>
 
 <span class="answer">
 2 rows, 3 columns
 </answer>
 
-<span class="question">
-1.2 Describe for each of the following lines the changes made to the matrix M
+<span class="exercise">
+2.1.2 Describe for each of the following lines the changes made to the matrix M.
 ```{R}
 M[1,2]= 100
 M[1, ]= c(10, 11, 12)
@@ -181,36 +191,36 @@ M[ ,2]= c(-1 ,-2)
 ```
 </span>
 
-<span class="question">
-1.3 What is the difference between the matrix constructed in the first subquestion and the matrix construced by:
+<span class="exercise">
+2.1.3 What is the difference between the matrix constructed above and the matrix constructed by:
 ```{R}
 M = matrix(c(1, 2, 3, 4, 5, 6), nrow=2 , ncol=3)
 ```
 </span>
 
-<span class="question">
-1.4 What is the difference between the matrix constructed in the first subquestion and the matrix constructed by:
+<span class="exercise">
+2.1.4 What is the difference between the first matrix and the matrix constructed by:
 ```{R}
 M = matrix(c(1, 2, 3, 4, 5, 6) , nrow=2 , ncol=2)
 ```
 </span>
 
-<span class="question">
-1.5 What is the difference between the matrix constructed in the first subquestion and the matrix constructed by:
+<span class="exercise">
+2.1.5 What is the difference between the first matrix and the matrix constructed by:
 ```{R}
 M = matrix(c(1, 2, 3, 4, 5, 6) , nrow=2 , ncol=4)
 ```
 </span>
 
-<span class="question">
-1.7 What is the difference between the matrix constructed in the first subquestion and the matrix construced by:
+<span class="exercise">
+2.1.6 What is the difference between the first matrix and the matrix constructed by:
 ```{R}
 M = matrix(c(1, 2, 3, 4, 5, 6) , nrow=2 , ncol=3 , byrow=TRUE)
 ```
 </span>
 
-### Exercise 2
-The matrix constructions in the previous question where very explicit. Many
+### Section 2.2
+The matrix constructions in the previous exercise were very explicit. Many
 matrices (certainly large ones) can more efficiently be constructed by loops. The following lines of code give an example (and prints the result):
 
 ```{R}
@@ -223,8 +233,8 @@ for(i in 1:nrow(M)) {
 print(M)
 ```
 
-<span class="question">
-2.1 Make code with a double loop as above that constructs the following matrix:
+<span class="exercise">
+2.2.1 Make code with a double loop as above that constructs the following matrix:
 
 ```{}
 > print(M)
@@ -247,8 +257,8 @@ print(M)
 ```
 </span>
 
-<span class="question">
-2.2 Make code with a double loop as above that constructs the following matrix:
+<span class="exercise">
+2.2.2 Make code with a double loop as above that constructs the following matrix:
 
 ```{}
 > print(M)
@@ -273,7 +283,7 @@ print(M)
 ```
 </span>
 
-### Exercise 3
+### Section 2.3
 These exercise are an introduction to the solution of linear equations. The following linear equations:
 
 $$
@@ -307,16 +317,16 @@ A^{-1}Ax = A^{-1}b\\
 Ix = A^{-1}b\\
 x = A^{-1}b
 $$
-By hand this can be done with [Gaussian elimination](https://en.wikipedia.org/wiki/Gaussian_elimination). If unfamiliar with this method or if in need of a quick refresher, the following video might be instructive; https://www.youtube.com/watch?v=xCIXkm3-ocQ 
+By hand this can be done with [Gaussian elimination](https://en.wikipedia.org/wiki/Gaussian_elimination). If unfamiliar with this method or if in need of a quick refresher, the following video might be instructive: https://www.youtube.com/watch?v=xCIXkm3-ocQ 
 
-After implementing the matrices the system can be solved for $x$ in the following in R:
+R can also directly solve for $x$, given the matrices A and b:
 
 ```{}
 x = solve(A,b)
 ```
 
-<span class="question">
-3.1 Calculate this equation first by hand and check your solution by solving it in R.
+<span class="exercise">
+2.3.1 Find the solution of the above system of equations first by hand and check your solution by solving it in R.
 </span>
 
 <span class="answer">
@@ -330,8 +340,8 @@ x_1\\x_2\\x_2
 $$
 </span>
 
-<span class="question">
-3.2 Find the solution (as done above) of the following equations:
+<span class="exercise">
+2.3.2 Find the solution with R (as done above) of the following equations:
 $$
 \begin{align}
 x_1 = 4\\
@@ -369,12 +379,12 @@ A = matrix(0,nrow=N,ncol=N)
 b = rep(1,length=N)
 ```
 
-<span class="question">
-3.3 Finish this code.
+<span class="exercise">
+2.3.3 Finish this code.
 <br><br>
-3.4 Check that for N=5 the result of the previous question is recalculated.
+2.3.4 Check that for N=5 the result of the previous exercise is recalculated.
 <br><br>
-3.5 Make a plot of the result for N=25.
+2.3.5 Make a plot of the result for N=25.
 </span>
 
 <span class="answer">
@@ -396,25 +406,25 @@ plot(solve(A,b))
 ```
 </span>
 
-### Exercise 4
-In this question the translation of (stationary, discrete) flow problems into a set of linear equations is reviewed.
+### Section 2.4
+In this section the translation of (stationary, discrete) flow problems into a set of linear equations is reviewed.
 
 In what follows, flow problems will be defined by graphs such as:
 </br>
 ![](example_1.png){width=30%}
 
-* The circles stand for cylinders with unknown fluid level for which a name is suggested inside this circle ($x_i$).
+* The circles stand for cylinders with unknown fluid level for which a name is suggested inside the circle ($x_i$).
 * Some of the levels inside the cylinders are prescribed (as is the case in the top cylinder of the example above); these prescribed values are boundary conditions.
-* These cylinders are connected with pipes, whose cross sectional area are indicated inside the pipes by numbers. The flux between these cylinders is given by this area times the level differences between the cylinders connected.
+* The cylinders are connected with pipes, whose cross sectional areas are indicated inside the pipes by numbers. The flux between these cylinders is given by this area times the level differences between the cylinders connected.
 * There can be external amounts of fluids added to the cylinders, as, for instance, the flux with number 3 to the top.
 
-the fluxes between the cylinders is calculated by multiplying the difference between the two cylinders and the cross sectional area. For example between $x_1$ and $x_2$ there is the following flow:
+The fluxes between the cylinders are calculated by multiplying the difference between the two cylinders and the cross sectional area. For example between $x_1$ and $x_2$ there is the following flow:
 
 $$q_{1\to2} = 7(x_1-x_2)$$
 which is equal to the flux going in the other direction:
 $$q_{2\to1} = 7(x_2-x_1)$$
-<span class="question">
-4.1 Write down the other fluxes in the system (both forward and backward through the pipe)
+<span class="exercise">
+2.4.1 Write down the other fluxes in the system (both forward and backward through the pipe)
 </span>
 
 <span class="answer">
@@ -429,7 +439,7 @@ q_{1\to3} &= 5(x_1-x_3)
 $$
 </span>
 
-From these equations mass balances can be set up. For example for cylinder $x_1$:
+From these equations mass balances can be set up, assuming that the system is in a stationary state. For example for cylinder $x_1$:
 
 $$
 \begin{align}
@@ -437,8 +447,8 @@ q_{2\to1} + q_{3\to1} + 3 = 0 \\
 7(x_2-x_1) + 5(x_3-x_1) + 3 = 0
 \end{align}
 $$
-<span class="question">
-4.2 Set up the mass balances for $x_2$ and $x_3$
+<span class="exercise">
+2.4.2 Set up the mass balances for $x_2$ and $x_3$.
 </span>
 
 <span class="answer">
@@ -453,8 +463,8 @@ q_{1\to3} + q_{2\to3} + 2 = 0 \\
 $$
 </span>
 
-<span class="question">
-4.3 Write the previous three mass balance equations in the form:
+<span class="exercise">
+2.4.3 Write the previous three mass balance equations in the form:
 $$ax_1 + bx_2 + cx_3 = d$$
 </span>
 
@@ -468,8 +478,8 @@ $$
 $$
 </span>
 
-<span class="question">
-4.4 Plug the previous equations in a matrix in the following way:
+<span class="exercise">
+2.4.4 Plug the previous equations in an A and b matrix in the following way:
 
 $$
 \begin{align}
@@ -503,8 +513,8 @@ x_1\\x_2\\x_3
 $$
 </span>
 
-<span class="question">
-4.5 Put the boundary condition $x_1 = 2$ into the matrix
+<span class="exercise">
+2.4.5 Put the boundary condition $x_1 = 2$ into the matrix.
 </span>
 
 <span class="answer">
@@ -523,8 +533,8 @@ x_1\\x_2\\x_3
 $$
 </span>
 
-<span class="question">
-4.6 Implement this equation in R and write down the x vector
+<span class="exercise">
+2.4.6 Implement these matrices in R and let R find the x vector.
 </span>
 
 <span class="answer">
@@ -554,15 +564,15 @@ print(solve(M,b))
 ```
 </span>
 
-<span class="question">
-4.7 Solve the system depicted in the following scheme and explain the result: 
+<span class="exercise">
+2.4.7 Solve the system depicted in the following scheme and explain the result: 
 </br>
 
 ![](example_2.png){width=30%}
 
 </span>
 
-</span class="answer">
+<div class="answer">
 ```{R}
 M=matrix(0,nrow=3,ncol=3)
 # bring flux between 1and 2 in matrix
@@ -588,9 +598,11 @@ b = c(2,0,0)
 print(solve(M,b))
 ```
 There is nothing to disturb the system, so it will become a static state with a uniform final state.
-</span>
+</div>
 
-This is the easiest way of implementing and solving systems with matrices. There are, however, smarter and faster ways of doing this. If you want to do a challenging exercise, open Exercise 0 in the `Finite_difference_2_extra.Rmd` file.
+This is the easiest way of implementing and solving systems with matrices. There are, however, smarter and faster ways of doing this. 
+
+*For a challenging exercise, go to **Exercise 1** in the `Finite_difference_2_extra.Rmd` file.*
 
 <span class="comment">
 Exercise 6 in the pdf could be useful
@@ -598,24 +610,25 @@ Exercise 6 in the pdf could be useful
 
 # Part 3 - Bringing matrix algebra and finite differences together
 
-## Section X.1 - The first-order derivative
-In part X, you have computed the derivatives in an intuitive way, using multiplication and additions of vectors. You can also compute derivatives in a more general way, using matrices. This is a very powerful technique, because it permits the solution of steady state systems, as well as for an easy extension towards system that vary in space and time, such as the advection-diffusion equation.
+## Section 3.1 - The first-order derivative
+In part 1, you have computed the derivatives in an intuitive way, using multiplication and additions of vectors. You can also compute derivatives in a more general way, using matrices. This is a very powerful technique, because it permits the solution of steady state systems, as well as for an easy extension towards system that vary in space and time, such as the advection-diffusion equation.
 
-Let's first look at the case of Part X: the sinus wave. Let us assume that we do not know the derivative and use finite differences to compute the spatial derivative (The observations are in fact calculated with the function $f = \sin(x)$ and therefore the exact solution is known; a cosine wave).
+Let's first look at the case of Part 1.2: the sinus wave. Let us assume that we do not know the derivative and use finite differences to compute the spatial derivative (The "observations" are in fact calculated with the function $f = \sin(x)$ and therefore the exact solution is known: a cosine wave).
 
 We aim to write the computation of the derivative in the form
 
 $$
-M s = v,
+M*s = v
 $$
-where the matrix $M$ contains the operation that performs the derivative on vector $s$, such that vector $v$ contains the derivative $ds/dx$ at each point. Remember that each line in the matrix contains an equation. In case of the forward differencing method, the first line of the matrix contains the coefficients of the equation
+where the matrix $M$ contains the operation that performs the derivative on vector $s$ (the states), such that vector $v$ contains the derivative $ds/dx$ at each point. We therefore call the matrix of coefficients contained in $M$ the *operator*. Remember that each line in the matrix contains an equation.    
+In this case, we have a row of N nodes in space (i=1 to N) with states $s_{1}$ to $s_{N}$. In case of the forward differencing method, the first line of the matrix contains the coefficients of the equation
 $$
 \dfrac{s_2 - s_1}{\Delta x} = \left.\dfrac{ds}{dx} \right|_1
 $$
 In other words, we compute the derivative $(ds/dx)_1$ based on the values of $s_1$ and $s_2$. This generalizes to $(s_{i+1} - s_i)/\Delta x = (ds/dx)_i$. For a vector of $N$ elements, you will get a $N \times N$ matrix.
 
-<span class="question">
-X.1.1 Fill the matrix for a $5 \times 5$ forward differencing operator
+<span class="exercise">
+3.1.1 Fill in the matrix below for a system of five nodes (a $5 \times 5$ forward differencing operator)
 </span>
 
 <span class="student_answer">
@@ -674,13 +687,14 @@ s_5
 $$
 </span>
 
-Now, you will implement the operator into a piece of code.
+Now, you will implement this problem into a piece of code. Note that we are not trying to find the vector $s$, but the derivatives vector $v$. Therefore, we do not need the `solve` function of R yet, but we can use matrix multiplication $M*s$ to find $v$. Note that in R matrix multiplication is performed as follows: `M %*% s`.
 
-<span class="question">
-X.1.2 Complete the code block below, and compare your results against the analytical solution.
+<span class="exercise">
+3.1.2 Complete the code block below, and compare your results against the analytical solution.
 </span>
 
-```{r forward_derivative}
+<span class="student_answer">
+```{r forward_derivative, eval=FALSE}
 rm(list=ls()) 
 
 # setting up initial parameters
@@ -698,11 +712,11 @@ s = sin(xcoor) # the original sinus series that needs to be differentiated
 # WRITE A LOOP TO FILL THE MATRIX
 
 # Apply the derivative operator using matrix multiplication.
-# SOLVE THE MATRIX HERE
+# FIND THE VECTOR V
 
 # plotting
 N = length(xcoor)
-plot(xcoor, v, ylab="state (m)", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+plot(xcoor, v, ylab="derivative", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
 x_sol = seq(left, right, by=0.05)
 lines(x_sol, cos(x_sol), type='l', col="grey", lwd=2)
 title(main='Forward differencing scheme with matrices')
@@ -711,8 +725,6 @@ grid()
 </span>
 
 <span class="answer">
-X.1.2 Complete the code block below, and compare your results against the analytical solution.
-</span>
 
 ```{r forward_derivative_answer}
 rm(list=ls()) 
@@ -743,7 +755,7 @@ v = M %*% s
 
 # plotting
 N = length(xcoor)
-plot(xcoor, v, ylab="state (m)", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+plot(xcoor, v, ylab="derivative", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
 x_sol = seq(left, right, by=0.05)
 lines(x_sol, cos(x_sol), type='l', col="grey", lwd=2)
 title(main='Forward differencing scheme with matrices')
@@ -751,12 +763,12 @@ grid()
 ```
 </span>
 
-<span class="question">
-4.1.4 Implement the backward and central scheme in the same way as in the previous question and plot them together in the same plot using different colors.
+<span class="exercise">
+3.1.4 Implement the backward and central scheme in the same way as in the previous exercise and plot them together in the same plot using different colors.
 </span>
 
 <span class="student answer">
-```{r all_derivatives}
+```{r all_derivatives, eval=FALSE}
 rm(list=ls()) 
 
 # setting up initial parameters
@@ -784,12 +796,13 @@ s = sin(xcoor) # the original sinus series that needs to be differentiated
 
 # plotting
 N = length(xcoor)
-plot(xcoor, v_forward, ylab="state (m)", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0, 2*pi)) # numerical approximation
+plot(xcoor, v_forward, ylab="derivative", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0, 2*pi)) # numerical approximation
 # ADD THE OTHER TWO LINES
 x_sol = seq(left, right, by=0.05)
 lines(x_sol, cos(x_sol), type='l', col="grey", lwd=2)
 title(main='Differencing scheme with matrices')
 grid()
+# legend(XXXX)
 ```
 </span>
 
@@ -853,23 +866,25 @@ v_centered = M_centered %*% s
 
 # plotting
 N = length(xcoor)
-plot(xcoor, v_forward, ylab="state (m)", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0, 2*pi)) # numerical approximation
+plot(xcoor, v_forward, ylab="derivative", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0, 2*pi)) # numerical approximation
 lines(xcoor, v_backward, type='o', col='red') # numerical approximation
 lines(xcoor, v_centered, type='o', col='green') # numerical approximation
 x_sol = seq(left, right, by=0.05)
 lines(x_sol, cos(x_sol), type='l', col="grey", lwd=2)
 title(main='Differencing scheme with matrices')
 grid()
+legend(0,-1.2,c("forward","backward","centered","analytical"),col=c("blue","red","green","grey"),lwd=c(1,1,1,2),horiz=TRUE,cex=0.8)
 ```
 </span>
 
-To evaluate the quality of these different approaches the absolute error between the approximated and real values can be added up. If you are up for a challenging question, where you will numerically derive the error, you can open *Exercise 2* from the `Finite_differences_2_extended.Rmd` file. If not, you can continue here.
+To evaluate the quality of these different approaches you can compare the summed absolute error between the approximated and real values.    
+*If you are up for a challenging exercise, where you will numerically derive the errors, you can open **Exercise 2** from the `Finite_differences_2_extended.Rmd` file. If not, you can continue here.* 
 
-<span class="question">
-4.1.7 Fill the following table of errors by running the following chunk.
+<span class="exercise">
+3.1.5 Fill the following table of errors by running the chunk below.
 </span>
 
-<span class="student_answer">
+<div class="student_answer">
 
 | dx | Forward differencing scheme | Central differencing scheme |
 | ------------- | ------------- | ------------- |
@@ -880,6 +895,7 @@ To evaluate the quality of these different approaches the absolute error between
 | $\frac{1}{5}\pi$ |  |  |
 | $\frac{1}{10}\pi$ |  |  |
 | $\frac{1}{20}\pi$ |  |  |
+</div>
 
 <button type="button" onclick="toggle('Q2')">Show chunk</button>
 
@@ -1006,29 +1022,38 @@ server <- function(input, output) {
 shinyApp(ui, server)
 ```
 </div>
-</span>
 
 <div class="answer">
 | dx | Forward differencing scheme | Central differencing scheme |
 | ------------- | ------------- | ------------- |
-| $\pi$ |  |  |
-| $\frac{1}{2}\pi$ |  |  |
-| $\frac{1}{3}\pi$ |  |  |
-| $\frac{1}{4}\pi$ |  |  |
-| $\frac{1}{5}\pi$ |  |  |
-| $\frac{1}{10}\pi$ |  |  |
-| $\frac{1}{20}\pi$ |  |  |
+| $\pi$ | 1 | 1 |
+| $\frac{1}{2}\pi$ | 0.47 | 0.22 |
+| $\frac{1}{3}\pi$ | 0.31 | 0.12 |
+| $\frac{1}{4}\pi$ | 0.23 | 0.065 |
+| $\frac{1}{5}\pi$ | 0.19 | 0.044 |
+| $\frac{1}{10}\pi$ | 0.096 | 0.011 |
+| $\frac{1}{20}\pi$ | 0.049 | 0.0026 |
 </div>
 
-<span class="question">
-4.1.7 Which scheme convergest fastest? Can you calculate the convergence rate (the error reduction per doubling of the number of grid points from the numbers)? Does this fit with the theory?
+<span class="exercise">
+3.1.6 Which scheme convergest fastest? Can you calculate the convergence rate (the error reduction per doubling of the number of grid points from the numbers)? Does this fit with the theory?
 </span>
 
-## Section 4.2 - Second order derivative
-In order to be able to solve the *stationary* advection diffusion equation later, there is still one other thing remains to be explained; how to compute the second order derivative in the equation
+<div class="answer">
+The centered difference scheme clearly converges faster.  
+Looking at the table, the forward scheme reduces its error by about 0.5 each time the number of nodes is doubled. For the centered sheme, this is closer to 0.25. This faster convergence corresponds to the theory set out in section 1.2: the centered scheme has second-order convergence.
+```{r}
+#forward
+forward_rate=mean(c(0.47/1,0.23/0.47,0.096/0.19,0.049/0.096))
+centered_rate=mean(c(0.22/1,0.065/0.22,0.011/0.044,0.0026/0.011))
+```
+</div>
+
+## Section 3.2 - Second order derivative
+In order to be able to solve the *stationary* advection diffusion equation later, there is still one other thing to be explained: how to compute the second order derivative in the equation
 
 $$0 = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
-Also, the second derivative finite differences operator can be derived from the Taylor series. To do so, we need to combine the forward and backward differencing methods that are written below:
+Also the *second* derivative finite differences operator can be derived from the Taylor series. To do so, we need to combine the forward and backward differencing methods that are written below:
 
 \begin{align*}
 s(x + \Delta x) & = s(x) + \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + \dfrac{(\Delta x)^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \dfrac{(\Delta x)^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \dfrac{(\Delta x)^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ \cdots \\    
@@ -1037,7 +1062,7 @@ s(x - \Delta x) & = s(x) - \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} +
 \end{align*}
 
 <div class="exercise">
-X.X.1 Combine the two equations such that the term containing the first derivative falls out of the equation.
+3.2.1 Combine the two equations such that the term containing the first derivative falls out of the equation. 
 </div>
 
 <div class="answer">
@@ -1048,7 +1073,7 @@ $$
 </div>
 
 <div class="exercise">
-X.X.2 Rewrite the equation such, that the operator (thus all instances of $s(x-\Delta x)$, $s(x)$, and $s(x+\Delta x)$) is on the lefthand side, and the second derivative and the error is on the righthand side.
+3.2.2 Rewrite the equation such, that the operator (thus all instances of $s(x-\Delta x)$, $s(x)$, and $s(x+\Delta x)$) is on the lefthand side, and on the righthand side are only the second derivative and the error.
 </div>
 
 <div class="answer">
@@ -1059,13 +1084,13 @@ $$
 </div>
 
 <div class="exercise">
-4.2.1 Use the derived operator to construct a matrix that can be used to compute the second derivative. Copy the block of forward differencing operator and adapt it to show the second derivative. Keep in mind that you also have to prescribe the correct analytical solution!
+3.2.3 Use the derived equation to construct a matrix that can be used to compute the second derivative for all x-nodes. Copy your previous `forward_derivative` chunk below (Tip: you can navigate through the markdown with the button in the bottom of the editor window). Adapt the code to produce the second derivative. Keep in mind that you also have to prescribe the correct analytical solution!
 </div>
 
 <div class="student_answer">
-Implement your code here
+Implement your code here.
 ```{r}
-# WHOOP WHOOP NEW CODE.
+# WHOOP WHOOP NEW CODE
 ```
 </div>
 
@@ -1096,7 +1121,7 @@ for (j in 2:(nx-1))
 v = M %*% s
 
 # plotting
-plot(xcoor[2:(nx-1)], v[2:(nx-1)], ylab="state (m)", xlab="x (m) ", type='o', col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
+plot(xcoor[2:(nx-1)], v[2:(nx-1)], ylab="2nd derivative", xlab="x (m) ", type='o', col='blue', ylim=c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
 x_sol = seq(left,right,by=0.05)
 lines(x_sol,-sin(x_sol),type='l', col="grey",lwd=2)
 title(main='Second derivative computed with matrices')
@@ -1104,10 +1129,10 @@ grid()
 ```
 </div>
 
-# Part X: Solving equations using matrix inversions.
+# Part 4: Solving equations using matrix inversions.
 Before solving the advection diffusion equation directly, you will learn how to combine the spatial operators and the matrix inversion that you have learned before. 
 
-Imagine now, that rather than knowing the state $s(x)$ of the system, you know the values of the first derivative at each node. Assume that the value of the derivative is given by $\cos(x)$, we can invert the system to acquire the values of $s(x)$ at each node. Let us assume, we use the forward differencing operator as worked out in *Exercise X*.
+Imagine now, that rather than knowing the state $s(x)$ of the system, you know the values of the first derivative at each node. Assuming that the value of the derivative is given by $\cos(x)$, we can invert the system to acquire the values of $s(x)$ at each node. Let us assume, we use the forward differencing operator as worked out in *exercise 3.1.2*.
 
 We can now define the system as a set of equations in the form
 $$
@@ -1116,7 +1141,7 @@ $$
 where $v$ in this case is the the vector $( (ds/dx)_1, (ds/dx)_2, \ldots, (ds/dx)_n)$. In order to acquire the state vector $s$, we need to apply matrix algebra.
 
 <div class="exercise">
-X.X.X Write out the matrix operations that provide the values of $s$.
+4.1.1 Write out the matrix operations that provide the values of $s$.
 </div>
 
 <div class="answer">
@@ -1133,9 +1158,9 @@ $$
 Now, you will put the mathematics above into code.
 
 <div class="exercise">
-X.X.X Implement the matrix $M$ that contains the spatial operator, work out the vector $v$ that contains the derivatives evaluated using $\cos(x)$, and use these two to solve for $s$.
+4.1.2 Implement the matrix $M$ that contains the spatial operator, work out the vector $v$ that contains the derivatives evaluated using $\cos(x)$, and use these two to solve for $s$. Note that in this case you do need the `solve` function of R.
 
-X.X.X Most likely, the developed system does not solve, because you did not implement a boundary condition. Fix the value at $x = 2 \pi$ to $0$ and solve it again. Does the system converge to the correct solution if you decrease `dx`?
+4.1.3 Most likely, the developed system does not solve, because you did not implement a boundary condition. Fix the value at $x = 2 \pi$ (the last node) to $0$ and solve it again. Does the system converge to the correct solution if you decrease `dx`?
 </div>
 
 <div class="student_answer">
@@ -1155,6 +1180,7 @@ M = matrix(0, nrow=length(xcoor), ncol=length(xcoor)) # an empty matrix for the 
 
 # CREATE THE MATRIX.
 nx = length(xcoor)
+# use a loop to fill the matrix
 
 # SOLVE THE SYSTEM IN ORDER TO ACQUIRE THE VECTOR s WHICH CONTAINS THE STATE.
 
@@ -1164,11 +1190,12 @@ x_sol = seq(left, right, by=0.05)
 
 # ADD A THICK GREY LINE CONTAINING THE ANALYTICAL SOLUTION.
 
-title(main='Inversion of the forward finite difference operator for the derivative')
+title(main='Inversion of the forward finite difference operator')
 grid()
 ```
 </div>
 
+<div class="answer">
 ```{r forward_derivative_inversion_answer}
 rm(list=ls()) 
 
@@ -1189,7 +1216,7 @@ for (j in 1:(nx-1))
   M[j,j]   = -1/dx
 }
 
-M[nx,nx] = 1
+M[nx,nx] = 1  #boundary condition
 v[nx] = sin(xcoor[nx])
 
 # Apply the derivative operator using matrix multiplication.
@@ -1199,9 +1226,10 @@ s = solve(M,v)
 plot(xcoor, s, ylab="state (m)", xlab="x (m)", type='o', col='blue', ylim = c(-1.5,1.5), xlim = c(0,2*pi)) # numerical approximation
 x_sol = seq(left, right, by=0.05)
 lines(x_sol, sin(x_sol), type='l', col="grey", lwd=2)
-title(main='Inversion of the forward finite difference operator for the derivative')
+title(main='Inversion of the forward finite difference operator')
 grid()
 ```
+</div>
 
 # Part 5 - Solving the advection-diffusion equation.
 ## Section 5.1 - Boundary conditions
@@ -1219,11 +1247,12 @@ Another option is to implement a so-called **Neumann boundary condition** in whi
 
 <span class="comment">
 This is a quick summary of boundary conditions, but do we want to give it like this or should the students find this out for themselves?
+Esther: Giving it is ok I think, it is not the most important message here
 </span>
 
 ## Section 5.2 - Implementation with Dirichlet boundary conditions
 <div class="exercise">
-5.2.1 Work out (pan and paper or $\LaTeX$) the stationary advection-diffusion equation (second equation section 1.1) with 5 nodes (n=5) and two Dirichlet boundaries (left=0 and right=1) in the following notation:
+5.2.1 Work out (pen and paper or $\LaTeX$) the stationary advection-diffusion equation (given at the beginning of this section) with 5 nodes (n=5) and two Dirichlet boundaries (left=0 and right=1) in the following notation:
 
 $$
 \begin{bmatrix}
@@ -1277,14 +1306,14 @@ b_r\\
 $$
 </div>
 
-If you want to go deeper into the subject and implement the whole solver yourself, go to **Exercise 1** of the `Finite_differences_2_extra.Rmd` and skip the two following exercises here.
+*If you want to go deeper into the subject and implement the whole solver yourself, go to **Exercise 3** of the `Finite_differences_2_extra.Rmd` and skip the two following exercises here (going on with 5.2.4).*
 
 <span class="exercise">
 5.2.2 Calculate the values in the matrix with $\Delta x = 5$, $D=5$ and $u=5$ and check if the following chunk yields the same matrix.
 ```{R}
 dx    = 5    # step size
 D     = 5    # diffusion coefficient
-u     = 5    # advectio coefficient
+u     = 5    # advection coefficient
 bl    = 0    # left boundary
 br    = 1    # right boundary
 n     = 5    # amount of nodes
@@ -1292,7 +1321,7 @@ n     = 5    # amount of nodes
 left  = 0    # left coordinate
 xcoor = seq(left,dx*(n-1), by=dx)
 
-V     = c()  # build an empty vector for the solutions
+v     = c()  # build an empty vector for the derivatives
 M     = matrix(0, nrow=length(xcoor), ncol=length(xcoor)) 
 
 for(j in 2:(length(xcoor)-1))
@@ -1300,30 +1329,30 @@ for(j in 2:(length(xcoor)-1))
   M[j,j-1] = -u/(2*dx) - D/(dx^2)
   M[j,j  ] = 2*D/(dx^2)
   M[j,j+1] = u/(2*dx) - D/(dx^2)
-  V[j]     = 0
+  v[j]     = 0
 }
 
 # Left boundary
 M[1,1] = 1
-V[1]   = bl
+v[1]   = bl
 
 # Right boundary
 M[n,n] = 1
-V[n]   = br
+v[n]   = br
 
 # Solve the system
-s = solve(M,V)
+s = solve(M,v)
 
 print(M)
 ```
 </span>
 
-<span class="question">
-5.2.3 Run the following chunck to see the quality of the solution:
+<span class="exercise">
+5.2.3 Run the following chunk to see the quality of the solution:
 ```{R}
 dx    = 5    # step size
 D     = 5    # diffusion coefficient
-u     = 5    # advectio coefficient
+u     = 5    # advection coefficient
 bl    = 0    # left boundary
 br    = 1    # right boundary
 n     = 5    # amount of nodes
@@ -1331,7 +1360,7 @@ n     = 5    # amount of nodes
 left  = 0    # left coordinate
 xcoor = seq(left,dx*(n-1), by=dx)
 
-V     = c()  # build an empty vector for the solutions
+v     = c()  # build an empty vector for the derivatives
 M     = matrix(0, nrow=length(xcoor), ncol=length(xcoor)) 
 
 for(j in 2:(length(xcoor)-1))
@@ -1339,19 +1368,19 @@ for(j in 2:(length(xcoor)-1))
   M[j,j-1] = -u/(2*dx) - D/(dx^2)
   M[j,j  ] = 2*D/(dx^2)
   M[j,j+1] = u/(2*dx) - D/(dx^2)
-  V[j]     = 0
+  v[j]     = 0
 }
 
 # Left boundary
 M[1,1] = 1
-V[1]   = bl
+v[1]   = bl
 
 # Right boundary
 M[n,n] = 1
-V[n]   = br
+v[n]   = br
 
 # Solve the system
-s = solve(M,V)
+s = solve(M,v)
 
 # Plotting
 plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
@@ -1376,8 +1405,8 @@ legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,
 ```
 </span>
 
-<span class="question"> 
-5.2.4 The following chunk is the same system as analysed in the previous question. The only difference is that the domain is fixed from x=0 to x=50. Change `dx` from 10 to 1 in steps of 1 and compare the results. What is the highest value of `dx` for which the solution is stable?
+<span class="exercise"> 
+5.2.4 The following chunk is the same system as analysed in the previous exercise. The only difference is that the domain is increased to x=50. Change `dx` from 10 to 1 in steps of 1 and compare the results. What is the highest value of `dx` for which the solution is stable?
 ```{R}
 dx    = 10   # step size
 D     = 5    # diffusion coefficient
@@ -1389,7 +1418,7 @@ left  = 0    # left coordinate
 right = 50
 xcoor = seq(left,right, by=dx)
 
-V     = c()  # build an empty vector for the solutions
+v     = c()  # build an empty vector for the derivatives
 M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
 
 for(j in 2:(length(xcoor)-1))
@@ -1397,20 +1426,20 @@ for(j in 2:(length(xcoor)-1))
   M[j,j-1] = -u/(2*dx) - D/(dx^2)
   M[j,j  ] = 2*D/(dx^2)
   M[j,j+1] = u/(2*dx) - D/(dx^2)
-  V[j]     = 0
+  v[j]     = 0
 }
 
 # Left boundary
 M[1,1] = 1
-V[1]   = bl
+v[1]   = bl
 
 # Right boundary
 n = length(xcoor)
 M[n,n] = 1
-V[n]   = br
+v[n]   = br
 
 # Solve the system
-s = solve(M,V)
+s = solve(M,v)
 
 # Plotting
 plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
@@ -1435,22 +1464,22 @@ legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,
 ```
 
 <span class="answer">
-The solution becomes stable starting from dx=2 and below
+The solution becomes stable starting from dx=2 and below.
 </span>
 
-## Section 5.2 - Implementation with a Neumann boundary condition
-Here, you will work out the Neumann boundary condition case. If you are motivated for a challenging question, you can open 
-**Exercise 3** of the `Finite_differences_2_extra.Rmd` and skip the remainder of this section.
+## Section 5.3 - Implementation with a Neumann boundary condition
+Here, you will work out the Neumann boundary condition case.    
+*If you are motivated for a challenging exercise, you can open **Exercise 4** of the `Finite_differences_2_extra.Rmd` and skip the remainder of this section.*
 
 As an example we will look at a Neumann boundary with a gradient of $0.5$. In mathematical terms this means:
 
 $$
 \dfrac{ds}{dx} = 0.5
 $$
-We would like to introduce this boundary condition at the right side.
+We would like to introduce this boundary condition at the right side of our domain.
 
 <div class="exercise">
-Work the boundary condition into the matrix $M$ of the previous exercise, such that the Dirichlet boundary condition is replaced by the Neumann boundary conditions. Do this using pen-and-paper or using $\LaTeX$.
+5.3.1 Work the boundary condition into the matrix $M$ of the previous exercise, such that the Dirichlet boundary condition is replaced by the Neumann boundary conditions. Do this using pen-and-paper or using $\LaTeX$.
 </div>
 
 <div class="answer">
@@ -1486,19 +1515,19 @@ b_r = \frac{\Delta x}{2}\\
 $$
 </div>
 
-<div class="question">
-5.2.1 What do you think the graph would look like? Test your hypothesis by completing the following chunk to incorporate the Neumann boundary condition (change the XXX's in the code).
+<div class="exercise">
+5.3.2 What do you think the states will now look like? Test your hypothesis by completing the following chunk to incorporate the Neumann boundary condition (change the XXX's in the code).
 
-5.X.X For which grid spacing `dx` does the solution become smooth? Can you explain this?
+5.3.3 For which grid spacing `dx` does the solution become smooth? Can you explain this?
 
-5.X.X What happens if you decrease D (for instance to 1)? Do you need a finer `dx` or can you use a coarser one? Why?
+5.3.4 What happens if you decrease D (for instance to 1)? Do you need a finer `dx` or can you use a coarser one? Why?
 </div>
 
 <div class="student_answer">
 ```{R, eval=F}
 dx    = 5    # step size
 D     = 5    # diffusion coefficient
-u     = 5    # advectio coefficient
+u     = 5    # advection coefficient
 bl    = 0    # left boundary
 br    = XXX  # right boundary
 
@@ -1507,7 +1536,7 @@ right = 50
 xcoor = seq(left,right, by=dx)
 N     = length(xcoor)
 
-V     = c()  # build an empty vector for the solutions
+v     = c()  # build an empty vector for the derivatives
 M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
 
 for(j in 2:(length(xcoor)-1))
@@ -1515,14 +1544,14 @@ for(j in 2:(length(xcoor)-1))
   M[j,j-1] = -u/(2*dx) - D/(dx^2)
   M[j,j  ] = 2*D/(dx^2)
   M[j,j+1] = u/(2*dx) - D/(dx^2)
-  V[j]     = 0
+  v[j]     = 0
 }
 
 # Boundary conditions
 XXX
 
 # Solve the system
-s = solve(M,V)
+s = solve(M,v)
 
 # Plotting
 plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
@@ -1544,7 +1573,7 @@ right = 50
 xcoor = seq(left,right, by=dx)
 N     = length(xcoor)
 
-V     = c()  # build an empty vector for the solutions
+v     = c()  # build an empty vector for the derivatives
 M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
 
 for(j in 2:(length(xcoor)-1))
@@ -1552,27 +1581,29 @@ for(j in 2:(length(xcoor)-1))
   M[j,j-1] = -u/(2*dx) - D/(dx^2)
   M[j,j  ] = 2*D/(dx^2)
   M[j,j+1] = u/(2*dx) - D/(dx^2)
-  V[j]     = 0
+  v[j]     = 0
 }
 
 # Left boundary
 M[1,1] = 1
-V[1]   = bl
+v[1]   = bl
 
 # Right boundary
 
 M[N,N]   = 1
 M[N,N-1] = -1
-V[N]     = br
+v[N]     = br
 
 # Solve the system
-s = solve(M,V)
+s = solve(M,v)
 
 # Plotting
 plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
 title(main='Advection Diffusion Equation, Neumann boundary')
 grid()
 ```
+
+From about dx=1 and below, the solution follows a smooth line. When D is decreased to 1, a much *smaller* dx is needed. This can be explained by looking at the advection-diffusion equation. This equation consists of an advection part, governed by the first derivative in space, and a diffusion part, governed by the second derivative. If D is decreased, the advection part becomes more dominant. As we have seen, the solutions of the first derivatives converge less fast than those of the second derivative. A smaller dx is therefore needed.
 </div>
 
 <span class="comment">
