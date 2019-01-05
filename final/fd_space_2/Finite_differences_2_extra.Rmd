@@ -67,9 +67,9 @@ for (i in 1:length(f))
 <div class="answer">
 `f` is `from` (start of pipe), `t` is `to` (end of pipe) and `a` are the `cross sectional areas`. This script creates the matrix by only defining the fluxes once. The scipt takes care of the opposite flux: 1 to 2 and 2 to 1 are in fact the same but opposite. The for loop takes care of this construction.
 </div>
+
 <div class="question">
 c. Solve the following system:</br>
-4.10 Solve the following system <br/>
 ![](example_3.png){width=40%}
 </div>
 
@@ -100,7 +100,9 @@ print(s)
 </div>
 
 <div class="exercise">
-<div class="comment">Maybe for the hard question</div></br>
+d. Solve the following system.
+</div>
+<br/>
 ![](example_4.png){width=40%}
 </div>
 
