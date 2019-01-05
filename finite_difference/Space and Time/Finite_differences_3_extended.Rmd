@@ -1,5 +1,5 @@
 ---
-title: "Finite differences 2"
+title: "Finite differences 3 extended"
 author: "The WANT team"
 date: "24/09/2018"
 output:
@@ -15,77 +15,74 @@ output:
 <script src="../../hints.js"></script>
 
 ## Exercise 1
+<div class="exercise">
+2.1.1 Discretise the equation using a forward differencing scheme in time and a central scheme in space (both first and second order derivative). Use the omega notation given above to solve for the explicit, implicit and Crank-Nicolson integration scheme. Make sure to use the notation shown in Section 1.1 of the markdown (last equation).
+</div>
 
-<span class="question">
-2.1.1 Discretise the equation using a forward differencing scheme in time and a central scheme in space (both first and second order derivative). Use the omega notation given above to solve for the explicit, implicit and Crank-Nicolson integration scheme. Make sure to use the notation shown section 1.1 (last equation).
-
-<span class="comment"> 
-Is this too much and too fast?
-</span>
-
-</span>
-
-<span class="answer">
+<div class="answer">
 $$
-\dfrac{s^{n+1}_i - s^{n}_{i}}{\Delta t} = \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2}) + (1-\omega)(-u\dfrac{s^{n+1}_{i+1}-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}-2s^{n+1}_{i}+s^{n+1}_{i+1}}{\Delta x^2})
+\dfrac{s^{n+1}_i - s^{n}_{i}}{\Delta t} = 
+\omega\,\left(-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2} \right) 
++ (1-\omega)\,\left(-u\dfrac{s^{n+1}_{i+1}-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}-2s^{n+1}_{i}+s^{n+1}_{i+1}}{\Delta x^2} \right)
 $$  
-</span>
+</div>
 
-This equation can be organised in such a way that it can be inserted in the standard matrix equation:
+This equation can be organised in such a way that it can be inserted in the standard matrix equation, which you will do in the exercise below
 $$
-M*s^{n+1} = V
+Ms^{n+1} = v
 $$
 
-<span class="question">
-2.1.2 Reorganise the equation from question 2.1.1 to have all terms about the new time-step `n+1` on the left-hand side and everything else on the right-hand side.
-</span>
+<div class="exercise">
+2.1.2 Reorganise the equation from exercise 2.1.1 to have all terms about the new time-step `n+1` on the left-hand side and everything else on the right-hand side.
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
-\dfrac{s^{n+1}_i}{\Delta t} - (1-\omega)(-u\dfrac{s^{n+1}_{i+1}-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}-2s^{n+1}_{i}+s^{n+1}_{i+1}}{\Delta x^2}) = \dfrac{s^{n}_{i}}{\Delta t} + \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2})
+\dfrac{s^{n+1}_i}{\Delta t} 
+- \left( 1-\omega)(-u\dfrac{s^{n+1}_{i+1}-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}-2s^{n+1}_{i}+s^{n+1}_{i+1}}{\Delta x^2} \right) = \dfrac{s^{n}_{i}}{\Delta t} + \omega\,\left(-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2} \right)
 $$  
-</span>
+</div>
 
-<span class="question">
+<div class="question">
 2.1.3 The equation obtained from the previous exercise can be written in the following way:
 $$
-As^{n+1}_{i-1} + Bs^{n+1}_{i} + Cs^{n+1}_{i+1} = E
+as^{n+1}_{i-1} + bs^{n+1}_{i} + cs^{n+1}_{i+1} = d
 $$
-find the coefficients A,B,C and E
-</span>
+Find the coefficients `a`, `b`, `c` and `d`.
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
-As^{n+1}_{i-1} = -(1-\omega)(-u\dfrac{-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}}{\Delta x^2})\\
-A = (\omega-1)(\dfrac{u}{2\Delta x} + \dfrac{D}{\Delta x^2})
-$$
-$$
-Bs^{n+1}_{i} = \dfrac{s^{n+1}_{i}}{\Delta t} - (1-\omega)(D\dfrac{-2s^{n+1}_{i}}{\Delta x^2})\\
-B = \dfrac{1}{\Delta t} + (\omega-1)(\dfrac{-2D}{\Delta x^2})
+as^{n+1}_{i-1} = -(1-\omega)(-u\dfrac{-s^{n+1}_{i-1}}{2\Delta x} + D\dfrac{s^{n+1}_{i-1}}{\Delta x^2})\\
+a = (\omega-1)(\dfrac{u}{2\Delta x} + \dfrac{D}{\Delta x^2})
 $$
 $$
-Cs^{n+1}_{i+1} = -(1-\omega)(-u\dfrac{s^{n+1}_{i+1}}{2\Delta x} + D\dfrac{s^{n+1}_{i+1}}{\Delta x^2})\\
-C = (\omega-1)(\dfrac{-u}{2\Delta x} + \dfrac{D}{\Delta x^2})
+bs^{n+1}_{i} = \dfrac{s^{n+1}_{i}}{\Delta t} - (1-\omega)(D\dfrac{-2s^{n+1}_{i}}{\Delta x^2})\\
+b = \dfrac{1}{\Delta t} + (\omega-1)(\dfrac{-2D}{\Delta x^2})
 $$
 $$
-E = \dfrac{s^{n}_{i}}{\Delta t} + \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2})
+cs^{n+1}_{i+1} = -(1-\omega)(-u\dfrac{s^{n+1}_{i+1}}{2\Delta x} + D\dfrac{s^{n+1}_{i+1}}{\Delta x^2})\\
+c = (\omega-1)(\dfrac{-u}{2\Delta x} + \dfrac{D}{\Delta x^2})
 $$
-</span>
+$$
+d = \dfrac{s^{n}_{i}}{\Delta t} + \omega\ (-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}}{2\Delta x} + D\dfrac{s^{n}_{i-1}-2s^{n}_{i}+s^{n}_{i+1}}{\Delta x^2})
+$$
+</div>
 
-<span class="question">
+<div class="exercise">
 2.1.4 Use the coefficients of the previous equation to set up a the following matrix equation (using two Dirichlet boundaries): 
 $$
-M*s^{n+1} = V
+Ms^{n+1} = v
 $$
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
 \begin{bmatrix}
 1&.&.&.&.\\
-A&B&C&.&.\\
-.&A&B&C&.\\
-.&.&A&B&C\\
+a&b&c&.&.\\
+.&a&b&c&.\\
+.&.&a&b&c\\
 .&.&.&.&1
 \end{bmatrix} * 
 \begin{bmatrix}
@@ -97,30 +94,30 @@ s^{n+1}_{5}
 \end{bmatrix} = 
 \begin{bmatrix}
 b_l\\
-E_2\\
-E_3\\
-E_4\\
+d_2\\
+d_3\\
+d_4\\
 b_r
 \end{bmatrix}
 $$
-</span>
+</div>
 
-<span class="question">
+<div class="question">
 2.1.5 Are the matrix and the vector space or time dependent?
-</span>
+</div>
 
-<span class="answer">
-Matrix is completely independent. Vector is dependent on both space and time.
-</span>
+<div class="answer">
+Matrix is completely independent, because $\Delta x$ and $\Delta t$ are constant and uniform in space and time. Vector is dependent on both space and time.
+</div>
 
 ## Exercise 2
-<span class="question">
-Construct the time stepping while loop like the chunks in the *time*-tutorial and plot the results.
-</span>
+<div class="question">
+Construct the time stepping `while` loop (similar to the chunks in the **time**-tutorial) and plot the results.
+</div>
 
-<span class="comment"> Here ffmpeg might be a great idea but I don't know how to implement that </span>
+<div class="comment"> Here ffmpeg might be a great idea but I don't know how to implement that </div>
 
-<span class="answer">
+<div class="answer">
 ```{R}
 # Input variables
 domain  = c(0,100)
@@ -134,9 +131,10 @@ br      = 0
 omega   = 0
 
 # Function that gives the states for the first time-step
-initfun = function(x){
-  # Gaussian distribution
-  exp(-(x-domain[2]/2)^2/2^2)
+initfun = function(x)
+{
+    # Gaussian distribution
+    exp(-(x-domain[2]/2)^2/2^2)
 }
 
 # Calculation preparation
@@ -167,7 +165,8 @@ time        = 0
 new.state   = init.state
 plotlim     = c(-0.2,1.2)
 
-while(time<endtime){
+while(time<endtime)
+{
     plot(x,new.state,ylim=plotlim,type="l", xlab="x", ylab ="state")
     prev.state = new.state
     
@@ -176,7 +175,9 @@ while(time<endtime){
     
     for(i in 2:(N-1))
     {
-      V[i]= prev.state[i]/dt + omega*(-u*(prev.state[i+1]-prev.state[i-1])/(2*dx) +D*(prev.state[i+1]-2*prev.state[i]+prev.state[i-1])/dx^2)
+        V[i] = prev.state[i]/dt 
+             + omega*(-u*(prev.state[i+1]-prev.state[i-1])/(2*dx) 
+             + D*(prev.state[i+1]-2*prev.state[i]+prev.state[i-1])/dx^2)
     }
     
     V[N] = br
@@ -185,5 +186,5 @@ while(time<endtime){
     time = time + dt
 }
 ```
-</span>
+</div>
 
