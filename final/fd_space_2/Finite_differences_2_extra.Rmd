@@ -1,5 +1,5 @@
 ---
-title: "Finite differences 2 challenges"
+title: "Finite differences in space, challenging exercises"
 author: "The WANT team"
 date: "24/09/2018"
 output:
@@ -13,7 +13,7 @@ output:
 
 ## Exercise 1
 <div class="exercise">
-4.8 The following code reaches the same result as the answer on 4.6. Explain briefly how this code works.
+a. The following code reaches the same result as the answer on 2.4.6. Explain briefly how this code works.
 
 ```{R}
 M=matrix(0,nrow=3,ncol=3)
@@ -42,11 +42,11 @@ print(solve(M,b))
 </div>
 
 <div class="answer">
-It solves the system by adding the fluxes one after the other instead of implementing the matrix by hand.
+The code chunk solves the system by adding the fluxes one after the other instead of implementing the matrix by hand.
 </div>
 
 <div class="exercise">
-4.9 The following code is a more elegant way of constructing the matrix in the previous exercise. Give proper names to the vectors *f,t* and *a* and explain what happens.
+b. The following code is a more elegant way of constructing the matrix in the previous exercise. Give proper names to the vectors *f, t* and *a* and explain what happens.
 
 ```{R}
 M = matrix(0,nrow=3,ncol=3)
@@ -67,8 +67,8 @@ for (i in 1:length(f))
 <div class="answer">
 `f` is `from` (start of pipe), `t` is `to` (end of pipe) and `a` are the `cross sectional areas`. This script creates the matrix by only defining the fluxes once. The scipt takes care of the opposite flux: 1 to 2 and 2 to 1 are in fact the same but opposite. The for loop takes care of this construction.
 </div>
-
-<div class="exercise">
+<div class="question">
+c. Solve the following system:</br>
 4.10 Solve the following system <br/>
 ![](example_3.png){width=40%}
 </div>
@@ -91,7 +91,6 @@ M[1,]  = 0
 M[1,1] = 1
 M[5,]  = 0
 M[5,5] = 1
-
 # right hand side
 v = c(0,0,0,-10,0,0,0,-10)
 # solve
@@ -102,7 +101,6 @@ print(s)
 
 <div class="exercise">
 <div class="comment">Maybe for the hard question</div></br>
-4.11 Solve the following system </br>
 ![](example_4.png){width=40%}
 </div>
 
@@ -134,7 +132,7 @@ print(s)
 ## Exercise 2
 
 <div class="exercise">
-Check for the speed of conversion for the central and forward scheme by creating a graph that displays `dx` on the x-axis and the error on the y-axis (average of the absolute differences)
+a. Check for the speed of conversion for the central and forward scheme by creating a graph that displays `dx` on the x-axis and the error on the y-axis (average of the absolute differences)
 </div>
 
 <div class="answer">
@@ -214,7 +212,7 @@ This is not really a pretty graph but it should be clear that the central scheme
 
 ## Exercise 3
 <div class="exercise">
-Solve the following equation with a Dirichlet boundary on both sides using matrix algebra:
+a. Solve the following equation with a Dirichlet boundary on both sides using matrix algebra:
 
 $$0 = -u \frac{s(x+\Delta x) - s(x - \Delta x)}{2\Delta x} + D\frac{s(x + \Delta x) - 2s(x) + s(x-\Delta x)}{\Delta x^{2}} \tag{4.1}$$
 
@@ -289,7 +287,7 @@ legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,
 ## Exercise 4
 
 <div class="exercise">
-2.1 What would be the mathematical notation of a 0-gradient condition (no flux) by using $s[4]$ and $s[5]$ and what would this look like in matrix notation (starting from the matrix defined for the Dirichlet boundary condition).
+a. What would be the mathematical notation of a 0-gradient condition (no flux) by using $s[4]$ and $s[5]$ and what would this look like in matrix notation (starting from the matrix defined for the Dirichlet boundary condition)?
 </div>
 
 <div class="answer">
@@ -323,7 +321,7 @@ $$
 </div>
 
 <div class="exercise">
-2.2 Implement this matrix equation in the last chunk of section 5.2. 
+b. Implement this matrix equation in the last chunk of section 5.2. 
 </div>
 
 <div class="answer">
@@ -339,7 +337,7 @@ right = 50
 xcoor = seq(left,right, by=dx)
 N     = length(xcoor)
 
-V     = c()  # build an empty vector for the solutions
+v     = c()  # build an empty vector for the derivatives
 M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor)) 
 
 for(j in 2:(length(xcoor)-1))
@@ -347,21 +345,21 @@ for(j in 2:(length(xcoor)-1))
   M[j,j-1] = -u/(2*dx) - D/(dx^2)
   M[j,j  ] = 2*D/(dx^2)
   M[j,j+1] = u/(2*dx) - D/(dx^2)
-  V[j]     = 0
+  v[j]     = 0
 }
 
 # Left boundary
 M[1,1] = 1
-V[1]   = bl
+v[1]   = bl
 
 # Right boundary
 
 M[N,N]   = 1
 M[N,N-1] = -1
-V[N]     = br
+v[N]     = br
 
 # Solve the system
-s = solve(M,V)
+s = solve(M,v)
 
 # Plotting
 plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
