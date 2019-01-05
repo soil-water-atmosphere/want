@@ -65,11 +65,11 @@ s(x + \Delta x) - s(x - \Delta x) &=  &&\dfrac{2\Delta x}{1!}\dfrac{ds}{dx} +  &
 It can be seen quite easily that this is an efficient scheme. The second and fourth derivative are canceled out by substraction, leaving an error term in the final equation that has the third derivative as largest contributor instead of the second. This reduces the error significantly. The final equation to express the first derivative is as follows:
 
 $$\frac{s(x + \Delta x) - s(x - \Delta x)}{2\Delta x} = \frac{ds}{dx} + \cdots$$
-<span class="exercise">
+<div class="exercise">
 1.2.1 Give for each of the approximations the first error term (the next term that should come at the $\ldots$).
 <br><br>
 1.2.2 Can you explain from the error why the forward and backward differencing method have first-order error convergence, and the centered scheme has second-order error convergence?
-</span>
+</div>
 
 <div class="answer">
 For both the forward and backward scheme, the first error term equals:
@@ -81,15 +81,15 @@ $$ \dfrac{2\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \frac{1}{2\Delta x} = \dfrac
 
 In order to visualize the effects of the three different approximations, you will now implement each of them for an example containing a *standing wave*. You will compute the derivatives of $s(x) = \sin(x)$. This you will do for each of the three methods: forward, backward, and centered.
 
-<span class="exercise">
+<div class="exercise">
 1.2.3 Implement the calculations for the three different methods below.
 <br><br>
 1.2.4 Which of the three methods performs the best?
 <br><br>
 1.2.5 Decrease `dx` in steps. Do all three methods converge to the correct result? Which one converges fastest, and why?
-</span>
+</div>
 
-<span class="student_answer">
+<div class="student_answer">
 Work out the code below.
 ```{r eval=FALSE}
 # Initial parameter values
@@ -117,7 +117,7 @@ legend("top", legend=c("forward", "backward", "centered", "analytical"), col=c("
 title(main='Numerical and analytical solution compared')
 grid()
 ```
-</span>
+</div>
 
 <div class="answer">
 ```{r}
@@ -174,50 +174,50 @@ print(M)
 
 The code lines above made a matrix by giving all the values in the construction itself. Once constructed, values of a matrix can be changed in different ways.
 
-<span class="exercise">
+<div class="exercise">
 2.1.1 How many rows and how many columns has this matrix?
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 2 rows, 3 columns
 </answer>
 
-<span class="exercise">
+<div class="exercise">
 2.1.2 Describe for each of the following lines the changes made to the matrix M.
 ```{R}
 M[1,2]= 100
 M[1, ]= c(10, 11, 12)
 M[ ,2]= c(-1 ,-2)
 ```
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.1.3 What is the difference between the matrix constructed above and the matrix constructed by:
 ```{R}
 M = matrix(c(1, 2, 3, 4, 5, 6), nrow=2 , ncol=3)
 ```
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.1.4 What is the difference between the first matrix and the matrix constructed by:
 ```{R}
 M = matrix(c(1, 2, 3, 4, 5, 6) , nrow=2 , ncol=2)
 ```
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.1.5 What is the difference between the first matrix and the matrix constructed by:
 ```{R}
 M = matrix(c(1, 2, 3, 4, 5, 6) , nrow=2 , ncol=4)
 ```
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.1.6 What is the difference between the first matrix and the matrix constructed by:
 ```{R}
 M = matrix(c(1, 2, 3, 4, 5, 6) , nrow=2 , ncol=3 , byrow=TRUE)
 ```
-</span>
+</div>
 
 ### Section 2.2
 The matrix constructions in the previous exercise were very explicit. Many
@@ -233,7 +233,7 @@ for(i in 1:nrow(M)) {
 print(M)
 ```
 
-<span class="exercise">
+<div class="exercise">
 2.2.1 Make code with a double loop as above that constructs the following matrix:
 
 ```{}
@@ -243,9 +243,9 @@ print(M)
 [2,]   21   22   23   24   25
 [3,]   31   32   33   34   35
 ```
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R}
 M = matrix(0,nrow=3,ncol=5)
 for(i in 1:nrow(M)) {
@@ -255,9 +255,9 @@ for(i in 1:nrow(M)) {
 }
 print(M)
 ```
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.2.2 Make code with a double loop as above that constructs the following matrix:
 
 ```{}
@@ -269,9 +269,9 @@ print(M)
 [4,]    3   2   1   0   1
 [5,]    4   3   2   1   0
 ```
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R}
 M = matrix(0,nrow=5,ncol=5)
 for(i in 1:nrow(M)) {
@@ -281,7 +281,7 @@ for(i in 1:nrow(M)) {
 }
 print(M)
 ```
-</span>
+</div>
 
 ### Section 2.3
 These exercise are an introduction to the solution of linear equations. The following linear equations:
@@ -325,11 +325,11 @@ R can also directly solve for $x$, given the matrices A and b:
 x = solve(A,b)
 ```
 
-<span class="exercise">
+<div class="exercise">
 2.3.1 Find the solution of the above system of equations first by hand and check your solution by solving it in R.
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
 \begin{bmatrix}
 x_1\\x_2\\x_2
@@ -338,9 +338,9 @@ x_1\\x_2\\x_2
 2\\3\\-1
 \end{bmatrix}
 $$
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.3.2 Find the solution with R (as done above) of the following equations:
 $$
 \begin{align}
@@ -351,15 +351,15 @@ x_1 = 4\\
 x_5 = 2
 \end{align}
 $$
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R}
 A = matrix(c(1,0,0,0,0,-1,2,-1,0,0,0,-1,2,-1,0,0,0,-1,2,-1,0,0,0,0,1),nrow=5,ncol=5,byrow=TRUE)
 b = matrix(c(4,1,1,1,2),nrow=5)
 print(solve(A,b))
 ```
-</span>
+</div>
 
 The equations above can be generalized for any integer N into:
 $$ 
@@ -379,15 +379,15 @@ A = matrix(0,nrow=N,ncol=N)
 b = rep(1,length=N)
 ```
 
-<span class="exercise">
+<div class="exercise">
 2.3.3 Finish this code.
 <br><br>
 2.3.4 Check that for N=5 the result of the previous exercise is recalculated.
 <br><br>
 2.3.5 Make a plot of the result for N=25.
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R}
 N      = 25
 A      = matrix(0,nrow=N,ncol=N)
@@ -404,7 +404,7 @@ for(i in 2:(N-1)){
 print(solve(A,b))
 plot(solve(A,b))
 ```
-</span>
+</div>
 
 ### Section 2.4
 In this section the translation of (stationary, discrete) flow problems into a set of linear equations is reviewed.
@@ -423,11 +423,11 @@ The fluxes between the cylinders are calculated by multiplying the difference be
 $$q_{1\to2} = 7(x_1-x_2)$$
 which is equal to the flux going in the other direction:
 $$q_{2\to1} = 7(x_2-x_1)$$
-<span class="exercise">
+<div class="exercise">
 2.4.1 Write down the other fluxes in the system (both forward and backward through the pipe)
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
 \begin{align}
 q_{2\to3} &= 8(x_2-x_3)\\
@@ -437,7 +437,7 @@ q_{3\to1} &= 5(x_3-x_1)\\
 q_{1\to3} &= 5(x_1-x_3)
 \end{align}
 $$
-</span>
+</div>
 
 From these equations mass balances can be set up, assuming that the system is in a stationary state. For example for cylinder $x_1$:
 
@@ -447,11 +447,11 @@ q_{2\to1} + q_{3\to1} + 3 = 0 \\
 7(x_2-x_1) + 5(x_3-x_1) + 3 = 0
 \end{align}
 $$
-<span class="exercise">
+<div class="exercise">
 2.4.2 Set up the mass balances for $x_2$ and $x_3$.
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
 \begin{align}
 q_{3\to2} + q_{1\to2} + 1 = 0 \\
@@ -461,14 +461,14 @@ q_{1\to3} + q_{2\to3} + 2 = 0 \\
 5(x_1-x_3) + 8(x_2-x_3) + 2 = 0\\
 \end{align}
 $$
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.4.3 Write the previous three mass balance equations in the form:
 $$ax_1 + bx_2 + cx_3 = d$$
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
 \begin{align}
 -12x_1 + 7x_2 + 5x_3 = -3\\
@@ -476,9 +476,9 @@ $$
 5x_1 + 8x_2 -13x_3 = -2
 \end{align}
 $$
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.4.4 Plug the previous equations in an A and b matrix in the following way:
 
 $$
@@ -495,9 +495,9 @@ d_1\\d_2\\d_3
 \end{bmatrix}
 \end{align}
 $$
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
 \begin{align}
 \begin{bmatrix}
@@ -511,13 +511,13 @@ x_1\\x_2\\x_3
 \end{bmatrix}
 \end{align}
 $$
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.4.5 Put the boundary condition $x_1 = 2$ into the matrix.
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
 \begin{align}
 \begin{bmatrix}
@@ -531,13 +531,13 @@ x_1\\x_2\\x_3
 \end{bmatrix}
 \end{align}
 $$
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.4.6 Implement these matrices in R and let R find the x vector.
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R}
 M=matrix(0,nrow=3,ncol=3)
 # bring flux between 1and 2 in matrix
@@ -562,15 +562,15 @@ M[1,1] = 1
 b = c(2,-1,-2)
 print(solve(M,b))
 ```
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 2.4.7 Solve the system depicted in the following scheme and explain the result: 
 </br>
 
 ![](example_2.png){width=30%}
 
-</span>
+</div>
 
 <div class="answer">
 ```{R}
@@ -604,9 +604,9 @@ This is the easiest way of implementing and solving systems with matrices. There
 
 *For a challenging exercise, go to **Exercise 1** in the `Finite_difference_2_extra.Rmd` file.*
 
-<span class="comment">
+<div class="comment">
 Exercise 6 in the pdf could be useful
-</span>
+</div>
 
 # Part 3 - Bringing matrix algebra and finite differences together
 
@@ -618,7 +618,7 @@ Let's first look at the case of Part 1.2: the sinus wave. Let us assume that we 
 We aim to write the computation of the derivative in the form
 
 $$
-M*s = v
+Ms = v
 $$
 where the matrix $M$ contains the operation that performs the derivative on vector $s$ (the states), such that vector $v$ contains the derivative $ds/dx$ at each point. We therefore call the matrix of coefficients contained in $M$ the *operator*. Remember that each line in the matrix contains an equation.    
 In this case, we have a row of N nodes in space (i=1 to N) with states $s_{1}$ to $s_{N}$. In case of the forward differencing method, the first line of the matrix contains the coefficients of the equation
@@ -627,11 +627,11 @@ $$
 $$
 In other words, we compute the derivative $(ds/dx)_1$ based on the values of $s_1$ and $s_2$. This generalizes to $(s_{i+1} - s_i)/\Delta x = (ds/dx)_i$. For a vector of $N$ elements, you will get a $N \times N$ matrix.
 
-<span class="exercise">
+<div class="exercise">
 3.1.1 Fill in the matrix below for a system of five nodes (a $5 \times 5$ forward differencing operator)
-</span>
+</div>
 
-<span class="student_answer">
+<div class="student_answer">
 $$
 \begin{bmatrix}
 &.&.&.&.\\
@@ -657,9 +657,9 @@ s_5
 (ds/dx)_5
 \end{bmatrix}
 $$
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 $$
 \begin{bmatrix}
 &\frac{-1}{\Delta x}&\frac{1}{\Delta x}&.&.&.\\
@@ -685,15 +685,15 @@ s_5
 (ds/dx)_5
 \end{bmatrix}
 $$
-</span>
+</div>
 
 Now, you will implement this problem into a piece of code. Note that we are not trying to find the vector $s$, but the derivatives vector $v$. Therefore, we do not need the `solve` function of R yet, but we can use matrix multiplication $M*s$ to find $v$. Note that in R matrix multiplication is performed as follows: `M %*% s`.
 
-<span class="exercise">
+<div class="exercise">
 3.1.2 Complete the code block below, and compare your results against the analytical solution.
-</span>
+</div>
 
-<span class="student_answer">
+<div class="student_answer">
 ```{r forward_derivative, eval=FALSE}
 rm(list=ls()) 
 
@@ -712,7 +712,7 @@ s = sin(xcoor) # the original sinus series that needs to be differentiated
 # WRITE A LOOP TO FILL THE MATRIX
 
 # Apply the derivative operator using matrix multiplication.
-# FIND THE VECTOR V
+# FIND THE VECTOR v
 
 # plotting
 N = length(xcoor)
@@ -722,9 +722,9 @@ lines(x_sol, cos(x_sol), type='l', col="grey", lwd=2)
 title(main='Forward differencing scheme with matrices')
 grid()
 ```
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 
 ```{r forward_derivative_answer}
 rm(list=ls()) 
@@ -761,13 +761,13 @@ lines(x_sol, cos(x_sol), type='l', col="grey", lwd=2)
 title(main='Forward differencing scheme with matrices')
 grid()
 ```
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 3.1.4 Implement the backward and central scheme in the same way as in the previous exercise and plot them together in the same plot using different colors.
-</span>
+</div>
 
-<span class="student answer">
+<div class="student answer">
 ```{r all_derivatives, eval=FALSE}
 rm(list=ls()) 
 
@@ -804,9 +804,9 @@ title(main='Differencing scheme with matrices')
 grid()
 # legend(XXXX)
 ```
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{r all_derivatives_answers}
 rm(list=ls()) 
 
@@ -875,14 +875,14 @@ title(main='Differencing scheme with matrices')
 grid()
 legend(0,-1.2,c("forward","backward","centered","analytical"),col=c("blue","red","green","grey"),lwd=c(1,1,1,2),horiz=TRUE,cex=0.8)
 ```
-</span>
+</div>
 
 To evaluate the quality of these different approaches you can compare the summed absolute error between the approximated and real values.    
 *If you are up for a challenging exercise, where you will numerically derive the errors, you can open **Exercise 2** from the `Finite_differences_2_extended.Rmd` file. If not, you can continue here.* 
 
-<span class="exercise">
+<div class="exercise">
 3.1.5 Fill the following table of errors by running the chunk below.
-</span>
+</div>
 
 <div class="student_answer">
 
@@ -1035,9 +1035,9 @@ shinyApp(ui, server)
 | $\frac{1}{20}\pi$ | 0.049 | 0.0026 |
 </div>
 
-<span class="exercise">
+<div class="exercise">
 3.1.6 Which scheme convergest fastest? Can you calculate the convergence rate (the error reduction per doubling of the number of grid points from the numbers)? Does this fit with the theory?
-</span>
+</div>
 
 <div class="answer">
 The centered difference scheme clearly converges faster.  
@@ -1245,10 +1245,10 @@ Another option is to implement a so-called **Neumann boundary condition** in whi
 * Neumann (fixed gradient $ds/dx = c$)
 * Cauchy/Robin (fixed state and fixed gradient $as + b\,ds/dx = c$)
 
-<span class="comment">
+<div class="comment">
 This is a quick summary of boundary conditions, but do we want to give it like this or should the students find this out for themselves?
 Esther: Giving it is ok I think, it is not the most important message here
-</span>
+</div>
 
 ## Section 5.2 - Implementation with Dirichlet boundary conditions
 <div class="exercise">
@@ -1308,7 +1308,7 @@ $$
 
 *If you want to go deeper into the subject and implement the whole solver yourself, go to **Exercise 3** of the `Finite_differences_2_extra.Rmd` and skip the two following exercises here (going on with 5.2.4).*
 
-<span class="exercise">
+<div class="exercise">
 5.2.2 Calculate the values in the matrix with $\Delta x = 5$, $D=5$ and $u=5$ and check if the following chunk yields the same matrix.
 ```{R}
 dx    = 5    # step size
@@ -1345,9 +1345,9 @@ s = solve(M,v)
 
 print(M)
 ```
-</span>
+</div>
 
-<span class="exercise">
+<div class="exercise">
 5.2.3 Run the following chunk to see the quality of the solution:
 ```{R}
 dx    = 5    # step size
@@ -1403,9 +1403,9 @@ for(j in 1:(length(xcooranalyt)))
 lines(xcooranalyt,sanalyt,col="grey",lwd=2) # analytical solution
 legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,1), pch = c(-1,-1))
 ```
-</span>
+</div>
 
-<span class="exercise"> 
+<div class="exercise"> 
 5.2.4 The following chunk is the same system as analysed in the previous exercise. The only difference is that the domain is increased to x=50. Change `dx` from 10 to 1 in steps of 1 and compare the results. What is the highest value of `dx` for which the solution is stable?
 ```{R}
 dx    = 10   # step size
@@ -1463,9 +1463,9 @@ lines(xcooranalyt,sanalyt,col="grey",lwd=2) # analytical solution
 legend(10, 0.8, c("numerical", "analytical"), col = c("blue","grey"), lty = c(1,1), pch = c(-1,-1))
 ```
 
-<span class="answer">
+<div class="answer">
 The solution becomes stable starting from dx=2 and below.
-</span>
+</div>
 
 ## Section 5.3 - Implementation with a Neumann boundary condition
 Here, you will work out the Neumann boundary condition case.    
@@ -1507,9 +1507,9 @@ s_5\\
 \end{bmatrix} = 
 \begin{bmatrix}
 b_l\\
-V_2\\
-V_3\\
-V_4\\
+v_2\\
+v_3\\
+v_4\\
 b_r = \frac{\Delta x}{2}\\
 \end{bmatrix}
 $$
@@ -1558,9 +1558,9 @@ plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
 title(main='Advection Diffusion Equation, Neumann boundary')
 grid()
 ```
-</span>
+</div>
 
-<span class="answer">
+<div class="answer">
 ```{R}
 dx    = 5    # step size
 D     = 5    # diffusion coefficient
@@ -1606,6 +1606,6 @@ grid()
 From about dx=1 and below, the solution follows a smooth line. When D is decreased to 1, a much *smaller* dx is needed. This can be explained by looking at the advection-diffusion equation. This equation consists of an advection part, governed by the first derivative in space, and a diffusion part, governed by the second derivative. If D is decreased, the advection part becomes more dominant. As we have seen, the solutions of the first derivatives converge less fast than those of the second derivative. A smaller dx is therefore needed.
 </div>
 
-<span class="comment">
+<div class="comment">
 Do we want to implement the FDS/BDS and the UBS here as well?
-</span>
+</div>
