@@ -101,7 +101,6 @@ print(s)
 
 <div class="exercise">
 d. Solve the following system.
-</div>
 <br/>
 ![](example_4.png){width=40%}
 </div>
