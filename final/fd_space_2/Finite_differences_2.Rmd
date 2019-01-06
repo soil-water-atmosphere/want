@@ -628,7 +628,7 @@ $$
 In other words, we compute the derivative $(ds/dx)_1$ based on the values of $s_1$ and $s_2$. This generalizes to $(s_{i+1} - s_i)/\Delta x = (ds/dx)_i$. For a vector of $N$ elements, you will get a $N \times N$ matrix.
 
 <div class="exercise">
-3.1.1 Fill in the matrix below for a system of five nodes (a $5 \times 5$ forward differencing operator)
+3.1.1 Fill in the matrix below for a system of five nodes (a $5 \times 5$ forward differencing operator). TIP: think carefully about what to do with the last row, as the forward operator cannot be applied here.
 </div>
 
 <div class="student_answer">
