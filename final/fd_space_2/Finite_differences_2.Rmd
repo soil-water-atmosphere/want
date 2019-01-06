@@ -12,28 +12,28 @@ output:
 <script src="../../hints.js"></script>
 
 # Learning goals
-* Understand the forward, backward and central spatial differencing scheme *(Section 1)*
+* Understand the forward, backward and central spatial differencing schemes *(Section 1)*
 * Understand how to construct a matrix to solve a system of equations *(Section 2)*
 * Understand how to solve a steady-state system with spatial derivatives using matrix algebra *(Section 3)*
 * Understand the advection-diffusion equation and how to solve a stationary form *(Section 4)*
 
 # Part 1 - Introduction
-## Section 1.1 - Advection Diffusion Equation 
-The aim of the finite difference approach is to learn a basic method to discretize differential equations in space and time. A prominent example in our field, is the advection-diffusion equation. The formula for this equation is as follows:
+## Section 1.1 - Advection-Diffusion Equation 
+The aim of the finite difference approach is to learn a basic method to discretize differential equations in space and time. A prominent example in our field, is the advection-diffusion equation. This equation looks as follows:
 
 $$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
-where $s$ can be any species that can be transported, $u$ is the fluid (water or air) velocity, $D$ is the diffusivity, $x$ is the position, and $t$ is time. This equation contains space and time derivatives and is therefore a *partial differential equation*. For this tutorial, you will study first this equation under stationary conditions ($\frac{\partial s}{\partial t} = 0$):
+where $s$ can be anything that can be transported, $u$ is the fluid (water or air) velocity, $D$ is the diffusivity, $x$ is the position, and $t$ is time. This equation contains space and time derivatives and is therefore a *partial differential equation*. For this tutorial, you will study this equation under stationary conditions ($\frac{\partial s}{\partial t} = 0$):
 
 $$0 = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
-Before that, you will first work yourself through the theory needed to do so.
+Before that, you will first work through the theory needed to do so.
 
 ## Section 1.2 - Backward and Central Differencing method
 In the previous practical, we have been working with the following formula:
 $$\dfrac{ds}{dt} \approx \dfrac{s(t+\Delta t) - s(t)}{\Delta t}$$
-This is called the *forward differencing method*. It calculates derivatives based on the actual time value ($t$) and that one step ahead ($t + \Delta t$) The methodology of solving equations in space is exactly the same, only the mathematical formulation changes slightly:
+This is called the *forward differencing method*. It calculates derivatives based on the actual time value ($t$) and that of one step ahead ($t + \Delta t$). The method of solving equations in space is exactly the same, only the mathematical formulation changes slightly:
 
 $$\dfrac{ds}{dx} \approx \dfrac{s(x+\Delta x) - s(x)}{\Delta x}$$
-The only change in this equation is that time has been substituted by space. By using this formulation you change the dimension, meaning that you will find out the how fast variable $s$ changes in space rather than in time.
+The only change in this equation is that time has been substituted by space. By using this formulation you change the dimension, meaning that you will find out how variable $s$ changes in space, instead of in time.
 
 There is generally a difference in perspective in how space and time are used. In the case of time, you use the derivative to advance a system in time: you want to know the state of the system $s$ at a next time step. In space, however, in most cases, you are presented with the spatial field of $s$, where the gradients are unknown. You often need these spatial gradients for your model calculations. In space, next to the forward differencing methods, we also often make use of the *backward differencing method* and the *centered differencing* method.
 
@@ -44,12 +44,12 @@ $$s(x + \Delta x) = s(x) + \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta
 The backward scheme looks back along the space axis (in negative direction) and is defined as follows:
 
 $$s(x - \Delta x) = s(x) - \Delta x \frac{ds}{dx} \bigg\rvert_{x} + \frac{\Delta x^{2}}{2!} \frac{d^{2}s}{dx^{2}} \bigg\rvert_{x} - \frac{\Delta x^{3}}{3!} \frac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \frac{\Delta x^{4}}{4!} \frac{d^{4}s}{dx^{4}} \bigg\rvert_{x} - \ \cdots     $$
-
+<span class="comment">**[LM]** perhaps shortly explain/work out why the plus and minuses appear here (minus times minus leads to plus, minues times minus times minus leads to minus)</span>
 Reworking this equation leads to the backward differencing scheme:
 
 $$\frac{s(x) - s(x  - \Delta x)}{dx} = \frac{ds}{dx} + \cdots$$
 
-The *central differencing scheme* is created by substracting the Taylor series used for the forward and backward schemes. It is called centered because it is symmetric. It uses one point forward (right) of where the derivative is calculated, and one point (left) backward.
+The *central differencing scheme* is created by substracting the Taylor series used for the forward and backward schemes. It is called centered because it is symmetric. It uses one point forward (right) of where the derivative is calculated, and one point backward (left).
 
 \begin{alignat*}{3}
 s(x + \Delta x) &= s(x) + && \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + \dfrac{\Delta x^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + &&& \dfrac{\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \dfrac{\Delta x^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ ... \\    
@@ -62,11 +62,11 @@ s(x - \Delta x) &= s(x) - && \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x}
 s(x + \Delta x) - s(x - \Delta x) &=  &&\dfrac{2\Delta x}{1!}\dfrac{ds}{dx} +  &&&\dfrac{2\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}}
 \end{alignat*}
 
-It can be seen quite easily that this is an efficient scheme. The second and fourth derivative are canceled out by substraction, leaving an error term in the final equation that has the third derivative as largest contributor instead of the second. This reduces the error significantly. The final equation to express the first derivative is as follows:
+It is pretty clear that this is an efficient scheme. The second and fourth derivative are canceled out by substraction, leaving an error term in the final equation that has the third derivative as largest contributor instead of the second. This reduces the error significantly. The final equation to express the first derivative is as follows:
 
 $$\frac{s(x + \Delta x) - s(x - \Delta x)}{2\Delta x} = \frac{ds}{dx} + \cdots$$
 <div class="exercise">
-1.2.1 Give for each of the approximations the first error term (the next term that should come at the $\ldots$).
+1.2.1 Give for each of the three approximations the first error term (the next term that should come at the "$\ldots$" in the equations above).
 <br><br>
 1.2.2 Can you explain from the error why the forward and backward differencing method have first-order error convergence, and the centered scheme has second-order error convergence?
 </div>
@@ -84,7 +84,7 @@ In order to visualize the effects of the three different approximations, you wil
 <div class="exercise">
 1.2.3 Implement the calculations for the three different methods below.
 <br><br>
-1.2.4 Which of the three methods performs the best?
+1.2.4 Which of the three methods performs best?
 <br><br>
 1.2.5 Decrease `dx` in steps. Do all three methods converge to the correct result? Which one converges fastest, and why?
 </div>
@@ -104,7 +104,7 @@ dsdx.backward = rep(0, length(space.sequence)) #derivative with backward method
 dsdx.centered = rep(0, length(space.sequence)) #derivative with centered method
 s = sin(space.sequence)
 
-# Add the calculations of forward, backward, centered derivative below (filling the three dsdx vectors)
+# Add the calculations of forward, backward, centered derivative below (fill the three dsdx vectors initialized above)
 
 # Plotting
 plot(space.sequence, dsdx.forward, type='o', xlab="x (m)", ylab="dsdx", ylim = c(-1.5, 1.5), col="blue")
@@ -163,9 +163,9 @@ The centered method performs better than the other two. When dx is decreased, al
 
 # Part 2 - Matrix calculation intermezzo
 ### Section 2.1
-Further in this tutorial, and the next one, we will use matrix algebra intensively. This part is a short tutorial in working with matrices in the R environment.
+Further in this tutorial, and for the next one, we will use matrix algebra intensively. This part is a short intermezzo on working with matrices in the R environment.
 
-A formal definition of a matrix is a collection of numbers organized in rows and columns. The following lines of codes construct a matrix:
+The formal definition of a matrix is a collection of numbers organized in rows and columns. The following lines of codes construct a matrix:
 
 ```{R}
 M = matrix (c(1, 2, 3, 4, 5, 6) , nrow=2)
@@ -284,7 +284,7 @@ print(M)
 </div>
 
 ### Section 2.3
-These exercise are an introduction to the solution of linear equations. The following linear equations:
+These exercises are an introduction to the solution of linear equations. The following linear equations:
 
 $$
 \begin{align}
@@ -317,6 +317,10 @@ A^{-1}Ax = A^{-1}b\\
 Ix = A^{-1}b\\
 x = A^{-1}b
 $$
+<div class="comment">
+**[LM]** maybe, to check if they checked the link to see what the identity matrix is, an extra question could be added why I*x equals x. But having them think for themselves about this is also useful.
+</div>
+
 By hand this can be done with [Gaussian elimination](https://en.wikipedia.org/wiki/Gaussian_elimination). If unfamiliar with this method or if in need of a quick refresher, the following video might be instructive: https://www.youtube.com/watch?v=xCIXkm3-ocQ 
 
 R can also directly solve for $x$, given the matrices A and b:
@@ -361,7 +365,7 @@ print(solve(A,b))
 ```
 </div>
 
-The equations above can be generalized for any integer N into:
+These particular equations can be generalized for any integer N into:
 $$ 
 \begin{matrix}
 & &&x_1 &=& 4\\
@@ -439,7 +443,7 @@ q_{1\to3} &= 5(x_1-x_3)
 $$
 </div>
 
-From these equations mass balances can be set up, assuming that the system is in a stationary state. For example for cylinder $x_1$:
+From these equations, mass balances can be defined, assuming that the system is stationary (no change over time). For example, for cylinder $x_1$:
 
 $$
 \begin{align}
@@ -597,10 +601,11 @@ M[1,1] = 1
 b = c(2,0,0)
 print(solve(M,b))
 ```
-There is nothing to disturb the system, so it will become a static state with a uniform final state.
+
+Without external fluxes, the states in the stationary system becomes uniform in space, and all nodes will take the value of 2, as this is the boundary condition given in $x_2$.
 </div>
 
-This is the easiest way of implementing and solving systems with matrices. There are, however, smarter and faster ways of doing this. 
+This is the easiest way to implement and solve systems with matrices. There are, however, smarter and faster ways of doing this. 
 
 *For a challenging exercise, go to **Exercise 1** in the `Finite_difference_2_extra.Rmd` file.*
 
@@ -611,7 +616,7 @@ Exercise 6 in the pdf could be useful
 # Part 3 - Bringing matrix algebra and finite differences together
 
 ## Section 3.1 - The first-order derivative
-In part 1, you have computed the derivatives in an intuitive way, using multiplication and additions of vectors. You can also compute derivatives in a more general way, using matrices. This is a very powerful technique, because it permits the solution of steady state systems, as well as for an easy extension towards system that vary in space and time, such as the advection-diffusion equation.
+In part 1, you have computed the derivatives in an intuitive way, using multiplication and additions of vectors. You can also compute derivatives in a more general way, using matrices. This is a very powerful technique, because it permits the solution of steady state systems, but also allows for an easy extension towards systems that vary in space and time, such as the advection-diffusion equation.
 
 Let's first look at the case of Part 1.2: the sinus wave. Let us assume that we do not know the derivative and use finite differences to compute the spatial derivative (The "observations" are in fact calculated with the function $f = \sin(x)$ and therefore the exact solution is known: a cosine wave).
 
@@ -878,7 +883,7 @@ legend(0,-1.2,c("forward","backward","centered","analytical"),col=c("blue","red"
 </div>
 
 To evaluate the quality of these different approaches you can compare the summed absolute error between the approximated and real values.    
-*If you are up for a challenging exercise, where you will numerically derive the errors, you can open **Exercise 2** from the `Finite_differences_2_extended.Rmd` file. If not, you can continue here.* 
+*If you are up for a challenging exercise, where you will numerically derive the errors, you can open **Exercise 2** from the `Finite_differences_2_extra.Rmd` file. If not, you can continue here.* 
 
 <div class="exercise">
 3.1.5 Fill the following table of errors by running the chunk below.
@@ -1050,10 +1055,10 @@ centered_rate=mean(c(0.22/1,0.065/0.22,0.011/0.044,0.0026/0.011))
 </div>
 
 ## Section 3.2 - Second order derivative
-In order to be able to solve the *stationary* advection diffusion equation later, there is still one other thing to be explained: how to compute the second order derivative in the equation
+In order to be able to solve the *stationary* advection-diffusion equation later, there is still one other thing to be explained: how to compute the second order derivative in the equation
 
 $$0 = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
-Also the *second* derivative finite differences operator can be derived from the Taylor series. To do so, we need to combine the forward and backward differencing methods that are written below:
+Also the *second* order derivative finite differences operator can be derived from the Taylor series. To do so, we need to combine the forward and backward differencing methods that are written below:
 
 \begin{align*}
 s(x + \Delta x) & = s(x) + \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} + \dfrac{(\Delta x)^{2}}{2!} \dfrac{d^{2}s}{dx^{2}} \bigg\rvert_{x} + \dfrac{(\Delta x)^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \bigg\rvert_{x} + \dfrac{(\Delta x)^{4}}{4!} \dfrac{d^{4}s}{dx^{4}} \bigg\rvert_{x} + \ \cdots \\    
@@ -1073,7 +1078,7 @@ $$
 </div>
 
 <div class="exercise">
-3.2.2 Rewrite the equation such, that the operator (thus all instances of $s(x-\Delta x)$, $s(x)$, and $s(x+\Delta x)$) is on the lefthand side, and on the righthand side are only the second derivative and the error.
+3.2.2 Rewrite the equation such, that the operator (that all instances of $s(x-\Delta x)$, $s(x)$, and $s(x+\Delta x)$) is on the lefthand side, and on the righthand side are only the second derivative and the error.
 </div>
 
 <div class="answer">
@@ -1084,7 +1089,7 @@ $$
 </div>
 
 <div class="exercise">
-3.2.3 Use the derived equation to construct a matrix that can be used to compute the second derivative for all x-nodes. Copy your previous `forward_derivative` chunk below (Tip: you can navigate through the markdown with the button in the bottom of the editor window). Adapt the code to produce the second derivative. Keep in mind that you also have to prescribe the correct analytical solution!
+3.2.3 Use the derived equation to construct a matrix that can be used to compute the second derivative for all x-nodes. Copy your previous `forward_derivative` chunk below (Tip: you can navigate through the markdown with the button in the bottom-left of the R-studio editor window). Adapt the code to produce the second derivative. Keep in mind that you also have to prescribe the correct analytical solution!
 </div>
 
 <div class="student_answer">
@@ -1130,7 +1135,7 @@ grid()
 </div>
 
 # Part 4: Solving equations using matrix inversions.
-Before solving the advection diffusion equation directly, you will learn how to combine the spatial operators and the matrix inversion that you have learned before. 
+Before solving the advection-diffusion equation directly, you will learn how to combine the spatial operators and the matrix inversion that you have learned before. 
 
 Imagine now, that rather than knowing the state $s(x)$ of the system, you know the values of the first derivative at each node. Assuming that the value of the derivative is given by $\cos(x)$, we can invert the system to acquire the values of $s(x)$ at each node. Let us assume, we use the forward differencing operator as worked out in *exercise 3.1.2*.
 
@@ -1158,7 +1163,7 @@ $$
 Now, you will put the mathematics above into code.
 
 <div class="exercise">
-4.1.2 Implement the matrix $M$ that contains the spatial operator, work out the vector $v$ that contains the derivatives evaluated using $\cos(x)$, and use these two to solve for $s$. Note that in this case you do need the `solve` function of R.
+4.1.2 Implement the matrix $M$ that contains the spatial operator, work out the vector $v$ that contains the derivatives evaluated using $\cos(x)$, and use these two to solve $s$. Note that in this case you do need the `solve` function of R.
 
 4.1.3 Most likely, the developed system does not solve, because you did not implement a boundary condition. Fix the value at $x = 2 \pi$ (the last node) to $0$ and solve it again. Does the system converge to the correct solution if you decrease `dx`?
 </div>
@@ -1233,11 +1238,11 @@ grid()
 
 # Part 5 - Solving the advection-diffusion equation.
 ## Section 5.1 - Boundary conditions
-In the final part of the exercise, you will apply everything that you have learned in order to solve the advection diffusion equation. The steady-state advection-diffusion equation
+In the final part of this assignment, you will apply everything that you have learned in order to solve the advection-diffusion equation. The steady-state advection-diffusion equation
 $$
 0 = -u \dfrac{ds}{dx} + D \dfrac{d^2s}{dx^2}
 $$
-contains both first- and second-order derivatives. In order to solve such an equation, you need to apply boundary conditions, in order to make the matrix invertible. So far we have only implemented one type of boundary condition; the **Dirichlet boundary condition**. This method assumes a fixed state at one or all boundaries. If the state directly next to this border has (more or less) the same state, it means that there is no flux over the boundary, whereas a large difference leads to a large flux. 
+contains both first- and second-order derivatives. In order to solve such an equation, you need to apply boundary conditions to make the matrix invertible. So far, we have only implemented one type of boundary condition; the **Dirichlet boundary condition**. This method assumes a fixed state at one or all boundaries. If the state directly next to this border has (more or less) the same state, it means that there is no flux over the boundary, whereas a large difference leads to a large flux. 
 
 Another option is to implement a so-called **Neumann boundary condition** in which the gradient is fixed. Such a boundary condition is often used if we desire to control the flux through the boundary. The final type of boundary condition is the **Cauchy/Robin boundary condition**, in which both the state and the gradient are specified. To summarize, the three possible boundary conditions are:
 
@@ -1277,7 +1282,7 @@ v_4\\
 v_5\\
 \end{bmatrix}
 $$
-TIP: remember that a boundary condition is just an equation that replaces one in the matrix.
+TIP: remember that a boundary condition is just an equation that replaces the one in the matrix.
 </div>
 
 <div class="answer">
@@ -1384,7 +1389,7 @@ s = solve(M,v)
 
 # Plotting
 plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
-title(main='Advection Diffusion Equation')
+title(main='Advection-Diffusion Equation')
 grid()
 
 # Calculate and plot the analytical solution
@@ -1443,7 +1448,7 @@ s = solve(M,v)
 
 # Plotting
 plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
-title(main='Advection Diffusion Equation')
+title(main='Advection-Diffusion Equation')
 grid()
 
 # Calculate and plot the analytical solution
@@ -1471,15 +1476,15 @@ The solution becomes stable starting from dx=2 and below.
 Here, you will work out the Neumann boundary condition case.    
 *If you are motivated for a challenging exercise, you can open **Exercise 4** of the `Finite_differences_2_extra.Rmd` and skip the remainder of this section.*
 
-As an example we will look at a Neumann boundary with a gradient of $0.5$. In mathematical terms this means:
+As an example, we will look at a Neumann boundary with a gradient of $0.5$. In mathematical terms this means:
 
 $$
 \dfrac{ds}{dx} = 0.5
 $$
-We would like to introduce this boundary condition at the right side of our domain.
+We want to introduce this boundary condition at the right side of our domain.
 
 <div class="exercise">
-5.3.1 Work the boundary condition into the matrix $M$ of the previous exercise, such that the Dirichlet boundary condition is replaced by the Neumann boundary conditions. Do this using pen-and-paper or using $\LaTeX$.
+5.3.1 Work the boundary condition into the matrix $M$ of the previous exercise, such that the Dirichlet boundary condition is replaced by the Neumann boundary conditions on the right side or our domain. Do this using pen-and-paper or using $\LaTeX$.
 </div>
 
 <div class="answer">
@@ -1520,7 +1525,7 @@ $$
 
 5.3.3 For which grid spacing `dx` does the solution become smooth? Can you explain this?
 
-5.3.4 What happens if you decrease D (for instance to 1)? Do you need a finer `dx` or can you use a coarser one? Why?
+5.3.4 What happens if you decrease D (for instance to 1)? Do you need a finer `dx` or a coarser one? Why?
 </div>
 
 <div class="student_answer">
@@ -1555,7 +1560,7 @@ s = solve(M,v)
 
 # Plotting
 plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
-title(main='Advection Diffusion Equation, Neumann boundary')
+title(main='Advection-Diffusion Equation, Neumann boundary')
 grid()
 ```
 </div>
@@ -1599,13 +1604,13 @@ s = solve(M,v)
 
 # Plotting
 plot(xcoor,s,ylab="state (m)",xlab="x (m) ",type='o',col='blue')
-title(main='Advection Diffusion Equation, Neumann boundary')
+title(main='Advection-Diffusion Equation, Neumann boundary')
 grid()
 ```
 
-From about dx=1 and below, the solution follows a smooth line. When D is decreased to 1, a much *smaller* dx is needed. This can be explained by looking at the advection-diffusion equation. This equation consists of an advection part, governed by the first derivative in space, and a diffusion part, governed by the second derivative. If D is decreased, the advection part becomes more dominant. As we have seen, the solutions of the first derivatives converge less fast than those of the second derivative. A smaller dx is therefore needed.
+From about dx=1 and below, the solution becomes a smooth line. When D is decreased to 1, a much *smaller* dx is needed. This can be explained by looking at the advection-diffusion equation. This equation consists of an advection part, governed by the first derivative in space, and a diffusion part, governed by the second derivative. If D is decreased, the advection part becomes more dominant. As we have seen, the solutions of the first derivatives converge slower than those of the second derivative. A smaller dx is therefore needed.
 </div>
 
 <div class="comment">
-Do we want to implement the FDS/BDS and the UBS here as well?
+Do we want to implement the FDS/BDS and the UBS here as well? **[LM]** I think it is more important that they understand how to include the BCs in the matrix, than to do it for all cases. 
 </div>
