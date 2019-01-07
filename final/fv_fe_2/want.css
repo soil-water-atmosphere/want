@@ -1,0 +1,37 @@
+h1 {
+    font-size: 20pt;
+    font-weight: bold;
+}
+
+
+h2 {
+    font-size: 16pt;
+    font-weight: bold;
+}
+
+
+.answer {
+    color: blue;
+}
+
+
+.student_answer {
+    color: green;
+}
+
+
+.question {
+    color: red;
+}
+
+
+.exercise {
+    color: red;
+}
+
+
+.comment {
+    color: grey;
+}
+
+.hint {font-style: italic}

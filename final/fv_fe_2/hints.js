@@ -1,8 +1,8 @@
 // The hints are written in a dictionary, the key is the question number
 dict = {};
-dict[212] = "The model resembles the model made in the previous assignment.";
-dict[213] = "Check the documentation of the dataframe.* functions.";
-dict[214] = "Check the documentation of dataframe.balance().";
+dict[212] = "The model resembles the model made in the previous assignment, except for the linearly decreasing radiative divergence.";
+dict[213] = "Check the documentation of the dataframe.* functions. The axes can be swapped by the argument named 'vertical', which takes a boolean.";
+dict[214] = "Check the documentation of dataframe.balance() to select an individual control volume.";
 dict[216] = "Read the documentation of the copy.model() function.";
 dict[218] = "It might seem a bit odd to use the function oldstate(x) here since it is not defined yet. However, as long as we only define the storageflux function and not actually run it, we are allowed to use the undefined the oldstate(x) function. As long as we make sure that the oldstate(x) function will be defined and run before the storageflux calculation is run, no exception will be raised.";
 dict[2120] = "Before the loop construct is entered, you can basically copy the previous code that describes the two time increments. Do not forget to assign the proper state values to the oldstate function before entering the while loop.";
