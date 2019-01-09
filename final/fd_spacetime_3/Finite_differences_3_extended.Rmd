@@ -4,7 +4,7 @@ author: "The WANT team"
 date: "24/09/2018"
 output:
   html_document:
-    css: ../../want.css
+    css: want.css
     toc: yes
     toc_depth: 2
   pdf_document:
@@ -12,11 +12,11 @@ output:
     toc_depth: '2'
 ---
 <!-- include the hint.js -->
-<script src="../../hints.js"></script>
+<script src="hints.js"></script>
 
 ## Exercise 1
 <div class="exercise">
-2.1.1 Discretise the equation using a forward differencing scheme in time and a central scheme in space (both first and second order derivative). Use the omega notation given above to solve for the explicit, implicit and Crank-Nicolson integration scheme. Make sure to use the notation shown in Section 1.1 of the markdown (last equation).
+2.1.1 Discretise the equation using a forward differencing scheme in time and a central scheme in space (both for the first and second order derivative). Use the omega notation given above to solve for the explicit, implicit and Crank-Nicolson integration scheme. Make sure to use the notation shown in Section 1.1 of the markdown (last equation).
 </div>
 
 <div class="answer">
@@ -33,7 +33,7 @@ Ms^{n+1} = v
 $$
 
 <div class="exercise">
-2.1.2 Reorganise the equation from exercise 2.1.1 to have all terms about the new time-step `n+1` on the left-hand side and everything else on the right-hand side.
+2.1.2 Reorganise the equation from exercise 2.1.1 to have all terms on the new time-step `n+1` on the left-hand side and everything else on the right-hand side.
 </div>
 
 <div class="answer">

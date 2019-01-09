@@ -4,7 +4,7 @@ author: "The WANT team"
 date: "24/09/2018"
 output:
   html_document:
-    css: ../../want.css
+    css: want.css
     toc: yes
     toc_depth: 2
   pdf_document:
@@ -12,10 +12,10 @@ output:
     toc_depth: '2'
 ---
 <!-- include the hint.js -->
-<script src="../../hints.js"></script>
+<script src="hints.js"></script>
 
 # Introduction
-In this you will combine the topics of the previous two tutorials. Until now, you have dealt with system that have a state that is a function of time $s(t)$, as the emptying reservoir, as well as systems that are steady state in time $s(x)$, such as the stationary advection-diffusion equation. Here, you will analyze systems that have a state that varies in time and space $s(x,t)$.
+Here, you will combine the topics of the previous two assignments. Until now, you have dealt with systems that have a state that is a function of time $s(t)$, such as the emptying reservoir, and with systems that are steady state in time but vary in space $s(x)$, such as the stationary advection-diffusion equation. Now, you will analyze systems that have a state that varies in time and in space $s(x,t)$.
 
 # Part 1 - Clarifying the last missing parts
 ## Section 1.1 - Notation
@@ -43,12 +43,12 @@ $$
 Thus, this specific location refers to the next time-step `n+1` (current time step: `n`) and at the current location `i`.
 
 ## Section 1.2 - Crank-Nicolson
-The Crank-Nicolson methodology is another way of solving ODEs in time. What it does in simple words, it averages each time step the solution of an explicit and implicit scheme. In mathematics, it looks as follows:
+The Crank-Nicolson method is another way of solving ODEs in time. What it does in simple words, it averages for each time step the solution of an explicit and an implicit scheme. In mathematics, it looks as follows:
 
 $$
 \dfrac{ds}{dt} = \frac{1}{2}f(t) + \frac{1}{2}f(t+\Delta t)
 $$
-A strategy that is often used to be able to solve the explicit, implicit and Crank-Nicolson (CN) scheme at once in an analytical way is to use the omega notation:
+A strategy that is often used to be able to solve the explicit, implicit and Crank-Nicolson (CN) scheme at once is to use the omega notation:
 
 $$
 \dfrac{ds}{dt} = \omega f(t) + (1-\omega)f(t+\Delta t)
@@ -57,7 +57,7 @@ By setting up a solver using $\omega$, you can solve for all three methods, and 
 
 # Part 2 - The advection-diffusion equation revisited
 ## Section 2.1 - Setting up the equations
-We will go back to the advection difussion equation now, which was introduced in the second pratical. In the second practical, we worked with this equation only in the stationary case; $\dfrac{ds}{dt} = 0$. This is the full version of the equation.
+We will go back to the advection difussion equation now, which was introduced in the second assignment. In the second assignment, we worked with this equation only in the stationary case; $\dfrac{ds}{dt} = 0$. This is the full version of the equation.
 
 $$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 
@@ -66,7 +66,7 @@ If you are in for a **challenging** assignment, you can open **Exercise 1** from
 ### Discretisation
 The first step in the discretisation is choosing the differencing scheme for the time and space derivatives. An often used approach is the forward in time and central in space scheme (FTCS scheme). We will follow that scheme here.
 
-First, we apply the forward scheme in time (first in the original notation and than in the short notation of section 1.1):
+First, we apply the forward scheme in time (first in the original notation and then in the short notation of section 1.1):
 $$
 \dfrac{ds}{dt} = \dfrac{s(x, t+\Delta t) - s(x, t)}{\Delta t} = f(x,t,s(x,t))\\
 \dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = f(x,t,s(x,t))
@@ -92,14 +92,14 @@ $$
 
 The final result of this discretisation is the matrix equation
 $$M s^{n+1} = v$$
-In order to achieve that the answer of question 2.1.1 can be rewritten in the form:
+In order to achieve that, the answer of question 2.1.1 can be rewritten in the form:
 
 $$
 as^{n+1}_{i-1} + b s^{n+1}_{i} + c s^{n+1}_{i+1} = d
 $$
 
 <div class="exercise">
-2.1.2 Rewrite the equation obtained in question 2.1.1 in the form above. Find the coefficients `a`, `b`, `c` and `d`. TIP!: move as a first step all states of the next time step to the left-hand side and the states of the current time step to the right-hand side;
+2.1.2 Rewrite the equation obtained in question 2.1.1 in the matrix-form as shown above. Find the coefficients `a`, `b`, `c` and `d`. TIP!: move as a first step all states of the next time step to the left-hand side and the states of the current time step to the right-hand side;
 $$
 f(s^{n+1}) = g(s^{n})
 $$
@@ -207,7 +207,7 @@ Minv = solve(M)
 ```
 </div>
 
-If you would like to construct the entire loop yourself, you can go to **Exercise 2**` in the `Finite_differences_3_extended.Rmd` document.
+**Challenging**: If you would like to construct the entire loop yourself, you can go to **Exercise 2**` in the `Finite_differences_3_extended.Rmd` document.
 
 <div class="exercise">
 2.2.3 Fill in the XXX in the following chunk
@@ -271,7 +271,7 @@ while(time<endtime)
 </div>
 
 ## Section 2.3 - Stability of the solution
-The advection-diffusion equation is an equation that tends to get unstable pretty fast. To examine this behaviour before performing the calculations two different parameters are used; the Von Neumann and Courant number. These are defined in the following way:
+The advection-diffusion equation is an equation that tends to get unstable pretty fast. To examine this behaviour, two different parameters are used; the Von Neumann and Courant number. These are defined in the following way:
 
 $$
 V = \dfrac{2D\Delta t}{\Delta x^2}\\
@@ -348,7 +348,7 @@ solve_ad = function(domain=c(0,100),
     M[i,i+1] = (omega-1) * (-u/(2*dx) +   D/dx^2 )
   }
   
-  Minv = solve(M) # this can be done in when the final calculation is done but this means that the inverting of matrix needs to be done over and over again
+  Minv = solve(M) # this can be done when the final calculation is done but this means that the inverting of matrix needs to be done over and over again
   
   # SET UP ANALITICAL SOLUTION
   a.x            = seq(domain[1],domain[2],length=500)
@@ -365,7 +365,7 @@ solve_ad = function(domain=c(0,100),
   
   sampleweights = sampleweights/max(a.init.state)*state.range[2]
   
-  # STORE ANALITICAL RESULTS
+  # STORE ANALYTICAL RESULTS
   a.N           = length(a.x)
   steps         = seq(0,endtime,by=dt)
   Nsteps        = length(steps)-1
@@ -564,5 +564,5 @@ u|D|$\Delta t$|$\Delta x$| Scheme| Von Neumann number (V) | Courant number (C)| 
 </div>
 
 <div class="answer">
-Without diffusion the solutions gets unstable. Decrease $\Delta t$ and the solution gets more stable. Increase $\Delta x$ and the solution gets more stable. Implicit scheme is always stable but the amplitude tends to be too low. Explicit schemes tends to get unstable very fast. CN scheme lies in the middle. It does not get unstable, the amplitude is well-preserved, but the tail oscillates pretty easily.
+Without diffusion, the solutions gets unstable. Decrease $\Delta t$ and the solution gets more stable. Increase $\Delta x$ and the solution gets more stable. The implicit scheme is always stable but the amplitude tends to be too low. Explicit schemes tends to get unstable very fast. CN scheme lies in the middle. It does not get unstable, the amplitude is well-preserved, but the tail oscillates pretty easily.
 </div>
