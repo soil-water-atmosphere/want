@@ -649,7 +649,7 @@ plot(Meteo_1Dmodel,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 ## 2.3 Testing different resolutions
 In this section you will test how the nodal spacing affects the solution of the model.   
 Like the groundwater case, this system also has an analytical solution:
-$$  \theta(x)=290+\frac{(295-290)}{ln(100/0.03)} ln(\frac{x}{0.03}) $$
+$$  \theta(x)=290+\frac{(295-290)}{\ln(100/0.03)} \ln(\frac{x}{0.03}) $$
 <div class="exercise"> 
 5. Make a plot to compare the numerical results to the analytical solution. You can use `dataframe.states` to get a dataframe of the resulting states, that you can plot the way you like it. Then set the nodal spacing to 20 m and compare again. What is your conclusion? 
 </div>
@@ -778,8 +778,8 @@ summary(Meteo_1Dmodel_strat)
 ```
 </div>
 
-## 2.5 Including a radiative cooling sink
-Until now we have considered a situation where the external fluxes are zero (first external flux option, see section 2.1). In many conditions however, there are processes that act as sources and sinks to the state variables. (Detailed modelling of these processes is beyond the scope of the model.) Therefore they should be handled as external fluxes to the system, that may depend on the location and the state. 
+## **Extra Assignment**: Including a radiative cooling sink
+Until now we have considered a situation where the external fluxes are zero (first external flux option, see section 2.1). In many conditions however, there are processes that act as sources and sinks to the state variables (detailed modelling of these processes is beyond the scope of this assignment). Therefore they should be handled as external fluxes to the system, that may depend on the location and the state. 
 Here we will apply radiative cooling as a sink over the entire domain (second external flux option).
 
 <div class="exercise"> 
@@ -827,11 +827,7 @@ lines (fluxesNoSink$intflux,fluxesNoSink$x, col='red')
 ```
 
 The model with a sink predicts lower temperatures, as it has an additional loss of heat over the domain. These differences remain small due to the top boundary condition which forces the potential temperature to be the same for both models. 
-The internal fluxes are constant for the zero external flux model. For the radiative sink model, the downward flux becomes larger going upward. (...) 
-</div>
-
-<div class="comment">
-Comment: I feel like some extra explanation needed in the answer here! Does anyone know how to explain why you see these differences?
+The internal fluxes are constant for the zero external flux model because it has two Dirichlet boundary conditions. For the radiative sink model, in every control volume the incoming and outgoing fluxes have to balance; F$_{top}$ comes into the control volume, and F$_{bottom}$ and R (the radiative sink) leave the control volume. Therefore, F$_{bottom}$+R have to balance F$_{top}$. F$_{bottom}$ of volume 1 is the input F$_{top}$ for the next volume, volume 2, and therefore leads to a decrease in heat transport downwards. 
 </div>
 
 The `dataframe.balance` function can calculate the balance (of water, heat, or anything else) over the model domain as a whole. It can also calculate the balance over specific parts of the domain. 
@@ -852,7 +848,7 @@ dataframe.balance(Meteo_1Dmodel_sink,c(14,15,16))
 ```
 </div>
 
-## 2.6 Surface flux as a Cauchy/Robin boundary
+## **Extra Assignment**: Surface flux as a Cauchy/Robin boundary
 Until now, we have prescribed the BCs as either fixed states or fixed fluxes (exercise 12.3). In many meteorological models however, the surface BC is defined using so-called drag laws. The flux at the surface, a heat flux in our case, is calculated as a drag coefficient times the difference in temperature between the surface and lowest model level:
 
 $$ F_S=C_H (T_S-\theta_1 ) $$
@@ -909,7 +905,4 @@ The external fluxes are still equal the boundary fluxes, while the net internal 
 <div class="comment">
 Comments:     
 * The meteo part can use a bit more elaborate introduction for the non-meteo students --> Chiel      
-* In the answer to part 2, question 11 there should be some explanation about why you see these differences in internal fluxes. I didn't really know how to explain this, anyone?    
-* The whole thing should maybe still be shorter. --> Is the length ok?       
-I already skipped some hydro stuff (quite a bit about sensitivities and two more varying kD fields). I also left out two variants of the meteo model. And I'm not sure if section 2.3 is necessary?    
 </div>
