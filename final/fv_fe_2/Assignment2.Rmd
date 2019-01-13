@@ -327,10 +327,9 @@ where $Q_{st}$ is the value of the storage flux at the next time step (which we 
 <div class="answer">
 The storage flux depends on position and state. Even though oldstate(x) is not defined yet, we can already define the storage flux function (but we are not able to run it yet, without defining the oldstate function). The oldstate-function returns the state of the system at a specific location, x, at the current timestep. This information is needed in order to calculate the gradient of the state in time. dt still needs to be defined too. 
 ```{r}
-S = 1
 storageflux = function(x, state)
 {
-   storageflux = -S * (state - oldstate(x)) / dt
+   storageflux = - (state - oldstate(x)) / dt
    return(storageflux)
 }
 
