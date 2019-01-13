@@ -18,12 +18,10 @@ output:
 * Learn how to use a loop for a repetitive task and how to store results in a dataframe.
 
 # Part 1: Transient diffusion in the surface boundary layer (SBL)
-In this assignment, we will start working with transient systems: systems that change over time. The assignment consists of two different parts: The first part (this part) is based on a meteorological application, and the second part is an hydrological application. TIP! Having difficulties grasping the concepts introduced in Part 1? The same concepts are introduced in Part 2 for a hydrological application, have a look over there if that aligns better with your background. 
+In this assignment, we will start working with transient systems: systems that change over time. The assignment consists of two different parts: The first part (this part) is based on a meteorological application, and the second part is an hydrological application. TIP: Having difficulties grasping the concepts introduced in Part 1? The same concepts are introduced in Part 2 for a hydrological application, have a look over there if that aligns better with your background. 
 
 ## Introduction 
-We will continue with the situation of the atmospheric boundary layer (ABL) above a cooling Earth surface after sunset, when downward transport of heat occurs - see Part 2 of Assigment 1. The figure below shows a potential temperature profile with height for specific conditions. We will produce a comparable graph in this assignment, but now accounting for transient factors.
-
-<span class="comment">**[LM]** Chiel, zou jij hier misschien een voorbeeld kunnen geven van wat potentiele transient factors zouden kunnen zijn? </span>
+We will continue with the situation of the atmospheric boundary layer (ABL) above a cooling Earth surface after sunset, when downward transport of heat occurs - see Part 2 of Assigment 1. The figure below shows a potential temperature profile with height for specific conditions. We will produce a comparable graph in this assignment, but now accounting for evolution in time that is the effect of the cooling of the surface through longwave radiation that happens during the night.
 
 The state variable and the **flow domain** of the model will be the same as in Assignment 1: potential temperature $\theta$ [K] is our state variable, and the flow domain has a length of 99.5 m, starting at a height of 0.5 m above the surface and ending at the top of the SBL, which is fixed at 100 m. 
 
@@ -35,13 +33,13 @@ Figure 1: Potential temperature with height.
 
 ## 1.1 The model set-up
 ### 1.1.1 Internal flux
-Flux of energy in the x-direction (height) is calculated using Fick's law with a so-called eddy-diffusivity:
+Flux of energy in the x-direction (height) is calculated using Fick's law with a so-called eddy-diffusivity, which accounts for the mixing caused by overturning turbulent whirls (eddies).
 
 $$Q=-K_{eddy}\frac{\partial \theta}{\partial x}$$
-With $K_{eddy}$ being the eddy diffusivity and $\frac{\partial \theta}{\partial x}$ being the gradient of the potential temperature. In the case of non-linear diffusion with the atmospheric boundary layer (ABL)  <span class="comment">**[LM]** Chiel, wat is deze?? </span> and with a neutrally stratified boundary layer, $K_{eddy}$ is described by:
+With $K_{eddy}$ being the eddy diffusivity and $\frac{\partial \theta}{\partial x}$ being the gradient of the potential temperature. In the atmospheric boundary layer (ABL), the eddy diffusivity is nonlinear. Close to the surface, mixing in the vertical is hard, because overturning eddies quickly hit the surface, whereas further away from the surface, it goes easier. Therefore, the diffusivity $K_{eddy}$is proportional with height and formulated as:
 
 $$K_{eddy}=ku_{*}x$$
-where the Von Karman constant $k$ equals 0.4, friction velocity $u_{*} = 0.25$ m/s  at the surface and $x$ is the height above the surface (also often referred to as $z$, since we're working in the vertical direction).
+where the Von Karman constant $k$ equals 0.4, friction velocity $u_{*} = 0.25$ m/s  at the surface, which is a measure of the intensity of turbulence, and $x$ is the height above the surface (also often referred to as $z$, since we are working in the vertical direction).
 
 ### 1.1.2 External fluxes
 In Assignment 1 Part 2, the following examples of an external flux were given in the context of radiative cooling of the surface boundary layer:
@@ -229,7 +227,7 @@ print(paste("Net balance calculated by built-in function:", dataframe.balance(on
 ## 1.3 Incorporating transient behaviour into the model simulation
 For stationary systems the state variables are fully constrained by the BCs and the formulation of the internal and the external fluxes. By checking the balance of a particular volume, as we did in question 4, we noticed that at this location there is a balance between the net internal flux between adjacent volumes and the external fluxes provided to the volumes. The external fluxes summed over the entire flow domain equal the net flux over the boundaries of the system; in and outflow are in equilibrium and the system is in steady-state.
 
-However, in many systems that we study, the time that the system needs in order to adapt to the BCs or the external fluxes (i.e., to reach the steady state) is larger than the rate of change in the BCs and/or the external fluxes. In other words, the system does not get the chance to reach equilibrium state, because while the system was going to towards this state, BC's and/or external fluxes already changed, requiring a different equilibrium state. In these transient systems, there appears to be an additional flux that hampers the external fluxes for a particular volume to be in balance with the net internal flux for that particular volume. <span class="comment">**[LM]** Chiel; Ik vind deze zin nogal verwarrend, of ligt dat aan mij? Heb je een andere suggestie, of anders weghalen?.</span> This additional flux is called the storage flux. One can also view the storage flux as a flux from the past, i.e. the previous time step of the transient model solution. As long as the storage change of the model does not equal zero, equilibruim is not yet reached.
+However, many hydrological and meteorological systems are not in steady state. As a result, the sum of internal and external fluxes for a control volume do not add up to zero, and hence the balance is not closed. As a result, the control volume experiences what we call _storage change_. In other words, the value of the state variable in a control volume is increasing or decreasing in time. As long as storage change occurs, the system is not in equilibrium. For instance, the atmospheric temperature measured above the land surface, is almost never in equilibrium, due to the ceaseless influences of day and night, weather systems and seasons.
 
 <div align="center">
 ![](storageflux0.png)
@@ -239,18 +237,18 @@ Figure 2: Storage flux for a stationary (top) and a transient (bottom) situation
 </div>
 
 A picture of the situation for transient systems is given in Figure 2.
-In the upper figure we see the situation at time t=0, the initial time before the surface starts to cool. In this situation there is a balance between the external fluxes and the internal fluxes for a particular volume and its adjacent volumes.
+In the upper figure we see the situation at time t=0, the initial time before the surface starts to cool. In this situation, there is a balance between the external fluxes and the internal fluxes for a particular volume and its adjacent volumes.
 
-The lower picture shows the situation when the system has progressed one time step after the surface started cooling. In this case, there is again a balance in the volume. However, in contrast to the initial stationary situation, besides the external fluxes that act on the system at t=t+$\Delta$t and the internal fluxes within the system at t=t+$\Delta$t, there is an additional flux here that results from the change of storage within the system. If the system can not cope with the rate of change of the boundary conditions, the storage flux is needed to make sure that the balance of a particular cell holds.
+The lower picture shows the situation when the system has progressed one time step after the surface started cooling. In this case, there is again a balance in the volume. However, in contrast to the initial stationary situation, besides the external fluxes that act on the system at $t=t+\Delta t$ and the internal fluxes within the system at $t=t+\Delta t$, there is an additional flux here that results from the change of storage within the system, if the internal and external fluxes do not add up to zero.
 
-The storage flux is directly related to the increase or decrease in the amount of the state variable stored within the system. For this situation, it is thus given as:
+The storage change $Q_{st}$ is directly related to the increase or decrease in the value of the state variable stored within the system. For heat storage in the atmosphere, it is given as:
 
-$$Q_{st} = -\int_{VOL}S\frac{\partial \theta}{\partial t}dx$$
+$$Q_{st} = -\int_{V}\frac{\partial \theta}{\partial t}dV$$
 
-where $Q_{st}$ is the storage flux, and $S$ is the storage coefficient that is related to the change rate of the state variable to a change rate in storage (usually 1 in the atmosphere). The storage flux is thus directly linked to the rate of change of the state variable at a certain location.<span class="comment">**[LM]** Chiel; Wow, hier begrijp ik helemaal niets van, die laatste drie zinnen. Jij andere suggestie? En wat is meestal 1 in de atmosfeer?</span>
+where $Q_{st}$ is the storage flux. In this 1-dimensional example, the volume step `dV` equals `dx`.
 
 <div class="question">
-5.What is the dimension of this flux and why is the storage flux negatively related to the rate of change in the state variable (note the minus in the equation above)?
+5. What is the dimension of this flux and why is the storage flux negatively related to the rate of change in the state variable (note the minus in the equation above)?
 </div>
 
 <div class="student_answer">
@@ -258,7 +256,8 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-The storage flux should have the same dimentions as the internal flux. The dimension of the storage flux is therefore $K*m/s$ for this particular case. The storage flux is negatively related to the rate of change in the state variable because the flow direction should always be opposite to the gradient. When more heat or water is added to a volume than is removed, the remaining flux is used to increase the storage (increased temperature or water content). The storage flux then acts as a negative flux, removing heat or water from the control volume at the upcoming timesteps. <span class="comment">**[LM]** Chiel; zou hier nog iets bijmoeten dat het gaat om veranderingen in storage, en niet om abs. storage? om het iets helderder te maken. Ik weet niet zeker of dit heel duidelijk is.</span>
+The storage change has the same units as the internal and external flux and is prescribed in change in the state variable per time unit, multiplied with the length (as this is a 1D problem) over which it is integrated.
+The storage flux is negatively related to the rate of change in the state variable, as this is the convention. While in the advection-diffusion equation the $\partial s/\partial t$ is on the left-hand side, in the solution of the water balance, we move it to the righthand side. The storage change then acts as a negative flux. It can be interpreted as the flux that needs to be added in order to compensate for the non-closure of the water balance.
 </div>
 
 In the previous question we have identified the storage flux in a way that is similar to how we defined external fluxes: it is given as the integral of a function that defines the storage at one point in space. Therefore, the storage flux in a transient system can be implemented in the same way as the external fluxes are implemented. 
@@ -303,15 +302,18 @@ Now that you know how the storage flux can be added to the model, the function i
 
 To develop such a function, we first need to discretize the formulation of the storage flux. Discretization of this function looks as follows: 
 
-$$Q_{st}=-\int_{VOL}S\frac{\theta_{t+\Delta t}-\theta_{t}}{\Delta t}dx$$
+$$Q_{st}=-\int_{V}\frac{\theta_{t+\Delta t}-\theta_{t}}{\Delta t}dx$$
 
 where $Q_{st}$ is the value of the storage flux at the next time step (which we want to calculate), $\theta_{t}$ is the potential temperature at the current time step (which is generally known), $\theta_{t+\Delta t}$ is the potential temperature at the next time step and $\Delta t$ is the time step itself.
 
 <div class="question">
-8. Define the storage flux function below, call it 'storageflux' and add the storageflux function to your transient model. Use a function called 'oldstate(x)' that retreives the state values of the current time step which takes distance as an argument. Set the storage coefficient to 1. 
+8. Define the storage flux function below, call it 'storageflux' and add the storageflux function to your transient model. Use a function called 'oldstate(x)' that retrieves the state values of the current time step which takes position as an argument.
 </div>
 
-<span class="comment">**[LM]** Chiel; Gegeven dat je gebruikt maakt van oldstate voor huidige state, is het dan niet logischer om in de vergelijking hierboven t en t-dt te gebruiken, in plaats van t en t+dt?</span>
+<span class="comment">**[LM]** Chiel; Gegeven dat je gebruikt maakt van oldstate voor huidige state, is het dan niet logischer om in de vergelijking hierboven t en t-dt te gebruiken, in plaats van t en t+dt?
+
+**[CvH]** Wellicht! Ik laat 'm even open...**[/CvH]**
+</span>
 
 <button type="button" onclick="showHint(218)">Show Hint</button>
 <p id="Q218"> </p>
