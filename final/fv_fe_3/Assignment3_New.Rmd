@@ -1,7 +1,7 @@
 ---
 title: "FVFE practical 3 - Flow in the unsaturated zone"
-subtitle: "Finite volumes, 1D steady and transient"
-date: "24/08/2018"
+subtitle: "Finite Elements, Finite Volumes, 1D stationary and transient simulations"
+date: "January 2019"
 output:
   html_document:
     css: want.css
@@ -23,18 +23,47 @@ output:
 
 The unsaturated zone is a very important interface between the groundwater system and the processes at the land surface. It stores precipitation, transports the excess to the groundwater, and can extract water (capillary rise) from the groundwater when the groundwater table is relatively shallow. The moisture content in the unsaturated zone is very important for the vegetation on top, where it can transpire through plants or evaporate from the soil surface. In this way, the unsaturated zone provides moisture to the atmosphere.
 
-Unsaturated water flow occurs in the zone between the soil surface and the (saturated) groundwater table. The flux in this part of the hydrological cycle is predominantly vertical. For that reason a 1D-model will be constructed along the vertical axis, denoted by z. We will follow the (historical) convention to choose the z-direction upwards. We will try to follow the convention that if we want to make a plot of e.g. the distribution of the soil moisture $\theta(z)$ in the soil column, $\theta$ is plotted on the horizontal axis and z on the vertical axis. Such a plot is called a *moisture profile*. A similar plot can be made for the water pressure head $\psi(z)$. The vertical distribution of $\psi(z)$ is called a *pressure profile*. In unsaturated zone modelling we generally work with units of cm and days.
+Unsaturated water flow occurs in the zone between the soil surface and the (saturated) groundwater table. The flux in this part of the hydrological cycle is predominantly vertical. For that reason a 1D-model will be constructed along the vertical axis, denoted by z.
 
-For the unsaturated zone several state variables are possible:
+As in the saturated groundwater, water flow in the unsaturated zone can be calculated with a Darcy formula, where the water flow is driven by differences in the _hydraulic_ or _piezometric_ head. In the saturated models, we simply used the hydraulic head $H$ as the state variable. 
 
-*   $\theta(z)$ : moisture content (-)  
+The hydraulic head $H$ is calculated as:  
+
+$$
+H = \psi + z\\
+$$
+
+With:  
+
+$H$: Hydraulic head (m)  
+
+$\psi$: Pressure head (m)  
+
+$z$: Elevation head (m)  
+
+The graph below illustrates the relation between these variables. Imagine a bucket with a height of 1 meter and filled with water. The reference head (green line) equals 0.0 m at the bottom of the bucket, but the pressure head (red line) equals 1.0 m. The hydraulic head is a constant being 1.0 m (blue line). Suppose you would measure the pressure head at a height 0.20 m from the bottom. This would be 0.80 m (intersection point dashed line and red line). The elevation head is 0.20 m (intersection point dashed line and green line). Summing pressure head and elevation head results in the hydraulic head: $H=\psi+z=0.8+0.2=1.0 \, m$ over the whole depth.
+
+![](HydraulicHead.png)
+
+Figure 1: Elevation and pressure heads in a bucket.
+
+In the unsaturated zone above the water table, the situation is different than in our previous saturated zone model:   
+*   The hydraulic conductivity is no longer constant but dependent on moisture content;   
+*   The flow is assumed to be vertical;   
+*   The pressure head $\psi$ is now a negative number, which depends on the moisture content in a certain soil layer.   
+
+For the unsaturated zone several state variables are possible: 
+
+*   $\theta(z)$ : moisture content (cm3/cm3)  
 *   $\psi(z)$ : pressure head (cm); in the unsaturated zone the pressure head w.r.t. the atmospheric pressure is always negative  
 *   $H(z)$ : hydraulic head (cm) $H=\frac {P}{\rho g}+z=\psi+z$  
 *   $pF(z)$ : the pF expresses the negative pressure head (suction) in log space: $pF=_{\text{log10}}|-\psi(z)|$
 
-In these assignments we will choose $\psi(z)$ as state variable.
+Note that in unsaturated zone modelling we generally work with units of cm and days. The reference level of the elevation head is up to the modeller to choose. In this practical, we will set $z=0 cm$ at the bottom of our domain, which coincides with the groundwater level. We will follow the (historical) convention to choose the z-direction upwards.
 
-Using the Darcy formula, the internal flux in the unsaturated zone can now be expressed in terms of the pressure and the hydraulic conductivity.
+In these assignments we will choose $\psi(z)$ as state variable. This is more practical than $H(z)$, because $\psi(z)$ directly reflects the wetness of the soil; also $\psi(z)$ is independent of the choice of the reference level for $z$.
+
+Using the Darcy formula, the internal flux in the unsaturated zone can now be expressed in terms of the pressure head and the hydraulic conductivity.
 
 <div class="exercise"> 
 1.Write down the formula for unsaturated Darcy flux.
@@ -101,7 +130,9 @@ You will look in more detail at the following soil types:
 *   Coarse Sand B5/O5 
 *   Loam B13/O14 
 *   Heavy clay B11/O12 
-*   Sandy Peat B16/O16  
+*   Sandy Peat B16/O16
+
+We will try to follow the convention that if we want to make a plot of e.g. the distribution of the soil moisture $\theta(z)$ in the soil column, $\theta$ is plotted on the horizontal axis and z on the vertical axis. Such a plot is called a *moisture profile*. A similar plot can be made for the water pressure head $\psi(z)$. The vertical distribution of $\psi(z)$ is called a *pressure profile*.
 
 <div class="exercise">
 4.Using the plots created by `soilprofiles.R`, answer the following questions (by clicking the wheel in the upper left you can change the soil type).
@@ -262,7 +293,9 @@ The stationary models we built make use of this concept of inflow=outflow and st
 </div>
 
 ## 3. Stationary unsaturated zone model  
-We start by building a stationary model for flow in the unsaturated zone. The following code chunk is partly preprogrammed but still needs to be finished.  
+We start by building a stationary model for flow in the unsaturated zone. We want to find the soil moisture profile for a situation with a given groundwater level (located at the lower boundary of the domain) and a rain input of 1 mm/day. The soil type is coarse sand (B5) and we use a nodal spacing of 2 cm. 
+
+The following code chunk is partly preprogrammed but still needs to be finished.
 
 <div class="exercise">
 10.     
@@ -336,10 +369,7 @@ grid()
 par(old.par)
 mtext(paste(Soil$soiltype,"=",Soil$name),side=3,line=1)
 #a plot of the internal fluxes gives additional insight:
-IntFlux=dataframe.internalfluxes(UnsatStat)$intflux
-plot(IntFlux,z.seq,type="l",xlab=flux [cm/d],ylab="z",main="Water fluxes, stationary model")
-abline(h=0,lty="dashed")
-grid()
+plot(UnsatStat,fluxplot=T,vertical=T,FVstyle=T)
 ```
 </div>
 
@@ -424,18 +454,15 @@ grid()
 par(old.par)
 mtext(paste(Soil$soiltype,"=",Soil$name),side=3,line=1)
 #a plot of the internal fluxes gives additional insight:
-IntFlux=dataframe.internalfluxes(UnsatStat)
-plot(IntFlux$intflux,IntFlux$x,type="l",xlab="flux [cm/d]",ylab="z",main="Water fluxes, stationary model")
-abline(h=0,lty="dashed")
-grid()
+plot(UnsatStat,fluxplot=T,vertical=T,FVstyle=T)
 ```
 
-Here we are clearly not in a no-flow situation any more: the $\psi$ profile diverts from the equilibrium profile. The topsoil is wetter than equilibrium, so there is downward flow (also visible in the flux plot). Note that the flux is practically constant with depth, which makes sense because the model is stationary.
+Here we are clearly not in a no-flow situation any more: the $\psi$ profile diverts from the equilibrium profile. The topsoil is wetter than equilibrium, so there is downward flow (also visible in the flux plot). Note that the flux is constant with depth, which makes sense because the model is stationary.
 The output shows also that iterations are needed: because of the moisture-dependent conductivity, the flow functions are not linear and cannot be solved in one step.
 </div>
 
 ## 4. Application of the model
-*In this section you will compare the hydrological functioning of the different soil types based on the model you built. There is also an in depth exercise available that studies the numerical aspects of dealing with a very nonlinear system (Ass3_Extra.R). You can choose this exercise to replace section 4.* 
+*In this section you will compare the hydrological functioning of the different soil types, using the model you built. There is also a **challenging exercise** available that studies the numerical aspects of dealing with a very nonlinear system (**Challenging exercise 1** in Ass3_Extra.R). You can choose this exercise to replace section 4.* 
 
 As mentioned earlier, the unsaturated zone can be seen as an interface between the regional saturated groundwater system and the meteorological and ecological forcings at the surface. The water flow in the unsaturated zone determines how rainfall will separate between infiltration and runoff; how much water is available for evapotranspiration; and how much water will recharge to the saturated groundwater.
 
@@ -444,20 +471,20 @@ The amount of water available in the unsaturated zone depends on:
 * Evapotranspiration rates, which are determined by radiation, temperature and available moisture content.    
 * Precipitation rates    
 * Soil properties    
-* Depth of the groundwater table
+* Depth of the groundwater table.
 
 Three typical classifications in an eco-hydrological and water management context are the sensitivity to **ponding** (NL:plasvorming); the capacity for **capillary rise**; and the total **water storage capacity**.
 
 <div class="exercise">
-11.Ponding can occur when the maximum water storage capacity of the soil is exceeded, so that the soil is saturated to the surface.    
-Fill out in the following table the maximum downward flux the soil can transport downwards without ponding. You can use the above code chunk. 
+11.Ponding happens when water stagnates on the surface. This can occur when the infiltration capacity of the topsoil is insufficient. Another reason can be that the maximum water storage capacity of the soil is exceeded, so that the soil is saturated to the surface.    
+Fill out in the following table the maximum downward flux the soil can transport downwards without ponding. You can use the above code chunk, but it is not necessary. 
 </div>
 
 <button type="button" onclick="toggle('Q2')">Show hint</button>
 <div id="Q2" style="display: none">
 You can solve this question in two ways.   
-1: Ponding occurs when the infiltration capacity is exceeded, that is, the downwards flow (q) is higher than Ksat. From this you can derive the maximum q per soil type (without running the model). Would groundwater depth be important here?    
-2: Ponding means that the soil gets saturated to the surface. You can run the UnsatModel to try out how much recharge it can handle without getting fully saturated.
+1: The first type of ponding occurs when the infiltration capacity is exceeded, that is, the downwards flow (q) is higher than Ksat. From this you can derive the maximum q per soil type (without running the model). Would groundwater depth be important here?    
+2: The second type of ponding means that the soil gets saturated to the surface. You can run the UnsatStat model to try out how much recharge it can handle without getting fully saturated. Would the groundwater level be important in this case?
 </div>
 <br>
 
@@ -549,9 +576,10 @@ Remove "eval=FALSE", then you can run the chunk. The animations that will be cre
 </div>
 
 <div class="student_answer">
-```{r eval=FALSE}
+```{r animation0, eval=FALSE, fig.show='animate', aniopts='controls'}
 ## Script to setup a transient flow model of the unsaturated zone
 domain = c(-50,0)
+dz=1
 
 ## 
 Soil = soil.set[["B5"]]
@@ -591,7 +619,7 @@ topforcing = 0 #flux at the top in cm/d
 set.BC.fixedflux(UnsatTrans,"right","topforcing")
 
 ##
-nodes = seq(from=domain[1],to=domain[2],by=1)
+nodes = seq(from=domain[1],to=domain[2],by=dz)
 set.discretisation(UnsatTrans,nodes,"FV")
 
 ##
@@ -713,6 +741,7 @@ The following chunk implements the transient unsaturated model.
 ##SETS THE DOMAIN OF THE MODEL, IN THIS CASE WATER TABLE AT 50 CM BELOW SURFACE
 ## ------------------------------------------------------------------------
 domain = c(-50,0)
+dz=1
 ##THE SOIL(TYPE)
 ## ------------------------------------------------------------------------
 Soil = soil.set[["B5"]]
@@ -761,7 +790,7 @@ set.BC.fixedflux(UnsatTrans,"right","topforcing") #flux at the top of the model 
 
 ##DISCRETISE THE MODEL WITH NODES, NODAL SPACING OF 1 CM, USING FINITE VOLUMES (FOR NOW)
 ## ------------------------------------------------------------------------
-nodes = seq(from=domain[1],to=domain[2],by=1)
+nodes = seq(from=domain[1],to=domain[2],by=dz)
 set.discretisation(UnsatTrans,nodes,"FV")
 
 ##KEEPING THE MODEL STABLE: ALLOW ONLY SENSIBLE VALUES 
@@ -877,8 +906,9 @@ if (Soil$soiltype == "B11")
 </div>
 
 <div class= "exercise">    
-15.Change the soil type. How does the soil moisture behaviour change?      
-16.Change the method into Finite Elements. What is the most significant change you observe? 
+15.Change the soil type. How does the soil moisture behaviour change?    
+Make sure that when you make a new chunk that should do an animation, also copy `fig.show='animate', aniopts='controls'` into the upper line of the chunk.    
+16.Change the method into Finite Elements. What changes do you observe? 
 </div>
 
 <div class="answer">
@@ -966,6 +996,8 @@ With the same top forcing, the clay soil (B11) takes more time to reach equilibr
 16.If you run the model using finite elements (not shown in the chunks), the dynamics of the soil moisture profile change very little. However, if you look at the fluxes or storage changes that happen in each timestep (using one of the dataframes that are saved during the while loop), small differences are visible.
 </div>
 
+*There is also a challenging exercise available, that looks some further into the differences between finite volumes and finite elements. If you are interested, go to **Exercise 2** of the `Ass3_Extra.Rmd`.*
+
 ## 6. Changed top forcing function
 
 Now you will implement a more 'realistic' top forcing. The R-file `topforcing.R` creates an artificial rainfall-evaporation pattern with the functions 'rainfun' and 'evapfun'.   
@@ -1019,6 +1051,7 @@ Below a code chunk running with the new precipitation/evaporation pattern.
 ##SETS THE DOMAIN OF THE MODEL, IN THIS CASE WATER TABLE AT 100 CM BELOW SURFACE
 ## ------------------------------------------------------------------------
 domain = c(-100,0)
+dz=1
 
 ##THE SOIL(TYPE)
 ## ------------------------------------------------------------------------
@@ -1064,7 +1097,7 @@ set.BC.fixedflux(UnsatTrans_Top,"right","topforcing")
 
 ##DISCRETISE THE MODEL WITH NODES, NODAL SPACING OF 1 CM, USING FINITE VOLUMES(FOR NOW)
 ## ------------------------------------------------------------------------
-nodes = seq(from=domain[1],to=domain[2],by=1)
+nodes = seq(from=domain[1],to=domain[2],by=dz)
 set.discretisation(UnsatTrans_Top,nodes,"FV")
 
 ##KEEPING THE MODEL STABLE: ALLOW SENSIBLE VALUES ONLY 
@@ -1153,69 +1186,73 @@ If you plot `psi.atsurface.50cm` and `psi.atsurface.100cm`, you see that when th
 </div>
 
 ## 7. Actual evapotranspiration
-Evapotranspiration is an important environmental condition for processes near the soil surface, such as the development of vegetation. In the previous exercise, we used evaporation/evapotranspiration as a given flux. In reality, the evapotranspiration depends on the actual soil moisture levels at the surface.    
-The vegetation can only transpire optimally when there is sufficient moisture in the soil which is 'easily' available for the vegetation. The drier a soil becomes, the harder the vegetation can extract water from it, since the roots have to overcome a large negative pressure.  This process can be simulated with the so called Feddes (retired Prof. from WUR) function.  
+Evapotranspiration is an important environmental condition for processes near the soil surface, such as the development of vegetation. In the previous exercise, we used evaporation/evapotranspiration as a given flux. In reality, the evapotranspiration depends on:      
 
-The code chunk below illustrates such a function. The shape of the Feddes function varies for different vegetation types.
+*   The potential evapotranspiration rate, which is determined by weather conditions;    
+*   The rooting distribution of the vegetation;   
+*   The actual soil moisture content in the rooting zone.   
+
+The total *potential* evapotranspiration rate of the vegetation is determined by weather conditions and will be given; it is equal to the total potential root extraction $TotExtract_{pot}$ [unit cm/d]. The rooting distribution may be described by a function $rootdistr.fun(z)$ which gives the fraction of roots present at each depth (giving 1 when integrated with depth). Now we may distribute the total potential extraction over the rooting profile. The potential extraction rate at a certain depth is then calculated by $root.extract_{pot}(z)=rootdistr.fun(z)*TotExtract_{pot}$ [unit 1/d].
+
+The vegetation can only transpire optimally when there is sufficient moisture in the soil which is 'easily' available for the vegetation. The effect of soil moisture can be simulated with the so called Feddes (retired Prof. from WUR) function.  
+
+The code chunk below illustrates such a Feddes function. The Feddes function relates the root water uptake at a certain depth with the pressure (suction) at that depth. When the soil is too wet or too dry, plant transpiration and thus root uptake are reduced below their potential rates, and the Feddes reduction factor is smaller than 1. The shape of the Feddes function varies between different vegetation types.
 
 ```{r}
-Feddes.habs = c(0.1,100,1000,16000)
+Feddes.psiabs = c(0.1,100,1000,16000) #absolute psi values that define Feddes function
 Feddes.red = c(0,1,1,0)
-Feddes.fun= approxfun(Feddes.habs,Feddes.red,rule=2)
-plot(Feddes.habs,Feddes.fun(Feddes.habs),type="l",lwd=3,xlim=range(Feddes.habs),log="x",
-     ylab="Root uptake reduction",xlab="Suction (-h)")
-abline(v=Feddes.habs,col="red")
+Feddes.fun= approxfun(Feddes.psiabs,Feddes.red,rule=2)
+plot(Feddes.psiabs,Feddes.fun(Feddes.psiabs),type="l",lwd=3,xlim=rev(range(Feddes.psiabs)),log="x",ylab="Root uptake reduction",xlab="Suction (-psi)")
+abline(v=Feddes.psiabs,col="red")
 text(1,0.9,"Too wet", col="red")
 text(300,0.7,"Optimal", col="red")
 text(5000,0.9,"Too dry",col="red")
 grid()
 ```
 
-The Feddes function thus relates the root water uptake at a certain depth with the pressure (suction) at that depth. This makes transpiration dependent on the rooting distribution of the vegetation.
+We can now include the effect of soil moisture on the root extraction. If we have the profile of $\psi$ available, the actual root extraction rate at a certain depth is given by:
 
-Suppose that a vegetation has an evenly distributed rooting system over the first 25 cm.  
-For this the actual evapotranspiration could be calculated with:
+$$\text{root.extract}_{act}(z,\psi_{z})= - \text{rootdistr.fun}(z)*\text{TotExtract}_{pot}*\text{Feddes.fun}(z,\psi_{z})$$  
+Note the minus to indicate a loss of water. The $root.extract_{act}$ is in units [1/d]. To get the actual extraction rate in [cm/d] for a control volume $i$, we multiply by dz: $\text{root.extract}_{act}(z_{i},\psi_{i})*dz$.
 
-$$\text{extraction}(z,\psi)_{roots}= - \text{roots.fun}(z)*\text{Feddes.fun}(z,\psi)*\text{max.extraction rate}_{roots}$$  
-
-Here, the _roots.fun_ describes the proportion of the roots growing at a certain depth. The _max. root extraction rate_ is equal to the **potential evapotranspiration** and is extracted along the total rooting depth for this vegetation. 
+We will apply the actual root extraction by a `spatial flux` in the unsaturated zone model. We assume a vegetation with a uniform rooting distribution over a depth of 25 cm. The total potential evapotranspiration rate is 0.3 cm/d.
 
 <div class="exercise">
-19.Complete the following chunk of code implementing the actual evapotranspiration.     
-*   Use a potential evapotranspiration of 0.3 cm/d.    
-*   Calculate the correct value for the max.roots variable.       
-*   Finish the roots extraction function (**roots**) to simulate the actual evapotranspiration.   
-*   Use `summary(model)` to check if your model is the way you want it and you have no double fluxes or missing BCs.
-*   First simulate a situation with with no precipitation starting with an equilibrium situation.
+19.Complete the following chunk of code implementing the actual evapotranspiration.   
 
-20.Evaluate the effect of the actual evapotranspiration. What happens if you change the Feddes function? For example, change the `Feddes.h` vector to `c(0,-10,-40,-16000)` (which would be a very wet-loving plant) or adapt the rooting depth.
+*   Finish the roots extraction function (**roots**) to simulate the actual evapotranspiration as described above.   
+*   Use `summary(model)` to check if your model is the way you want it to be and you have no double fluxes or missing BCs.    
+*   Run the chunk, which simulates a situation with no precipitation starting with an equilibrium pressure profile.
+
+20.Evaluate the effect of the actual evapotranspiration. What happens if you implement a different (imaginary) vegetation type? For example, change the `Feddes.psi` vector to `c(0,-10,-40,-16000)` (which would be a very wet-loving plant) or adapt the rooting depth.
 </div>
 
 <div class="student_answer">
 ```{r eval=FALSE}
-##soil type
 Soil = soil.set[["B5"]]  ##B5 coarse sand
+domain = c(-50,0)
+dz=1
 
 UnsatTrans_Feddes=copy.model(UnsatTrans)
 set.name(UnsatTrans_Feddes,"Unsaturated zone, with actual ET")
-domain = c(-50,0)
 
-Feddes.h = c(0,-100,-1000,-16000)
+TotExtractPot=0.3 #potential evapotranspiration 0.3 cm/d
+rootdistr.fun = approxfun(c(0,-25,-25.01),c(1/25,1/25,0),rule=2)
+
+Feddes.psi = c(0,-100,-1000,-16000)
 Feddes.red = c(0,1,1,0)
-Feddes.fun= approxfun(Feddes.h,Feddes.red,rule=2)
-max.roots = XXXX
-root.depth = approxfun(c(0,-25,-25.01),c(1,1,0),rule=2)
+Feddes.fun= approxfun(Feddes.psi,Feddes.red,rule=2)
 
 roots = function(x,state)
 {
-  return(-root.depth(x)*Feddes.fun(state)*XXXX)
+  return(XXXX)
 }
 
-add.spatialflux(UnsatTrans_Feddes,rate = roots,name = 'roots')
+add.spatialflux(UnsatTrans_Feddes,rate = roots,name = 'roots') 
 
 Psi.equi = approxfun(c(domain[1],domain[2]),c(domain[2],domain[1]))
 do.initialize(UnsatTrans_Feddes,Psi.equi)
-Psi.in.range = function(z,Psi) # it has 2 arguments; the position and the state
+Psi.in.range = function(z,Psi) 
 {
   if(Psi<=-1E5) return(FALSE)
   else return(TRUE)
@@ -1283,36 +1320,34 @@ grid()
 </div>
 
 <div class="answer">
-19.The missing parts should be filled in as follows:  
+19.The `roots` function should be filled in as follows:  
 ```
-max.roots = 0.3/25 
-# The actual root uptake is calculated separately for each depth, so each depth get its 'proportion' of the potential evapotranspiration.
-
 roots = function(x,state)
 {
-  return(-root.depth(x)*Feddes.fun(state)*max.roots)
+  return(-rootdistr.fun(x)*TotExtractPot*Feddes.fun(state)*dz)
 }
 ```
 The code chunk below implements the actual evapotranspiration function:
 ```{r echo=FALSE}
-UnsatTrans_Feddes=copy.model(UnsatTrans)
-set.name(UnsatTrans_Feddes,"Unsaturated zone, with actual ET")
-domain = c(-50,0)
-
-##functions to calculate actual evapotranspiration with constant pot.evapotranspiration of 0.3 cm/d
-Feddes.h = c(0,-100,-1000,-16000)
-Feddes.red = c(0,1,1,0)
-Feddes.fun= approxfun(Feddes.h,Feddes.red,rule=2)
-max.roots = 0.3/25 #the actual root uptake is calculated separately for each depth, so each depth get its 'proportion' of the potential evapotranspiration.
-root.depth = approxfun(c(0,-25,-25.01),c(1,1,0),rule=2)
-roots = function(x,state)
-{
-  return(-root.depth(x)*Feddes.fun(state)*max.roots)
-}
-
 ##soil type
 Soil = soil.set[["B5"]]  ##B5 coarse sand
+domain = c(-50,0)
+dz=1
 
+UnsatTrans_Feddes=copy.model(UnsatTrans)
+set.name(UnsatTrans_Feddes,"Unsaturated zone, with actual ET")
+
+TotExtractPot=0.3 #potential evapotranspiration 0.3 cm/d
+rootdistr.fun = approxfun(c(0,-25,-25.01),c(1/25,1/25,0),rule=2)
+
+Feddes.psi = c(0,-100,-1000,-16000)
+Feddes.red = c(0,1,1,0)
+Feddes.fun= approxfun(Feddes.psi,Feddes.red,rule=2)
+
+roots = function(x,state)
+{
+  return(-rootdistr.fun(x)*TotExtractPot*Feddes.fun(state)*dz)
+}
 add.spatialflux(UnsatTrans_Feddes,rate = roots,name = 'roots')
 
 Psi.equi = approxfun(c(domain[1],domain[2]),c(domain[2],domain[1]))
@@ -1375,8 +1410,8 @@ grid()
 </div>
 
 <div class="answer">
-20.As can be seen in the fluxes graph, the evapotranspiration for the original Feddes function is about 0.1 cm/d, so it is limited compared to the potential flux of 0.3 cm/d. This happens because the soil is wetter than optimal (h>-100). The evapotranspiration is first drawn from the storage (positive storage flux, so the storage *provides* water). As the soil becomes drier, the evapotranspiration increases as soil moisture comes closer to the vegetation's optimal range. Finally, evapotranspiration is balanced by capillary rise. 
+20.As can be seen in the fluxes graph, the evapotranspiration for the original Feddes function is about 0.1 cm/d, so it is limited compared to the potential flux of 0.3 cm/d. This happens because the soil is wetter than optimal (h>-100). The evapotranspiration is first drawn from the storage (positive storage flux, so the storage *provides* water). As the soil becomes drier, the evapotranspiration increases (more negative flux) as the soil moisture comes closer to the vegetation's optimal range. Finally, evapotranspiration is balanced by capillary rise. 
 
-When another Feddes function is implemented for a more wet-loving vegetation, the evapotranspiration flux is higher. However, the flux decreases over time, as the soil becomes too dry.
+When another Feddes function is implemented for a more wet-loving vegetation, the evapotranspiration flux is higher (around the potential 0.3 value). However, the flux decreases over time, as the soil becomes too dry.
 ![](Ex20Answer.png)
 </div>
