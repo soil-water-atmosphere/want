@@ -31,7 +31,7 @@ domain = c()
 
 ## Define the system flux function/ internal flux function
 Here you implement the expression for the flux of water, energy or something else between the nodes or volumes in the model. To calculate the internal flow the model needs the specific location (x), the state at (x) and the gradient of that state at (x).   
-The `return()` argument holds the actual flux-equation, so what is on the right hand side of the flux equation. 
+The `return()` argument is the value that the function returns as output, using the defined flux-equation. 
 
 ```{r eval=FALSE}
 intflux = function(x,state,gradstate)
