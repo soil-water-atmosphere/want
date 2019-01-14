@@ -344,7 +344,7 @@ In order for the storage flux function to work we still do need to define:
 
 2)	a function that is called oldstate and that returns the value of the state at the current time step at location x
 
-## Section 1.4. Setup of the transient simulation
+## 1.4. Setup of the transient simulation
 In the previous exercises we developed a model that incorporated an additional flux, the storage flux, which is needed in transient systems because of the storage changes within the system. This model can now be used to analyse the effect of the progressive cooling of the surface in time. In our model, the surface starts to cool at $t=0$. 
 
 <div class="question">
