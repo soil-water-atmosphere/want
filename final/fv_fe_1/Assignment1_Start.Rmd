@@ -55,11 +55,11 @@ Fill in your answer...
 <div class="answer">
 * type 1 internal flux is given by: 
 
-$$\vec{Q} = - k\;D\; \frac{\partial H}{\partial x}$$
+$$\vec{q} = - k\;D\; \frac{\partial H}{\partial x}$$
 
 * type 2 internal flux is given by: 
 
-$$\vec{Q} = - k\;H\; \frac{\partial H}{\partial x}$$
+$$\vec{q} = - k\;H\; \frac{\partial H}{\partial x}$$
 </div>
 
 <div class="exercise">
