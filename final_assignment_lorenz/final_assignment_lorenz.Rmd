@@ -1,5 +1,5 @@
 ---
-title: "Lorenz Strange Attractor"
+title: "The Lorenz equations: the (in)predictability of weather"
 author: "Chiel van Heerwaarden"
 date: "1/15/2019"
 output: html_document
