@@ -47,19 +47,19 @@ The graph below illustrates the relation between these variables. Imagine a buck
 
 Figure 1: Elevation and pressure heads in a bucket.
 
-In the unsaturated zone above the water table, the situation is different than in our previous saturated zone model:   
-*   The hydraulic conductivity is no longer constant but dependent on moisture content;   
+In the unsaturated zone above the water table, the situation is different compared to the saturated zone model we constructed before:   
+*   The hydraulic conductivity $k$ is no longer constant but dependent on moisture content;   
 *   The flow is assumed to be vertical;   
 *   The pressure head $\psi$ is now a negative number, which depends on the moisture content in a certain soil layer.   
 
-For the unsaturated zone several state variables are possible: 
+For the unsaturated zone, several state variables are possible: 
 
-*   $\theta(z)$ : moisture content (cm3/cm3)  
+*   $\theta(z)$ : moisture content (cm$^3$/cm$^3$)  
 *   $\psi(z)$ : pressure head (cm); in the unsaturated zone the pressure head w.r.t. the atmospheric pressure is always negative  
 *   $H(z)$ : hydraulic head (cm) $H=\frac {P}{\rho g}+z=\psi+z$  
 *   $pF(z)$ : the pF expresses the negative pressure head (suction) in log space: $pF=_{\text{log10}}|-\psi(z)|$
 
-Note that in unsaturated zone modelling we generally work with units of cm and days. The reference level of the elevation head is up to the modeller to choose. In this practical, we will set $z=0 cm$ at the bottom of our domain, which coincides with the groundwater level. We will follow the (historical) convention to choose the z-direction upwards.
+Note that in unsaturated zone modelling we generally work with units of cm and days. The reference level of the elevation head is up to the modeller to choose. In this assignment, we will set $z=0 cm$ at the bottom of our domain, which coincides with the groundwater level. We will follow the (historical) convention to choose the z-direction upwards.
 
 In these assignments we will choose $\psi(z)$ as state variable. This is more practical than $H(z)$, because $\psi(z)$ directly reflects the wetness of the soil; also $\psi(z)$ is independent of the choice of the reference level for $z$.
 
@@ -87,7 +87,7 @@ load(file='Staring.Rdata')
 ```
 </div>
 
-Before constructing models for flow in the unsaturated zone an overview of the units would be practical.
+Before constructing models for flow in the unsaturated zone, it is useful to make an overview of the units.
 
 <div class="exercise">
 3.Fill out the table.
@@ -179,10 +179,9 @@ The peat soil has the highest available water content for vegetation. It is also
 </div>
 
 ## 2. Exploring the equilibrium profiles 
-Even the situation at times there is no flow through the soil is interesting. The corresponding profiles of $\psi$ and $\theta$ are called equilibrium profiles. 
+Even when there is no flow through the soil, the situation is interesting. The corresponding profiles of $\psi$ and $\theta$ are called equilibrium profiles. 
 
-The code chunk below is mostly preprogrammed. It illustrates the pressure and moisture content profile at equilibrium with the groundwater for a certain soil.   
-The surface level is set to 0.0 cm. Assume that the groundwater table is at 1 m (100 cm) depth. The internal flow is defined to be positive upwards.
+The code chunk below is mostly preprogrammed. It illustrates the pressure and moisture content profile at equilibrium with the groundwater for a certain soil. The surface level is set to 0.0 cm. Assume that the groundwater table is at 1 m (100 cm) depth. The internal flow is defined to be positive upwards.
 
 <div class="exercise">
 5.What are the boundary conditions at the lower (left) and upper (right) end of the domain? Fill out AA and BB in the chunk.  
@@ -473,11 +472,10 @@ The amount of water available in the unsaturated zone depends on:
 * Soil properties    
 * Depth of the groundwater table.
 
-Three typical classifications in an eco-hydrological and water management context are the sensitivity to **ponding** (NL:plasvorming); the capacity for **capillary rise**; and the total **water storage capacity**.
+Three typical classifications in an eco-hydrological and water management context are the sensitivity to **ponding** (NL: plasvorming); the capacity for **capillary rise**; and the total **water storage capacity**.
 
 <div class="exercise">
-11.Ponding happens when water stagnates on the surface. This can occur when the infiltration capacity of the topsoil is insufficient. Another reason can be that the maximum water storage capacity of the soil is exceeded, so that the soil is saturated to the surface.    
-Fill out in the following table the maximum downward flux the soil can transport downwards without ponding. You can use the above code chunk, but it is not necessary. 
+11.Ponding happens when water stagnates on the surface. This can occur when the infiltration capacity of the topsoil is exceeded by an external input (called Hortonian). Another reason can be that the maximum water storage capacity of the soil is exceeded (called Dunian), so that the soil is saturated to the surface. Fill out in the following table the maximum downward flux the soil can transport downwards without ponding. You can use the above code chunk, but it is not necessary. 
 </div>
 
 <button type="button" onclick="toggle('Q2')">Show hint</button>
@@ -572,7 +570,7 @@ The chunk below contains a script for running a transient unsaturated zone model
 * Finish the *changeinstorage* function  
 * The top forcing (precipitation surplus) is initially set at 0. Later on, a time dependent top forcing is created. This function results in precipitation for the time until T1, followed by evaporation between T1 and T2, and zero top forcing from T2 to the end.  
 
-Remove "eval=FALSE", then you can run the chunk. The animations that will be created will probably not display in the default markdown window. Go to the directory where the knitted html-file is saved and open it in Google Chrome. If it is still not working, check if you have the 'ffmpeg' programme in the same folder as the markdown. This programme is needed for the animations.
+Remove "eval=FALSE", then you can run the chunk. The animations that will be created will probably not display in the default markdown window. Go to the directory where the knitted html-file is saved and open it in Google Chrome. If it is still not working, check if you have the 'ffmpeg' programme in the same folder as the markdown (this executable is available on Blackboard). This programme is needed for the animations.
 </div>
 
 <div class="student_answer">
@@ -993,10 +991,10 @@ With the same top forcing, the clay soil (B11) takes more time to reach equilibr
 ![](Ex6Answer.png)
 
 
-16.If you run the model using finite elements (not shown in the chunks), the dynamics of the soil moisture profile change very little. However, if you look at the fluxes or storage changes that happen in each timestep (using one of the dataframes that are saved during the while loop), small differences are visible.
+16.If you run the model using Finite Elements (not shown in the chunks), the dynamics of the soil moisture profile change very little. However, if you look at the fluxes or storage changes that happen in each timestep (using one of the dataframes that are saved during the while loop), small differences are visible.
 </div>
 
-*There is also a challenging exercise available, that looks some further into the differences between finite volumes and finite elements. If you are interested, go to **Exercise 2** of the `Ass3_Extra.Rmd`.*
+*There is also a challenging exercise available, that looks some further into the differences between Finite Volumes and Finite Elements. If you are interested, go to **Exercise 2** of the `Ass3_Extra.Rmd`.*
 
 ## 6. Changed top forcing function
 
