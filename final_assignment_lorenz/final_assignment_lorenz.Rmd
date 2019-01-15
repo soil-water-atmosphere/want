@@ -10,29 +10,39 @@ rm(list=ls())
 library(plotly)
 ```
 
-## Lorenz
+## Introduction
+In 1963, Edward Lorenz developed a system of three equations to describe atmospheric convection (http://mathworld.wolfram.com/LorenzAttractor.html). From this set of equations, Lorenz accidentally discovered chaotic behavior. When run with parameters that lead to chaotic behavior, the solution yields the famous Lorenz butterfly.
 
+The set of equations is
 $$
 \begin{align}
 \dfrac{\mathrm{d}x}{\mathrm{d}t} &= \sigma (y - x), \\
 \dfrac{\mathrm{d}y}{\mathrm{d}t} &= x (\rho - z) - y, \\
-\dfrac{\mathrm{d}z}{\mathrm{d}t} &= x y - \beta z.
+\dfrac{\mathrm{d}z}{\mathrm{d}t} &= x y - \beta z,
 \end{align}
 $$
+where $x(t)$, $y(t)$ and $z(t)$ are the three variables of the system, and $\sigma$, $\rho$, and $\beta$ are the three parameters. 
 
-```{r parameters}
-rho = 28. # 28. was Lorenz' value.
+In order to run this system, you need to specify the values of the three parameters, the total runtime, and the initial conditions for the three variables. This is done in the code block below.
+
+```{r parameters_and_initial_conditions}
+rho = 6. # 28. was Lorenz' value, we start with 6 here.
 sigma = 10. # 10. was Lorenz' value.
 beta = 8./3. # 8./3. was Lorenz' value.
 
 total_time = 40. # 40. is sufficient to see the essential dynamics.
+
+x0 = 1. # 1. is the default initial condition for x.
+y0 = 1. # 1. is the default initial condition for y.
+z0 = 1. # 1. is the default initial condition for z.
 ```
 
-```{r initial_values}
-x0 = 1.
-y0 = 1.
-z0 = 1.
+## The challenge
+In this assignment, you will implement three solutions for this set of equations. One with the explicit **Euler forward** method, one with a **Runge-Kutta 4** method, and one with a **Runge-Kutta 4** with a very small time step, that will serve as the reference.
 
+In each of the three solvers, you will fill vectors that contain the time series and the solutions of the three variables. Each vector is defined in the block below, and its first value contains the initial conditions.
+
+```{r initial_values}
 t_ef = c()
 x_ef = c()
 y_ef = c()
@@ -64,6 +74,11 @@ y_ref[1] = y0
 z_ref[1] = z0
 ```
 
+<div class="student_answer">
+Implement your code here. As as many code blocks as you need. You are free to design it in your own way.
+</div>
+
+<div class="answer"
 ```{r rhs}
 calc_rhs = function(xyz)
 {
@@ -78,7 +93,7 @@ calc_rhs = function(xyz)
 ```
 
 ```{r euler_forward}
-dt = 0.01
+dt = 0.05
 
 nt = total_time / dt
 
@@ -100,7 +115,7 @@ for (n in 1:nt)
 ```
 
 ```{r rk4}
-dt = 0.01
+dt = 0.05
 
 nt = total_time / dt
 
@@ -126,7 +141,7 @@ for (n in 1:nt)
 ```
 
 ```{r rk4_ref}
-dt = 1e-3
+dt = 0.001
 
 nt = total_time / dt
 
@@ -150,18 +165,48 @@ for (n in 1:nt)
   z_ref[n+1] = xyz[3]
 }
 ```
+</div>
 
-```{r}
+A set of plots is already prepared for you. The plot below contain the time series of variable $y$ for the three solvers, as this variable shows the peculiar behavior of the Lorenz system very well.
+
+```{r message=FALSE, warning=FALSE}
 p = plot_ly()
 p = add_trace(p, x=t_ef , y=y_ef , name="ef" , mode="lines")
 p = add_trace(p, x=t_rk , y=y_rk , name="rk" , mode="lines")
 p = add_trace(p, x=t_ref, y=y_ref, name="ref", mode="lines")
 p
 ```
-```{r}
+The plot below here shows the line that connects the $(x, y, z)$-points for all time steps, and will yield the famous **Lorenz butterfly** if the system of equations is solved with the correct parameters.
+
+```{r message=FALSE, warning=FALSE}
 p = plot_ly()
 p = add_trace(p, x=x_ef , y=y_ef , z=z_ef , name="ef" , mode="lines")
 p = add_trace(p, x=x_rk , y=y_rk , z=z_rk , name="rk" , mode="lines")
 p = add_trace(p, x=x_ref, y=y_ref, z=z_ref, name="ref", mode="lines")
 p
 ```
+
+
+## The tasks
+### Coding the model
+1. Set the parameters to $\rho = 6$, $\sigma = 10$, and $\beta = 8/3$, with initial conditions $\left(x_0, y_0, z_0\right) = \left( 1, 1, 1 \right)$.
+
+2. Implement the solver using the explicit Euler forward method. Store the output in vectors `t_ef`, `x_ef`, `y_ef`, and `z_ef`. Integrate it from $t = 0$ until $t = 40$. Use `dt = 0.05` as the time step. Code it such that you can easily adapt `dt`.
+
+3. Implement the solver using the Runge-Kutta 4 method. Store the output in vectors `t_rk`, `x_rk`, `y_rk`, and `z_rk`. Integrate it from $t = 0$ until $t = 40$. Use `dt = 0.05` as the time step. Code it such that you can easily adapt `dt`.
+
+4. Copy the Runge-Kutta 4 solver, so that you can run it again. This time, use a time step that is so small, that the solution is converged. Store the output in `t_ref`, `x_ref`, `y_ref`, and `z_ref`. Use `dt = 0.001`.
+
+### Interpreting the results
+5. At which time step `dt` do the two time-integration methods get unstable?
+
+6. At which time step `dt` do the two time-integration methods converge?
+
+7. By increasing parameter $\rho$, you can introduce chaotic behavior in the system. For which value of $\rho$ do you observe chaotic behavior?
+
+8. Analyze the system with $\rho = 28$ in detail. Are the answers of question 5 and 6 still valid?
+
+9. Be creative... Test, calculate, or plot whatever you think helps you in  understanding the system.
+
+**END OF ASSIGNMENT**
+
