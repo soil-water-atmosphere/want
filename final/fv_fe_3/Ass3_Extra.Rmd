@@ -7,6 +7,7 @@ output:
     css: want.css
     toc: yes
 ---
+* note that this file might have difficulties knitting because of non-convergence. In order to knit, comment the ``solve.steps`` *
 
 ## Challenging exercise 1
 *Challenging exercise 1 replaces exercises 11-13 in section 4*
@@ -20,10 +21,54 @@ You can copy the `UnsatStat` model to a new one or build a fully new model; if y
 
 <div class="answer">
 ```{r}
-set.BC.fixedflux(UnsatStat,"right",-0.1)
+load(file='Staring.Rdata')
+library(FVFE1D)
+
+##### domain ####
+domain = c(-100,0)
+z.seq = seq(from=domain[1],to=domain[2],length=50)
+
+##### soil type #####
+Soil = soil.set[["B5"]]
+
+################ internal flux function #############
+unsatdarcy.flux = function(z,psi,dpsidz)
+{
+  return(-Soil$k.fun(psi)*(dpsidz+1))
+}
+
+################### make the model #################
+UnsatStat = newFLOW1D(domain,unsatdarcy.flux,"Unsaturated zone, 1D stationary")
+
+############## Boundary conditions ##################
+set.BC.fixedstate(UnsatStat,"left",0.0) 
+set.BC.fixedflux(UnsatStat,"right",-0.1) 
+
+####### discretisation #####################
+nodes = seq(from=domain[1],to=domain[2],by=2)
+set.discretisation(UnsatStat,nodes,"FV")
+Psi.equi = approxfun(c(domain[1],domain[2]),c(domain[2],domain[1]))
+do.initialize(UnsatStat,Psi.equi)
+
+# We want to avoid pressures to be too negative (<-1E-5)
+Psi.in.range = function(z,Psi) # it has 2 arguments; the position and the state
+{
+  if(Psi<=-1E5) return(FALSE)
+  else return(TRUE)
+}
+set.isacceptable(UnsatStat,Psi.in.range) 
+```
+
+```{r}
 do.initialize(UnsatStat,Psi.equi)
 solve.steps(UnsatStat,verbose=TRUE)
-set.BC.fixedflux(UnsatStat,"right",0.1) #reset
+```
+
+```{r}
+plot(UnsatStat,fluxplot=T,vert=T)
+
+#reset value for next assignments
+set.BC.fixedflux(UnsatStat,"right",0.1) 
 ```
 The model tries to find a stationary solution to satisfy the boundary conditions we force on it. In this case, it will try to balance the outgoing flux at the top by an upwards flux from the bottom (capillary rise from the groundwater). However, as the hydraulic conductivity decreases so drastically with lower pressure heads, the model needs an extremely high moisture gradient to reach this flux. It doesn't manage to solve this.
 </div>
@@ -138,12 +183,12 @@ The model needs a large number of iterations, but does find a solution. The smal
 
 ## Challenging exercise 2
 
-The difference between finite volumes and finite elements can become more clear when:     
+The difference between Finite Volumes and Finite Elements can become more clear when:     
 -There is a point source or sink very close to one of the nodes;      
 -The spatial discretisation is very coarse;      
 -And/or the system is very nonlinear.      
 
-We will look at the effects of using finite element discretisation methods in a model with a coarse spatial discretisation ánd a very dry soil, causing the flux function (incl. K) to become very nonlinear.
+We will look at the effects of using Finite Element discretisation methods in a model with a coarse spatial discretisation and a very dry soil, causing the flux function (incl. K) to become very nonlinear.
 
 <div class="exercise">
 2A. Copy the chunk where you built the `UnsatTrans` model. Make the following adaptations:   
@@ -155,13 +200,13 @@ We will look at the effects of using finite element discretisation methods in a 
 
 We apply a very high evaporation flux, which may for example be applicable for some areas in the tropics. This flux will quickly lead to a very dry topsoil.
 
-Try out the finite volumes method, as well as the different versions of the finite elements method, including *quadratic finite elements* and *cubic finite elements* (see help --> `set.discretisation`).
+Try out the Finite Volumes method, as well as the different versions of the Finite Elements method, including *quadratic Finite Elements* and *cubic Finite Elements* (see help --> `set.discretisation`).
 
 What do you observe? 
 </div>
 
 <div class="exercise">
-2B. Look up (online) what these different finite element methods do. Can you explain the differences in the results?
+2B. Look up (online) what these different Finite Element methods do. Can you explain the differences in the results?
 </div>
 
 <div class="exercise">
@@ -170,7 +215,7 @@ What do you observe?
 
 <div class="answer">
 ```{r animation5, fig.show='animate', aniopts='controls'}
-UnsatTrans_Coarse=copy.model(UnsatTrans)
+UnsatTrans_Coarse=copy.model(UnsatStat)
 set.name(UnsatTrans_Coarse, "Unsaturated zone transient, coarse")
 domain = c(-50,0)
 dz=10
@@ -234,17 +279,12 @@ while(time < end.time)
 }
 ```
 
-When the model is run with the finite volumes or linear finite elements methods, it gets stuck after a few time steps. The surface has dried out, but at all underlying nodes $\psi$ is still equal to its equilibrium value.
+When the model is run with the Finite Volumes or linear Finite Elements methods, it gets stuck after a few time steps. The surface has dried out, but at all underlying nodes $\psi$ is still equal to its equilibrium value.
 
-When you use another FE method, such as the quadratic finite elements method, the model does reach the end of the simulation period. You can see that the $\psi$ profile, despite the coarse resolution, is more smooth, and also the deeper nodes are becoming dryer. At t=9.5, $\psi$ at the surface is about -90 cm.
+When you use another FE method, such as the quadratic Finite Elements method, the model does reach the end of the simulation period. You can see that the $\psi$ profile, despite the coarse resolution, is more smooth, and also the deeper nodes are becoming dryer. At t=9.5, $\psi$ at the surface is about -90 cm.
+
+Finite Elements methods rely on integrals, both for the internal and the external flux, since both fluxes vary over space, also in-between the nodes. However, integrals are an infinite concept, and have to be approached numerically. Different methods exist to approach these integrals, the simples one being a linear approach. The  *quadratic Finite Elements* and *cubic Finite Elements* methods use a more complex, yet more accurate, method to approach the integrals. For more information on this topic, check:
+"Integration points for triangles and tetrahedrons obtained form the Gaussian quadrature points for a line". K. Sunder and R Cookson, Computers and Structures, Vol21, no 5, pp 881-885, 1985.
 
 When you reset dz to 1, $\psi$ at the surface is less than -100 cm. So despite the higher-order FE methods being able to work with the coarse resolution of 10 cm, the results are not as good as with a finer resolution.
-</div>
-
-<div class="comment">
-The answer needs some explanation! Why do FE-quadratic and higher manage to solve this? 
-</div>
-
-<div class="comment">
-COMMENT: deze Markdown kan niet knitten, is dat erg?
 </div>

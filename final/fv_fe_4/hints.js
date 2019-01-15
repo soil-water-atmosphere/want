@@ -1,6 +1,6 @@
 // The hints are written in a dictionary, the key is the question number
 dict = {};
-dict[41] = "The domain is defined by coordinates of two dimensions. Therefore, the domain is now defined by a 2 dimensional matrix. Type '?matrix()' in your console for more information.";
+dict[41] = "The domain is defined by coordinates of two dimensions (x and y). Therefore, the domain is now defined by a 2 dimensional matrix. Type '?matrix()' in your console for more information.";
 dict[42] = "Remember that a Neumann natural boundary condition is assigned to unspecified boundaries.";
 dict[45] = "Note that you can suppress graphing of the node generation by setting 'verbose=False'.";
 dict[413] = "Change both the domain values of 'xtopl' and 'ytopl' before interpolating the two dimensional model domain of TwoDmodel with the new transmissivities.";
