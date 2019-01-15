@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
 library(plotly)
 ```
 
@@ -21,17 +21,17 @@ $$
 $$
 
 ```{r parameters}
-rho = 5. #28.
-sigma = 10. # 10.
-beta = 8./3. # 8./3.
+rho = 28. # 28. was Lorenz' value.
+sigma = 10. # 10. was Lorenz' value.
+beta = 8./3. # 8./3. was Lorenz' value.
 
-total_time = 100. # 100.
+total_time = 40. # 40. is sufficient to see the essential dynamics.
 ```
 
 ```{r initial_values}
-x = 1.
-y = 1.
-z = 1.
+x0 = 1.
+y0 = 1.
+z0 = 1.
 
 t_ef = c()
 x_ef = c()
@@ -39,9 +39,9 @@ y_ef = c()
 z_ef = c()
 
 t_ef[1] = 0.
-x_ef[1] = x
-y_ef[1] = y
-z_ef[1] = z
+x_ef[1] = x0
+y_ef[1] = y0
+z_ef[1] = z0
 
 t_rk = c()
 x_rk = c()
@@ -49,14 +49,27 @@ y_rk = c()
 z_rk = c()
 
 t_rk[1] = 0.
-x_rk[1] = x
-y_rk[1] = y
-z_rk[1] = z
+x_rk[1] = x0
+y_rk[1] = y0
+z_rk[1] = z0
+
+t_ref = c()
+x_ref = c()
+y_ref = c()
+z_ref = c()
+
+t_ref[1] = 0.
+x_ref[1] = x0
+y_ref[1] = y0
+z_ref[1] = z0
 ```
 
 ```{r rhs}
-calc_rhs = function(x, y, z)
+calc_rhs = function(xyz)
 {
+  x = xyz[1]
+  y = xyz[2]
+  z = xyz[3]
   dxdt = sigma*(y-x)
   dydt = x*(rho-z) - y
   dzdt = x*y - beta*z
@@ -68,21 +81,21 @@ calc_rhs = function(x, y, z)
 dt = 0.01
 
 nt = total_time / dt
+
 t = 0.
+xyz = c(x0,y0,z0)
 
 for (n in 1:nt)
 {
-  dsdt = calc_rhs(x,y,z)
-  x = x + dt * dsdt[1]
-  y = y + dt * dsdt[2]
-  z = z + dt * dsdt[3]
+  dxyzdt = calc_rhs(xyz)
+  xyz = xyz + dt * dxyzdt
   
   t = t + dt
   
   t_ef[n+1] = t
-  x_ef[n+1] = x
-  y_ef[n+1] = y
-  z_ef[n+1] = z
+  x_ef[n+1] = xyz[1]
+  y_ef[n+1] = xyz[2]
+  z_ef[n+1] = xyz[3]
 }
 ```
 
@@ -90,41 +103,65 @@ for (n in 1:nt)
 dt = 0.01
 
 nt = total_time / dt
+
 t = 0.
+xyz = c(x0,y0,z0)
 
 for (n in 1:nt)
 {
-  k1 = dt * calc_rhs(x           , y           , z           )
-  k2 = dt * calc_rhs(x + k1[1]/2., y + k1[2]/2., z + k1[3]/2.)
-  k3 = dt * calc_rhs(x + k2[1]/2., y + k2[2]/2., z + k2[3]/2.)
-  k4 = dt * calc_rhs(x + k3[1]   , y + k3[2]   , z + k3[3]   )
+  k1 = dt * calc_rhs(xyz        )
+  k2 = dt * calc_rhs(xyz + k1/2.)
+  k3 = dt * calc_rhs(xyz + k2/2.)
+  k4 = dt * calc_rhs(xyz + k3   )
   
-  xyz = c(x, y, z) + (k1 + 2.*k2 + 2.*k3 + k4)/6.
-  
-  x = xyz[1]
-  y = xyz[2]
-  z = xyz[3]
-  
+  xyz = xyz + (k1 + 2.*k2 + 2.*k3 + k4)/6.
+
   t = t + dt
   
   t_rk[n+1] = t
-  x_rk[n+1] = x
-  y_rk[n+1] = y
-  z_rk[n+1] = z
+  x_rk[n+1] = xyz[1]
+  y_rk[n+1] = xyz[2]
+  z_rk[n+1] = xyz[3]
+}
+```
+
+```{r rk4_ref}
+dt = 1e-3
+
+nt = total_time / dt
+
+t = 0.
+xyz = c(x0,y0,z0)
+
+for (n in 1:nt)
+{
+  k1 = dt * calc_rhs(xyz        )
+  k2 = dt * calc_rhs(xyz + k1/2.)
+  k3 = dt * calc_rhs(xyz + k2/2.)
+  k4 = dt * calc_rhs(xyz + k3   )
+  
+  xyz = xyz + (k1 + 2.*k2 + 2.*k3 + k4)/6.
+
+  t = t + dt
+  
+  t_ref[n+1] = t
+  x_ref[n+1] = xyz[1]
+  y_ref[n+1] = xyz[2]
+  z_ref[n+1] = xyz[3]
 }
 ```
 
 ```{r}
 p = plot_ly()
-p = add_trace(p, x=t_ef, y=y_ef, name="ef", mode="lines")
-p = add_trace(p, x=t_rk, y=y_rk, name="rk", mode="lines")
+p = add_trace(p, x=t_ef , y=y_ef , name="ef" , mode="lines")
+p = add_trace(p, x=t_rk , y=y_rk , name="rk" , mode="lines")
+p = add_trace(p, x=t_ref, y=y_ref, name="ref", mode="lines")
 p
-# plot_ly(x=t_ef, y=y_ef, name="y", mode="lines")
-# plot_ly(x=t_ef, y=z_ef, name="z", mode="lines")
 ```
 ```{r}
 p = plot_ly()
-p = add_trace(p, x=x_ef, y=y_ef, z=z_ef, mode="lines")
-p = add_trace(p, x=x_rk, y=y_rk, z=z_rk, mode="lines")
+p = add_trace(p, x=x_ef , y=y_ef , z=z_ef , name="ef" , mode="lines")
+p = add_trace(p, x=x_rk , y=y_rk , z=z_rk , name="rk" , mode="lines")
+p = add_trace(p, x=x_ref, y=y_ref, z=z_ref, name="ref", mode="lines")
 p
 ```
