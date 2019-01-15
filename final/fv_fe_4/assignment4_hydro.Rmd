@@ -4,11 +4,11 @@ subtitle: "Finite volumes & elements, 2D"
 author: "G. Bier, R. Ronda, P.J.J.F. Torfs & edited by The Want Team"
 date: "Jan.2019"
 output:
-  html_notebook:
-    css: want.css
-    toc: yes
   html_document:
     code_folding: show
+    css: want.css
+    toc: yes
+  html_notebook:
     css: want.css
     toc: yes
 ---
@@ -16,9 +16,8 @@ output:
 <!-- include the hint.js -->
 <script src="hints.js"></script>
 
-<div class="answer">
-Note: If you want all the generated 3d plots to remain opened, run the complete rmd before knitting the document to html.
-</div>
+Note: If you want all the generated 3D-plots to remain open, run the complete Rmd before knitting the document to html.
+
 
 # Learning Goals
 * Understand how one dimensional groundwater models differ from 2 dimensional groundwater models.
@@ -74,7 +73,7 @@ polygon(domain,col=rgb(0.5,0.9,0.9,0.2))
 ```
 </div>
 
-To complete the mathematical part of the model the internal flux, the boundary conditions and an external flux have to be defined. The following information has to be added to the two dimensional model:
+To complete the mathematical part of the model, the internal flux, the boundary conditions and an external flux have to be defined. The following information has to be added to the two dimensional model:
 
 * A (linear) internal flux based on Darcy's law with $kD=60\frac{m^2}{d}$.
 * The western and eastern boundary have a Dirichlet boundary condition set to 0.0 and 1.0 $m$, respectively.
@@ -96,7 +95,7 @@ set.name(GWModel2D, "2D groundwater model")
 # Add external flux.
 add.spatialflux(GWModel2D, XXXX, "rain")
 
-# Setting the boundary conditions.
+# Setting the boundary conditions. This command shows you the name of each boundary.
 plot.BC.id(GWModel2D)
 
 XXXX # western boundary
@@ -243,7 +242,7 @@ plot(GWModel2D, fill="state", linesection=c(500,500,1500,1500))
 Now that it is clear how the two dimensional model looks if it is solved using the Finite Volumes method, we will investigate the model solution when the Finite Elements method is used.
 
 <div class="exercise">
-7.Change the numerical part of the two dimensional such that it solves using the Finite Elements method. Also, make a contour plot of the new situation.
+7.Change the numerical part of the two dimensional model, such that it solves using the Finite Elements method. Also, make a contour plot of the new situation.
 </div>
 
 <div class="student_answer">
@@ -515,7 +514,7 @@ In the `GWModel2D` the constant value of $kD=60m^2/d$ was used as value for the 
 * Create a contour plot of the result
 
 <div class="exercise">
-14.Use the bullets above to construct a new model that uses an interpolation function of your choice in the internal flux function of the new model. Can you observe differences between the two models?
+14. Use the bullets above to construct a new model that uses an interpolation function of your choice in the internal flux function of the new model. Can you observe differences between the two models? Use the Finite Volume solver. 
 </div>
 
 <div class="student_answer">
@@ -559,12 +558,10 @@ plot(GWModel2D, fill="state", fill.contours = c(5,6))
 </div>
 
 # 4. Effect of nodal distances
-One of the selling points of the Finite Volumes and Finite Elements method is that more nodes can be chosen near points of interest, and by that higher precision can be obtained. Use in this section the Finite Elements discretization technique, except where explicitly state otherwise.
+One of the selling points of the Finite Volumes and Finite Elements method is that more nodes can be chosen near points of interest, and by that higher precision can be obtained. Use in this section the Finite Elements discretization technique, except when explicitly stated otherwise.
 
 <div class="exercise">
-15.Create a new chunk below. Copy the `GWModel2D` model, call it `TwoDModelWellFV` and implement a well at location x=1000 and y = 1000 with an extraction rate of 1000 $m^3/d$. 
-
-Solve the model and create a 2D and 3D plot. You can use the `summary(modelname)` function to check what is implemented in the model.
+15.Create a new chunk below. Copy the `GWModel2D` model, call it `TwoDModelWellFV` and implement a well at location x=1000 and y = 1000 with an extraction rate of 1000 $m^3/d$. Solve the model (use Finite Volumes) and create a 2D and 3D plot. You can use the `summary(modelname)` function to check what is implemented in the model.
 </div>
 
 <div class="student_answer">
@@ -642,7 +639,7 @@ bgplot3d({
 </div>
 
 <div class="question">
-17.Decrease the nodal distance in an area of 200 $m$ in diameter around the location of the well to a distance of 25 $m$. Use a nodal distance of 100 $m$ outside of this area. Are the results indeed better/more realistic?
+17.Decrease the nodal distance in a diameter of 200 $m$ around the location of the well to 25 $m$. Use a nodal distance of 100 $m$ outside of this area. Are the results indeed better/more realistic?
 </div>
 
 <button type="button" onclick="showHint(417)">Show Hint</button>
@@ -721,7 +718,7 @@ bgplot3d({
 </div>
 
 <div class="exercise">
-19.Decrease the nodal distance in the neighbourhood of the river and solve the model again. How does this change the new solution? Decrease the nodal distance in an area of 200 $m$ around the river to a distance of 25 $m$; use a nodal distance of 100 $m$ outside this area.
+19. Decrease the nodal distance in the neighbourhood of the river and solve the model again. Decrease the nodal distance in an area of 200 $m$ around the river to a distance of 25 $m$; use a nodal distance of 100 $m$ outside this area. How does this change the new solution? 
 </div>
 
 <button type="button" onclick="showHint(419)">Show Hint</button>
@@ -933,10 +930,9 @@ plot(DikeFlow, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, len
 </div>
 
 <div class="exercise">
-26.This last exercise lets you play with the dike model. Convince yourself that with the help of the model that you have built you can investigate the flow through a dike for the following examples:
+26. Last exercise; play around with the dike model. Investigate how you, with the help of the model that you have built, can investigate the flow through a dike for the following examples:
 
 * How do the water levels left and right of the dike influence the flow?
 * How do heterogeneities (e.g. a very conductive layer) influence the flow?
 * How does the rainfall intensity influence the flow?
-* Etc..
 </div>
