@@ -1,0 +1,507 @@
+---
+title: "Answers to sensitivity-1D exercise 3"
+subtitle: "Determining sensitivities and scales of variation in a 1D groundwater model"
+output:
+   html_document:
+    css: want.css
+    toc: yes
+---
+
+
+```{r}
+rm(list=ls())
+library(FVFE1D)
+```
+
+# 1. Building the model
+
+## The mathematical setup
+First, the 1D groundwater model is built in the same way as the ones you built in earlier practicals.
+The first step is choosing the spatial model domain:
+```{r}
+domain = c(0,500) 
+```
+
+The system (internal) flux will be a simple Dupuit flux, with a transmissivity $kD$ 
+that changes linearly between the left and right side of the domain.
+
+```{r}
+kDl = 55
+kDr = 35
+kD.fun = approxfun(domain,c(kDl,kDr)) #gives a (linear) function for the transmissivity
+# caution: every time you change kDl or kDr you have to reconstruct this function
+internal.flux = function(x,state,gradstate) 
+  {
+  return(-kD.fun(x)*gradstate)
+  }
+```
+
+The chunk below constructs the new model with the name 'base run':  
+```{r}
+GWmodel = newFLOW1D(domain,internal.flux) 
+set.name(GWmodel,"base run")
+```
+
+There is constant recharge flux (rainfall) on top of the model; and an extraction well.  
+The recharge is a spatial flux, the extraction well is a point flux.   
+
+```{r}
+P = 0.001
+add.spatialflux(GWmodel,"P","recharge")
+Qwell = -0.35
+add.pointflux(GWmodel,at = 275, value= 'Qwell',name = 'well')
+```
+
+On the left hand side, the river with a water level of 1 m is used as a boundary condition.
+The right hand side is a water divide: a zero flux boundary, which is already applied as the default in the FVFE1D package.
+
+```{r}
+hl = 1
+set.BC.fixedstate(GWmodel,"left","hl") 
+```
+
+## The numerical setup and base run solution
+The domain is discretized with nodes and a solution technique. Here the Finite Volume technique is used.
+
+```{r}
+nodes = seq(from=domain[1],to=domain[2],length=50) 
+set.discretisation(GWmodel,nodes,"FV")
+```
+
+
+```{r}
+control = solve.steps(GWmodel)
+plot(GWmodel,fluxplot=TRUE) 
+```
+
+## Choice of MRESULT
+
+```{r}
+MRESULT = function()
+{
+  XS = dataframe.states(GWmodel)
+  MH = mean(XS[(XS$x>125)&(XS$x<200),"state"])
+  return(MH)
+}
+```
+
+Store the results of the base run:
+```{r}
+M_base = MRESULT()
+print(M_base)
+state_base = dataframe.states(GWmodel)$state
+```
+
+# 2. Sensitivity analysis 
+
+## 2.1 LSA calculations
+
+The parameter values defined before will form the base values:
+```{r}
+base= list(kDl=kDl,kDr=kDr,P=P,Qwell=Qwell,hl=hl)
+str(base)
+```
+
+The scales of variation (standard deviation) for the parameters have to be provided by the modeller.
+We store these in a list as well:
+
+```{r}
+scale= list(kDl = 1*kDl,
+            kDr = 7.5*kDr,
+            P = 0.25*P,
+            Qwell = -0.4*Qwell,
+            hl = 0.05)
+str(scale)
+```
+
+Below we define the epsilon value `eps`, which is the amount by which we will 'disturb' the parameters.
+
+```{r}
+eps = 1e-3
+```
+
+**Sensitivity with respect to kDl**
+
+```{r,fig.height=4}
+kDl=base$kDl+eps
+kD.fun = approxfun(domain,c(kDl,kDr)) # the kD.fun has to be recreated whenever the kD values are changed
+control = solve.steps(GWmodel)
+kDl=base$kDl
+kD.fun = approxfun(domain,c(kDl,kDr)) 
+dMdkDl  = (MRESULT()-M_base)/eps
+print(paste("dM/dkDl=",dMdkDl))
+dstatedkDl = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedkDl,type="l",lwd=3,col="blue",main="d{state}/d{kDl}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the left value of the kD clearly decreases the groundwater levels over the whole domain.
+On the left edge, the sensitivity is zero due to the boundary condition set there.
+
+**Sensitivity with respect to kDr**
+
+```{r,fig.height=4}
+kDr=base$kDr+eps
+kD.fun = approxfun(domain,c(kDl,kDr)) 
+control = solve.steps(GWmodel)
+kDr=base$kDr
+kD.fun = approxfun(domain,c(kDl,kDr)) 
+dMdkDr  = (MRESULT()-M_base)/eps
+print(paste("dM/dkDr=",dMdkDr))
+dstatedkDr = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedkDr,type="l",lwd=3,col="blue",main="d{state}/d{kDr}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the right value of the kD decreases the groundwater levels mainly on the right hand side of the well. On the left hand side the change is almost zero.
+
+**Sensitivity with respect to P**
+
+```{r,fig.height=4}
+P=base$P+eps
+control = solve.steps(GWmodel)
+P=base$P
+dMdP  = (MRESULT()-M_base)/eps
+print(paste("dM/dP=",dMdP))
+dstatedP = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedP,type="l",lwd=3,col="blue",main="d{state}/d{kP}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the rainfall causes groundwater level increases through the whole domain. On the left edge of the domain, the rate of change is zero due to the fixed state  boundary condition. The sensitivity increases gradually towards the right.
+
+**Sensitivity with respect to Qwell**
+
+```{r,fig.height=4}
+Qwell=base$Qwell+eps
+control = solve.steps(GWmodel)
+Qwell=base$Qwell
+dMdQwell  = (MRESULT()-M_base)/eps
+print(paste("dM/dQwell=",dMdQwell))
+dstatedQwell = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedQwell,type="l",lwd=3,col="blue",main="d{state}/d{Qwell}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the Qwell (so lowering the extraction rate) causes the groundwater level to increase throughout the whole domain. 
+On the left edge, the change is zero due to the fixed state boundary condition. To the right of the well the change is constant. 
+
+**Sensitivity with respect to hl**
+
+```{r,fig.height=4}
+hl=base$hl+eps
+control = solve.steps(GWmodel)
+hl=base$hl
+dMdhl  = (MRESULT()-M_base)/eps
+print(paste("dM/dhl=",dMdhl))
+dstatedhl = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedhl,type="l",lwd=3,col="blue",main="d{state}/d{hl}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the left boundary condition (river level) causes groundwater levels to increase by the same amount everywhere (dstate/dhl = 1).
+
+## 2.2 LSA variation analysis
+
+**Contributions to  variance of M**
+
+Partial variances:
+
+```{r}
+varM.kDl   = (scale$kDl*dMdkDl)^2
+varM.kDr   = (scale$kDr*dMdkDr)^2
+varM.P     = (scale$P*dMdP)^2
+varM.Qwell = (scale$Qwell*dMdQwell)^2
+varM.hl    = (scale$hl*dMdhl)^2
+varMtot = varM.kDl+varM.kDr+varM.P+varM.Qwell+varM.hl
+```
+
+Relative contributions with pie chart:
+```{r}
+relvarM = list(kDl = varM.kDl/varMtot,
+             kDr = varM.kDr/varMtot,
+             P  = varM.P/varMtot,
+             Qwell = varM.Qwell/varMtot,
+             hl = varM.hl/varMtot)
+
+str(relvarM)
+pie(as.numeric(relvarM),labels=names(relvarM),
+    main=paste("Standard deviation of M =",round(sqrt(varMtot),4),"m"),
+    col = rainbow(length(relvarM)))
+```
+
+The scale of variation of the mean groundwater level in the nature reserve is 60 cm!
+By far the largest contribution comes from the variation of the $Qwell$. 
+Large, but second is the contribution of the rainfall. Also the left-side transmissivity 
+has a visible contribution. The contributions of the other parameters can be neglected.
+
+**Contributions to variation over the whole domain**
+
+Partial variances:
+
+```{r}
+varState.kDl = (scale$kDl*dstatedkDl)^2
+varState.kDr = (scale$kDr*dstatedkDr)^2
+varState.P  = (scale$P*dstatedP)^2
+varState.Qwell = (scale$Qwell*dstatedQwell)^2
+varState.hl = (scale$hl*dstatedhl)^2
+varStateTot = varState.kDl+varState.kDr+varState.P+varState.Qwell+varState.hl
+```
+
+Plot the scale of variation of the states over the whole domain:
+```{r}
+plot(nodes,sqrt(varStateTot),type="l",col="blue",lwd=3,
+     ylab="standard deviation [m]",xlab="x",main="Total scale of variation of groundwater levels")
+grid(col="black")
+```
+
+We see that the largest uncertainty is at the right boundary: over 250cm.
+The scale of variation increases over the domain going from left to right, with a small peak at the well. 
+
+A plot giving an overview of the relative contributions:
+```{r}
+plot(nodes,rep(1,length(nodes)),ylim=c(0,1),type="l",
+     ylab="relative contribution to variance",xlab="x",
+     main="Contribution to scale of variation of groundwater levels")
+
+cols = rainbow(5)
+lines(nodes,varState.kDl/varStateTot,col=cols[1],lwd=2)
+lines(nodes,varState.kDr/varStateTot,col=cols[2],lwd=2)
+lines(nodes,varState.P/varStateTot,col=cols[3],lwd=2)
+lines(nodes,varState.Qwell/varStateTot,col=cols[4],lwd=2)
+lines(nodes,varState.hl/varStateTot,col=cols[5],lwd=2)
+legend("topright", bty="n",
+   legend=c("kDl","kDr","P","Qwell","hl"),lty=1,col=cols,
+   horiz=TRUE)
+```
+
+The contributions differ between parts of the domain:   
+*  left: the boundary condition is the main source of variation   
+*  middle : Qwell is most important, followed by recharge      
+*  right: the value of the right-side transmissivity is most important.   
+
+## 2.3 AVS calculations
+
+```{r}
+source("samplehelpers.R")
+```
+
+**Constructing the parameter sample**
+
+```{r}
+parnames = names(base)
+parmeans = unlist(base)
+parsd    = unlist(scale)
+parlower = c(1, 1, 0, -1, 0.5)
+parupper = c(1000, 1000, 2, 0, 1.5)
+samplesize = 300
+set.seed(237)
+parsample = GaussianLHS(samplesize,parmeans,parsd,parnames,parlower,parupper) 
+```
+
+The following code shows the first lines of the sample, the statistical summary and a plot:
+```{r}
+head(parsample)
+summary(parsample)
+plot(parsample,cex=0.4)
+```
+
+We combine here the six histograms of the sampled parameters in one plot:
+
+```{r}
+old.par = par(no.readonly=TRUE)
+par(mfrow=c(2,3))
+par(mar=c(5,5,1,1))
+hist(parsample[,"kDl"],main="",col="lightblue",prob=TRUE)
+rug(parsample[,"kDl"],col="red")
+lines(density(parsample[,"kDl"]),col="red",lwd=2)
+hist(parsample[,"kDr"],main="",col="lightblue",prob=TRUE)
+rug(parsample[,"kDr"],col="red")
+lines(density(parsample[,"kDr"]),col="red",lwd=2)
+hist(parsample[,"P"],main="",col="lightblue",prob=TRUE)
+rug(parsample[,"P"],col="red")
+lines(density(parsample[,"P"]),col="red",lwd=2)
+hist(parsample[,"Qwell"],main="",col="lightblue",prob=TRUE)
+rug(parsample[,"Qwell"],col="red")
+lines(density(parsample[,"Qwell"]),col="red",lwd=2)
+hist(parsample[,"hl"],main="",col="lightblue",prob=TRUE)
+rug(parsample[,"hl"],col="red")
+lines(density(parsample[,"hl"]),col="red",lwd=2)
+par(old.par)
+```
+
+**Making all the model runs**
+
+We run the model for each parameter set, and store:
+
+1. __All__ the state of each run. 
+This may in some applications be too large.
+2. The M-values.
+
+```{r}
+statesSample = matrix(0,ncol=length(nodes),nrow=0)
+Msample = c()
+for(i in 1:nrow(parsample))
+  {
+    kDl = parsample[i,"kDl"]
+    kDr = parsample[i,"kDr"]
+    P  = parsample[i,"P"]
+    Qwell = parsample[i,"Qwell"]
+    hl = parsample[i,"hl"]
+    kD.fun = approxfun(domain,c(kDl,kDr),rule=2)
+    control = solve.steps(GWmodel)
+    statesSample = rbind(statesSample,dataframe.states(GWmodel)$state)
+    Msample = c(Msample,MRESULT())
+  }
+```
+
+**A graphical anaysis of the resulting states**
+
+```{r}
+library(matrixStats)
+```
+
+Plot all the model results of the sampled parameter sets in one plot:
+
+```{r}
+matplot(nodes,t(statesSample),type="l",main="States for all parameter sets",ylab="groundwater level")
+```
+
+The following plot contains:
+
+1. The mean of the calculated states from all parameter sets (as a blue line)
+2. Standard deviation intervals (in blue) above and under the mean.
+The standard deviation interval for the state for each x contains about 2/3 of all calculated values.  
+3. The model result calculated with the mean (base) parameters (as red points)
+
+```{r}
+StatesSampleMeans = colMeans(statesSample) #mean of the calculated states at each node
+allSDs = colSds(statesSample) #standard deviation of the states at each node
+plot(nodes,StatesSampleMeans,col="blue",type="l",lwd=4,ylim=c(-1,3),
+     ylab="groundwater level",main="Mean states of AVS (blue) & LSA base run (red)")
+lines(nodes,StatesSampleMeans-allSDs,col="blue")
+lines(nodes,StatesSampleMeans+allSDs,col="blue")
+points(nodes,state_base,pch=10, col="red")
+```
+
+It can be seen that the mean model result of all the parameter sets is close to the model results calculated with the mean parameters, but does deviate from it.   
+It is also clearly visible that the standard deviation increases strongly from left to right, from almost zero to over 1 m.
+
+## 2.4 AVS variation analysis
+We will limit the AVS analysis to the data calculated by MRESULT.
+
+**Analysis of the M-sample**
+
+First we determine the basic statistics of the M-sample:
+```{r}
+VARM = var(Msample)
+SDM = sd(Msample)
+print(paste("variance of sample M",round(VARM,4)))
+print(paste("standard deviation of M",round(SDM,4)))
+```
+
+The standard deviation is the same as calculated before with LSA.
+
+Plotting the histogram:
+```{r}
+smoothdensM = density(Msample)
+histdataM = hist(Msample,plot=FALSE)$density
+yrange = range(smoothdensM$y,histdataM)
+hist(Msample,col="lightblue",prob=TRUE,ylim=yrange)
+rug(Msample,col="red")
+lines(smoothdensM,col="red",lwd=3)
+```
+
+We see that the distribution is rather symmetric. However, the distribution does not look Gaussian: it is far too peaky.
+
+**Conditional expectation of M with respect to parameters**
+
+Combine the M-sample and the parameter-sample into one big matrix:
+```{r}
+MPsample = cbind(M=Msample,parsample)
+head(MPsample)
+```
+
+Next we will approximate the conditional expectation of M given each of the parameters.
+
+```{r}
+plot(MPsample[,"kDl"],MPsample[,"M"])
+McondkDl = linloess(M~kDl,data=MPsample)
+points(MPsample[,"kDl"],McondkDl,pch=20,col="red")
+```
+
+The conditional density increases for low values of kDl: kDl provides some information on M.
+
+```{r}
+plot(MPsample[,"kDr"],MPsample[,"M"])
+McondkDr = linloess(M~kDr,data=MPsample)
+points(MPsample[,"kDr"],McondkDr,pch=20,col="red")
+```
+
+The conditional density of M to kDr is practically horizontal and flat. kDr does not provide much information.
+
+```{r}
+plot(MPsample[,"P"],MPsample[,"M"])
+McondP = linloess(M~P,data=MPsample)
+points(MPsample[,"P"],McondP,pch=20,col="red")
+```
+
+M responds in an increasing, almost linear way to P. P contains much information on M.
+
+```{r}
+plot(MPsample[,"Qwell"],MPsample[,"M"])
+McondQwell = linloess(M~Qwell,data=MPsample)
+points(MPsample[,"Qwell"],McondQwell,pch=20,col="red")
+```
+
+Also Qwell provides much information on M: the conditional density shows a lineary increasing trend.
+
+```{r}
+plot(MPsample[,"hl"],MPsample[,"M"])
+Mcondhl = linloess(M~hl,data=MPsample)
+points(MPsample[,"hl"],Mcondhl,pch=20,col="red")
+```
+
+The conditional density of M to hl is almost horizontal: hl does not contain much information.
+
+All plots in one overview:
+
+```{r}
+old.par = par(no.readonly=TRUE)
+par(mfrow=c(2,3))
+par(mar=c(5,5,1,1))
+plot(MPsample[,"kDl"],MPsample[,"M"])
+points(MPsample[,"kDl"],McondkDl,pch=20,col="red")
+plot(MPsample[,"kDr"],MPsample[,"M"])
+points(MPsample[,"kDr"],McondkDr,pch=20,col="red")
+plot(MPsample[,"P"],MPsample[,"M"])
+points(MPsample[,"P"],McondP,pch=20,col="red")
+plot(MPsample[,"Qwell"],MPsample[,"M"])
+points(MPsample[,"Qwell"],McondQwell,pch=20,col="red")
+plot(MPsample[,"hl"],MPsample[,"M"])
+points(MPsample[,"hl"],Mcondhl,pch=20,col="red")
+par(old.par)
+```
+
+**Contribution of the parameters to the variance of M**
+
+Use the `sample.vardecomp` function to finish the analysis:
+
+```{r}
+ANOVA1 = sample.vardecomp(MPsample)
+pie(ANOVA1,
+    main=paste("Standard deviation of M =",round(SDM,4),"m"),
+    col = rainbow(5),
+    radius=1)
+print(ANOVA1) # the variance in M caused by each parameter
+print(sqrt(ANOVA1)) # the standard deviation of M caused by each parameter
+```
+
+The results from the analysis of the conditional expectations are confirmed, although the pie chart looks different from the one created by LSA. 
+Qwell is the most important contributor to the uncertainty in the groundwater level in the nature reserve, closely followed by P and kDl.
+
