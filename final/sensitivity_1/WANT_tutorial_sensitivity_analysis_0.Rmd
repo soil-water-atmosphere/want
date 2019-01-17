@@ -1,0 +1,259 @@
+---
+title: "Sensitivity practical 0 - Local sensitivity analysis"
+author: "Lieke Melsen"
+date: "24/09/2018"
+output:
+   html_document:
+    css: want.css
+    toc: yes
+---
+
+For this assignment, first make sure you install the package "raster".
+```{r}
+require('raster')
+```
+
+<!-- include the hint.js -->
+<script src="hintsSens0.js"></script>
+
+# Learning goals
+* Understand the concept of local sensitivity analysis
+* Understand the implications and limitations of local sensitivity analysis 
+
+# Introduction
+In this assignment, we will manually work out the local sensitivity for several functions. This gives insight into the working of local sensitivity. The idea is that you can do these calculations by hand (or, at least, supported by basic R). 
+
+# 1.Linear systems
+We have a linear function $y = ax + b$, with parameters $a$ and $b$. 
+
+<div class="exercise">
+1.Plot the function $y$ for the domain $x = [0, 10]$ in the code chunk below. Base values for $a$ and $b$ are 3 and 7, respectively. Which of the two parameters, $a$ or $b$ do you expect to be of more influence on y? 
+</div>
+
+```{r}
+# Type your code here.
+```
+
+<div class="student_answer">
+Fill in your answer...
+</div>
+
+<div class="answer">
+```{r}
+x = seq(0,10,1)
+a = 3
+b = 7
+y = a*x + b
+plot(x,y,type="o")
+```
+
+This is a linear function, where $a$ is the slope of the function and $b$ the intersect. Depending on what we will evaluate sensitivity on, $y$ is probably more sensitive to $a$. You can derive this from the formula: when $a$ is increased by one and the rest stays the same, $y$ will increase by $x$. When $b$ is increased by 1, $y$ will also increase by 1. So in most of the range of $x$, $y$ reacts more strongly to $a$ than to $b$.
+</div>
+
+We have observations available of variable y at x from 0 to 10 (which might be 11 points in space, for example):
+```{r}
+y_obs = c(7.195, 10.203, 13.167, 16.228, 19.211, 22.222, 25.201, 28.167, 31.204, 34.162, 37.226)
+```
+<div class="exercise">
+2.Determine the sensitivity of the $a-b$ model for $a$ and $b$ with the given base-values and observations. You can do this manually, or use R as calculator.   
+Remember that when you have a model, you can calculate the sensitivity of many different kinds of model output. It can be the result at one point in time or space, an aggregated value, or some other derived value, depending on what is of interest. In the lecture, you had just one model output you were interested in, and no observations were available. In this case the "model output" consists of 11 values (for 11 values of x), and you have observations available. What (single) number could you use to evaluate the sensitivity here? 
+</div>
+
+<div class="hint">
+<button type="button" onclick="showHint(1)">Show Hint</button>
+<p id="Q1"> </p>
+</div>
+
+<div class="hint">
+<button type="button" onclick="showHint(2)">Show Hint</button>
+<p id="Q2"> </p>
+</div>
+
+```{r}
+# Type your code here.
+```
+
+<div class="answer">
+```{r}
+# define sums of squares function
+SSE <-function(obs,mod){
+  SSE = sum((obs-mod)^2)
+  return(SSE)}
+
+# define y function
+y <- function(x,a,b){
+  y = a*x + b
+  return (y)}
+
+# define base values
+x     = seq(0,10,1)
+a     = 3
+b     = 7
+delta = 0.1 
+
+# y of base values 
+SS_base = SSE(y_obs,y(x,a,b))
+
+# sensitivity for a
+SS_a = SSE(y_obs,y(x,a+delta,b))
+LocSens_a = (SS_a-SS_base) / delta
+
+# sensitivity for b
+SS_b = SSE(y_obs,y(x,a,b+delta))
+LocSens_b = (SS_b-SS_base) / delta
+
+tot = abs(LocSens_a) + abs(LocSens_b)
+
+print(paste('sensitivity SSE to a: ',abs(round(LocSens_a*100)/100),' and to b: ',abs(round(LocSens_b*100)/100),sep=" "))
+print(paste('relative contribution of a: ',round(abs(LocSens_a)/tot*100),'% and of b: ',round(abs(LocSens_b)/tot*100),'%',sep=""))
+```
+In this particular example, $a$ and $b$ have no units, and we do not specify a scale of variation, because we are not investigating a physical system with clearly defined boundary conditions. Therefore, we can directly interpret the restuls obtained above. This shows that our model $y$ is more sensitive to parameter $a$ than to parameter $b$, given that we evaluate $y$ based on the SSE-metric. 
+</div>
+
+<div class="exercise">
+3. Repeat the procedure, but adapt the base values slightly (you can choose some yourself). Do you expect that this will influence the sensitivity and why (not)? 
+</div>
+
+```{r}
+# Type your code here.
+```
+
+<div class="answer">
+For the examples of linear models discussed in the lectures, the sensitivity would not change with the base values, because the local slope of the p-M relation is the same everywhere. This is only true if we evaluate sensitivity directly on the model output (y for the examples above). In this particular case, however, we are not evaluating the sensitivity for the model output directly, but the sensitivity of the model performance. Therefore, sensitivity might change for different base values. Different base values can be filled out in the script from the previous assignment to check the results. 
+</div>
+
+<div class="exercise">
+4. Consider the implications of question 3 for your modelling procedure. When applying local sensitivity analysis, would you do this before or after you calibrated your model? 
+</div>
+
+<div class="answer">
+In order to get a realistic view of the sensitivity of the model performance to the parameters based on local sensitivity analysis, it is important that the base parameters approach their optimal value. This means that you first calibrate your model to identify the optimal parameter values, and then do a local sensitivity analysis. 
+</div>
+
+# 2.Nonlinear systems
+Most systems in environmental sciences behave in a nonlinear way. We will now evaluate a simple nonlinear function: 
+$y = ax^2+bx$
+
+<div class="exercise">
+5. Plot the function $y = ax^2+bx$ for the domain $x = [0, 10]$ in the code chunk below. For now, we estimate the base values for $a$ and $b$ at 3 and 7, respectively. Which parameter do you expect to be of more influence on $y$?
+</div>
+
+```{r}
+# Type your code here.
+```
+
+<div class="answer">
+```{r}
+x = seq(0,10,1)
+a = 3
+b = 7
+y = a*x^2 + b*x
+plot(x,y,type="o")
+```
+
+Generally, we would expect $y$ to be more sensitive to $a$, because this parameter relates to $x$ squared. 
+</div>
+
+Also for this model, we have observations.
+```{r}
+y_obs_nonlin = c(0.002,9.524,26.006,49.490,79.974,117.546,162.030,213.510,271.999,337.543,410.049)
+```
+
+<div class="exercise">
+6. Determine the sensitivity of $y$ for $a$ and $b$ with the given base values and observations. Also try different base values and evaluate the effect. 
+</div>
+
+```{r}
+# Type your code here.
+```
+
+<div class="answer">
+```{r}
+# define sums of squares
+SSE <-function(obs,mod){
+  SSE = sum((obs-mod)^2)
+  return(SSE)}
+
+# define y 
+y <- function(x,a,b){
+  y = a*x^2 + b*x
+  return (y)}
+
+# define base values
+x     = seq(0,10,1)
+a     = 3
+b     = 7
+delta = 0.1 
+
+# y of base values 
+SS_base = SSE(y_obs_nonlin,y(x,a,b))
+
+# sensitivity for a
+SS_a = SSE(y_obs_nonlin,y(x,a+delta,b))
+LocSens_a = (SS_a-SS_base) / delta
+
+# sensitivity for b
+SS_b = SSE(y_obs_nonlin,y(x,a,b+delta))
+LocSens_b = (SS_b-SS_base) / delta
+
+tot = abs(LocSens_a) + abs(LocSens_b)
+
+print(paste('sensitivity SSE to a: ',abs(round(LocSens_a*100)/100),' and to b: ',abs(round(LocSens_b*100)/100),sep=" "))
+print(paste('relative contribution of a: ',round(abs(LocSens_a)/tot*100),'% and of b: ',round(abs(LocSens_b)/tot*100),'%',sep=""))
+```
+</div>
+
+# 3.Extra assignment
+We can use the calculation of model performance to create a complete response surface. That means that we calculate model performance for all combinations of parameter a and b. This response surface can also provide insights in parameter sensitivity. 
+
+<div class="question">
+7.Obtain the response surface of the non-linear model $y = ax^2+bx$ from the previous question, given the observations y_obs_nonlin from the previous question, for $a$ in the range 2 to 4, and $b$ in the range 5 to 8. This means you have to store the SSE-values in a matrix where the rows and columns represent different values for a and b. You can plot the results using `plot(raster(your_matrix))`. You can also retrieve the optimal values of a and b.
+</div>
+
+<div class="hint">
+<button type="button" onclick="showHint(3)">Show Hint</button>
+<p id="Q3"> </p>
+</div>
+
+```{r}
+# Type your code here.
+```
+
+<div class="answer">
+```{r}
+
+# define sums of squares
+SSE <-function(obs,mod){
+  SSE = sum((obs-mod)^2)
+  return(SSE)}
+
+# define y 
+y <- function(x,a,b){
+  y = a*x^2 + b*x
+  return (y)}
+
+# vector with all parameter values that will be evaluated
+stepsize   = 0.1
+sample_a   = seq(2,4,stepsize)
+sample_b   = seq(5,8,stepsize)
+res        = matrix(nrow=length(sample_a),ncol=length(sample_b))
+
+for (i in 1:length(sample_a)){
+  for (j in 1:length(sample_b)){
+    a = sample_a[i] # assign sample value to a
+    b = sample_b[j] # assign sample value to b
+    res[i,j] = SSE(y_obs_nonlin,y(x,a,b))
+  }
+}
+
+# plot the results
+plot(raster(res), xaxt="n",yaxt="n",ylab="a-values",xlab="b-values",main="Response surface sum of squares")
+
+# find the optimal value for the parameters (so the lowest SSE)
+loc = which(res == min(res), arr.ind=TRUE)
+sample_a[loc[1]]
+sample_b[loc[2]]
+
+```
+So, the optimal values of $a$ and $b$ are 3.5 and 6 respectively. Basically, we conducted an expensive calibration by using brute force to calculate model performance for all parameter values. Now that we know the optimal values of $a$ and $b$, we can redo the local sensitivity analysis to get realistic insights in the local sensitivity. But also the response surface provides insights. We see for example that the model performance varies much more along parameter $a$ than along parameter $b$, which indicates that the model is more sensitive to $a$. Here we take a more global perspective on sensitivity, we look over the full parameter range. Furthermore, we see that there is some interaction between both parameters, given the stratification in the results. This makes sense: both parameters relate to x, which means that the parameters can compensate to some extent for each other. 
+</div>
