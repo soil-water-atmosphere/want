@@ -1,17 +1,18 @@
 ---
 title: "Sensitivity practical 2 - 2D systems"
 subtitle: "Sensitivity in a 2D model"
-author: "Lieke Melsen"
+author: "EB"
 date: "24/09/2018"
 output:
    html_document:
     css: want.css
     toc: yes
 ---
+**Note that knitting this document can be time-consuming!**
 
 ## Learning goals
 *  Applying local and global sensitivity analysis in a more complex, 2D system *(Section 2,3)*
-*  Understanding why uncertainty/sensitivity may vary within a domain *(Section 2,3)*
+*  Understanding why sensitivity can vary within a domain *(Section 2,3)*
 *  Understanding the effect of a changed base value on the sensitivity analysis *(Section 4)*
 *  Understanding why the results from local sensitivity analysis may differ from those of global sensitivity analysis *(Section 5)*
 *  Understanding the role of the sample size for global sensitivity analysis *(Section 5)*
@@ -37,7 +38,7 @@ library(fields)
 ```
 
 # Introduction
-In this practical we will investigate the sensitivity of a 2D groundwater flow model for an area around the IJssel river (see figure 1). In the east and west of the area, there are sandy, more elevated parts (Veluwe and Sallandse Heuvelrug). The middle part, around the river, is more low-lying and is drained by ditches (shaded rectangle). A well is present near Raalte. Finally, there is a housing area in the south, the city of Deventer, that needs special attention.
+In this assignment we will investigate the sensitivity of a 2D groundwater flow model for an area around the IJssel river (see figure 1). In the east and west of the area, there are sandy, more elevated parts (Veluwe and Sallandse Heuvelrug). The middle part, around the river, is more low-lying and is drained by ditches (shaded rectangle). A well is present near Raalte. In the south, the city of Deventer is urban area (indicated in the map with 'housing').  
 
 ![](ijssel.png)
 Figure 1: The study area.
@@ -49,7 +50,7 @@ load("IJsselmodel.Rdata")
 solve.steps(IJsselmodel)
 ```
 
-Just to check what is downloaded:
+Check what is in the model:
 ```{r}
 print(summary(IJsselmodel))
 set.name (IJsselmodel,"2D groundwater model for the IJssel area")
@@ -60,14 +61,14 @@ plot(IJsselmodel,fill="state",fill.contours=seq(0,8,by=1),
 ```
 
 The groundwater heads in the north and south of the domain are fixed; on the east and west there are zero-flow boundaries (water divides).
-The model contains the spatial fluxes *recharge* (over the whole domain) and *drainage* (only in the green draining zone); a well; and flow into or from the river. The river course and level are given. The housing area is shown in the map.
+The model contains the spatial fluxes *recharge* (over the whole domain) and *drainage* (only in the draining zone, shaded rectangle); a well; and flow into or from the river. The river course and level are given. The housing area is shown in the map.
 
 # 1. First investigation of the 2D model
 
-## 1.1 Investigating the balance
+## 1.1 Investigating the water balance
 
 <div class="exercise">
-1.Calculate the balance of the whole model region. Discuss the relative contribution of the different fluxes in the system.
+1.Calculate the water balance of the whole model region. Discuss the relative contribution of the different fluxes in the system.
 </div>
 
 <div class="student_answer">
@@ -78,7 +79,7 @@ Discussion:
 </div>
 
 <div class="answer">
-The balance for the whole model region can be investigated by:
+The water balance for the whole model region can be investigated by:
 ```{r}
 A=dataframe.balance(IJsselmodel)
 Net=abs(A$net)
@@ -118,7 +119,7 @@ There is more drainage close to the river, probably because the surface is lower
 The chunk below gives a histogram of the river flux values of all points in the domain. Most of the domain loses water to the river. There are some places where this flux is rather high.
 
 ```{r}
-hist(EF$river,main="Histogram of river fluxes in the domain",xlab="Flux [m/d]")
+hist(EF$river,75,main="Histogram of river fluxes in the domain",xlab="Flux [m/d]")
 ```
 
 <div class="comment">
@@ -126,7 +127,7 @@ Are these river fluxes indeed in m/d?
 </div>
 
 <div class="exercise">
-3.Replace the XXXX in the following chunk by three values such that the plot gives a good view of the most frequent river fluxes. Add a short discussion.
+3.Replace the XXXX in the following chunk by three values to draw contour lines, such that the plot gives a good view of the most frequent river fluxes. Discuss what you see.
 </div>
 
 <div class="student_answer">
@@ -148,7 +149,7 @@ Most of the domain loses water to the river, though the fluxes are generally ver
 
 ## 1.4 Investigating the mean groundwater depth in the housing area
 
-In what follows we want to investigate the groundwater level in the housing area (which will be our "focus result" `MRESULT`. For that we need a node that falls within this area. Use the following plot to select a typical node in the housing area (zoom if needed).
+In what follows we want to investigate the groundwater level in the housing area (which will be our objective, `MRESULT`). For that we need a node that falls within this area. Use the following plot to select a typical node in the housing area (zoom if needed).
 ```{r}
 plot(IJsselmodel,nodenumbersize=1,
      addpolygons = list(list(housing,col=rgb(0,0,1,0.25))))
@@ -167,8 +168,8 @@ MRESULT = function()
   return(NS$state[Iselect])
 }
 #Convert to groundwater depth below the surface
-print(surface[180,]) #this shows the surface level at the housing area
-print(XXXX) #depth of grw below surface
+print(surface[180,]) #this shows the surface level at the housing area, select column that shows elevation
+print(XXXX) #use previous line and combine with selected cell to obtain depth of grw below surface
 ```
 </div>
 
@@ -199,12 +200,12 @@ state_base = dataframe.states(IJsselmodel)$state
 
 There are seven parameters in this model:   
 *  Recharge flux (net rainfall) [m/d]   
-*  Well extraction rate [m3/d]   
-*  Transmissivity of the aquifer [m2/d]   
+*  Well extraction rate [m$^3$/d]   
+*  Transmissivity of the aquifer [m$^2$/d]   
 *  Resistance of the river bed to exchange with the groundwater [d]:       
    $q_{exchange}=(H_{river}-H_{groundwater})/resistance$    
-*  Boundary condition at the south boundary [m]   
-*  Boundary condition at the north boundary [m]   
+*  Fixed state boundary condition at the south boundary [m]   
+*  Fixed state boundary condition at the north boundary [m]   
 *  Resistance to drainage through ditches [d]:   
    $q_{drainage}=mean(H_{groundwater}-H{drains})/resistance$   
 
@@ -257,7 +258,7 @@ plot(IJsselmodel,fill=varState.Qrch)
 ```
 
 <div class="answer">
-The `eps` value is now _relative_ to the scale of variation of a parameter. This may be a better way of defining eps, because the units and scales of variation are very different between the parameters. For example, Qrch varies in the order of mm/d, while kD may vary by tens of m2/d. For a parameter with a small standard deviation, you would need a small eps, so that you are not looking at slopes outside of the range of your parameter. For parameters with a large standard deviation, a larger eps is needed to get a realistic idea of the local sensitivity slope. 
+The `eps` value is now _relative_ to the scale of variation of a parameter. This may be a better way of defining eps, because the units and scales of variation are very different between the parameters. For example, Qrch varies in the order of mm/d, while kD may vary by tens of m$^2$/d. For a parameter with a small standard deviation, you would need a small eps, so that you are not looking at slopes outside of the range of your parameter. For parameters with a large standard deviation, a larger eps is needed to get a realistic idea of the local sensitivity slope. 
 
 The sensitivity to the recharge is largest near the no-flux boundaries. In the middle of the domain, the drainage and the river limit the dependence on the recharge. At the south and north borders the groundwater levels are determined by the boundary conditions, making the variation due to the recharge zero.
 </div>
@@ -291,7 +292,7 @@ set.name(IJsselmodel,"Variance due to Qwell")
 plot(IJsselmodel,fill=varState.Qwell)
 ```
 
-Only the immediate neighbourhood of the well is sensitive to the uncertainty in extraction rates.
+Only the immediate neighbourhood of the well is sensitive to the variation in extraction rates.
 </div>
 
 ## 2.3 Sensitivity with respect to the transmissivity kD
@@ -447,7 +448,7 @@ plot(IJsselmodel,fill=varState.north.bnd)
 The sensitivity to the northern boundary condition shows the same pattern as for the southern boundary. The groundwater levels are sensitive up to about 1 km distance, except where the river is flowing.
 </div>
 
-# 3. LSA: relative constributions of parameters
+# 3. LSA: relative contribution of the parameters
 
 ## 3.1 Relative contributions to variance in M
 
@@ -468,7 +469,7 @@ pie(as.numeric(relvarM),labels=names(relvarM),
     col = rainbow(length(relvarM)))
 ```
 <div class="exercise">
-8.Add a discussion of the relative contribution of the parameters to the uncertainty in MRESULT. Is it as you expected?
+8.Add a discussion of the relative contribution of the parameters to the variation in MRESULT. Is it as you expected?
 </div>
 
 <div class="student_answer">
@@ -476,7 +477,7 @@ Type your answer here...
 </div>
 
 <div class="answer">
-The uncertainty in the groundwater level in the housing area is about 10 cm. Clearly the recharge is the dominant source of variation, followed by the transmissivity and river resistance.
+The variation in the groundwater level of the housing area as induced by uncertainty in parameters and boundary conditions, is about 10 cm. Clearly the recharge is the dominant source of variation, followed by the transmissivity and river resistance.
 </div>
 
 ## 3.2 Total variation of states
@@ -488,7 +489,7 @@ plot(IJsselmodel,fill=sqrt(varStateTot))
 ```
 
 <div class="exercise">
-9.In the following sections 3.3 to 3.9, the relative contributions of the parameters to the uncertainty in the groundwater levels is calculated. The first example for Qrch is already given. Finish the analysis for the other parameters.    
+9.In the following sections 3.3 to 3.9, the relative contributions of the parameters to the variation in the groundwater levels is calculated. The first example for Qrch is already given. Finish the analysis for the other parameters.    
 In section 3.10, add a discussion about how the contributions of all the parameters are distributed over the domain.
 </div>
 
@@ -595,7 +596,7 @@ Type your answer here...
 </div>
 
 <div class="answer">
-Which parameter causes most of the uncertainty varies widely depending on location. The recharge is dominant in most places, but not everywhere: all parameters have some location where they dominate the uncertainty. Especially the well extraction and the drainage resistance show important local contributions.
+Which parameter causes most of the variation in M varies widely depending on location. The recharge is dominant in most places, but not everywhere: all parameters have some location where they dominate. The well extraction and the drainage resistance show important local contributions to the variation in M.
 </div>
 
 # 4. LSA calculation with different base value
@@ -606,7 +607,7 @@ base$river.resist = base$river.resist/2
 ```
 
 <div class="exercise">
-10.In section 4.1 and 4.2, recalculate the local sensitivities of the groundwater levels (states) (the way you did in section 2.1-2.7).    
+10.In section 4.1 and 4.2, recalculate the local sensitivities of the groundwater levels (states) the way you did in section 2.1-2.7.    
 In section 4.1 you should create a new base run that includes the new river bed resistance. In section 4.2, recalculate the local sensitivities of the groundwater levels of the model. There is no need to make all the local sensitivity plots again.
 Finally, analyse the effects of the changed base value in section 4.3-4.5 (see exercises there).
 </div>
@@ -752,12 +753,12 @@ set.name(IJsselmodel,"Variance due to river.resist, lowered river.resist")
 plot(IJsselmodel,fill=varState.river.resist)
 ```
 
-The pattern of the local sensitivities is the same as before. However, the values are quite some higher.
+The pattern of the local sensitivities is the same as before. However, the values are higher. Changes in the base-value thus can change the conclusions of a LSA. 
 </div>
 
 ## 4.4 Relative contribution of river.resist to variation in groundwater level
 <div class="exercise">
-12.Plot the relative contribution of river.resist to the uncertainty in the groundwater levels over the domain. Compare them with the previous results (section 3.6), and shortly discuss your observations.
+12.Plot the relative contribution of river.resist to the variation in the groundwater levels over the domain. Compare them with the previous results (section 3.6), and shortly discuss your observations.
 </div>
 
 <div class="student_answer">
@@ -775,12 +776,12 @@ set.name(IJsselmodel,"Fraction contribution river.resist to variation in states"
 plot(IJsselmodel,fill= varState.river.resist/varStateTot)
 ```
 
-The relative contribution of the river resistance has increased, especially in the upstream area of the river. Here, it causes almost all of the uncertainty in groundwater levels.
+The relative contribution of the river resistance has increased, especially in the upstream area of the river. Here, it causes almost all of the variation in groundwater levels.
 </div>
 
 ## 4.5 contribution of river.resist to variation in M
 <div class="exercise">
-13.Calculate the relative contribution of river.resist to the uncertainty in MRESULT and describe the changes. Plot the results in a pie chart.
+13.Calculate the relative contribution of river.resist to the variation in MRESULT and describe the changes. Plot the results in a pie chart.
 </div>
 
 <div class="student_answer">
@@ -791,7 +792,7 @@ Discussion:
 </div>
 
 <div class="answer">
-The following chunk plots the relative contributions of the parameters to the uncertainty in the groundwater level in the housing area with a pie chart:
+The following chunk plots the relative contributions of the parameters to the variation in the groundwater level in the housing area with a pie chart:
 ```{r}
 varMtot = varM.Qrch+varM.Qwell+varM.kD+varM.river.resist+
     varM.drainage.resist+varM.south.bnd+varM.north.bnd
@@ -820,15 +821,15 @@ base$river.resist = base$river.resist*2
 river.resist=base$river.resist
 ```
 
-# 5. AVS calculations
+# 5. GSA calculations
 
 The functions defined in this script will be used:
 ```{r}
 source("samplehelpers.R")
 ```
 
-## 5.1 AVS with a small sample size
-Because the model takes a while to run, you will do a 'try-out' AVS with a (very) small sample size of 5.
+## 5.1 GSA with a small sample size
+Because the model takes a while to run, you will do a 'try-out' GSA with a (very) small sample size of 5.
 
 **Constructing the parameter sample**
 
@@ -900,11 +901,10 @@ print(sd(MsampleTest))
 The M values (groundwater level in the housing area) more or less center around their base value, but it is not a nice distribution. This sample size probably does not give an accurate estimates of the standard deviation in M.
 </div>
 
-## 5.2 AVS with a larger parameter set
-
-The AVS has also been run for you with a sample size of 50:
+## 5.2 GSA with a larger parameter sample
+For calculation-time reasons, we already run the model with a sample size of 50:
 ```{r}
-rm(Msample,parsample)
+rm(MsampleTest,parsampleTest)
 load("AVS_mpsample.Rdata")
 #Combine the M-sample and the parameter-sample into one big matrix:
 Mpsample = cbind(M=Msample,parsample)
@@ -1012,7 +1012,7 @@ print(sqrt(ANOVA1))
 
 ## 5.6 Discussion
 <div class="exercise">
-18.Finally, desribe your conclusions of the AVS analysis in section 5. Do the results differ from the local sensitivity analysis? What is the effect of the parameter sample size? Do you think the parameter set of 50 is large enough?
+18.Finally, desribe your conclusions of the GSA analysis in section 5. Do the results differ from the local sensitivity analysis? What is the effect of the parameter sample size? Do you think the parameter set of 50 is large enough?
 </div>
 
 <div class="student_answer">
@@ -1021,11 +1021,11 @@ Type your answer here...
 
 <div class="answer">
 The standard deviation of M is slightly lower than found with the local sensitivity analysis. The conditional expectation curves show that especially the recharge contains a lot of information on M, and also the river resistance and drainage resistance contain some information.    
-Looking at the relative contributions of the parameters, Qrch turns out to be dominant, just like before in the local sensitivity analysis. However, the kD now dominates over the river resistance and drainage resistance, while in the local sensitivity they had about equal contributions. This might be influenced by the small parameter sample size (50 is still not that much).
+Looking at the relative contributions of the parameters, Qrch turns out to be dominant, just like before in the local sensitivity analysis. However, the kD now dominates over the river resistance and drainage resistance, while in the local sensitivity they had about equal contributions. This might be influenced by the small parameter sample size (50 is still a very small sample).
 </div>
 
 <div class="comment">
 COMMENTS:
-Ik heb de AVS nu opgelost door ze het zelf te laten doen met een kleine sample en dan de grote sample te geven.
-Het knitten van het hele document duurt nog steeds wel even, maar ik denk niet dat er nog veel aan te doen is.
+Ik heb de GSA nu opgelost door ze het zelf te laten doen met een kleine sample en dan de grote sample te geven.
+Het knitten van het hele document duurt nog steeds wel even, maar ik denk niet dat er nog veel aan te doen is. [LM]: Ok, thnx. 
 </div>
