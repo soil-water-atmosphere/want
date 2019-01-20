@@ -119,7 +119,7 @@ eps = 1e-3
 
 # 2. Sensitivity analysis
 
-## 2.1 AVS calculations
+## 2.1 GSA calculations
 
 ```{r}
 source("samplehelpers.R")
@@ -221,7 +221,7 @@ The standard deviation interval for the state for each x contains about 2/3 of a
 StatesSampleMeans = colMeans(statesSample) #mean of the calculated states at each node
 allSDs = colSds(statesSample) #standard deviation of the states at each node
 plot(nodes,StatesSampleMeans,col="blue",type="l",lwd=4,ylim=c(-1,3),
-     ylab="groundwater level",main="Mean states of AVS (blue) & LSA base run (red)")
+     ylab="groundwater level",main="Mean states of GSA (blue) & LSA base run (red)")
 lines(nodes,StatesSampleMeans-allSDs,col="blue")
 lines(nodes,StatesSampleMeans+allSDs,col="blue")
 points(nodes,state_base,pch=10, col="red")
@@ -229,8 +229,8 @@ points(nodes,state_base,pch=10, col="red")
 
 It can be seen that the mean model result of all the parameter sets is close to the model results calculated with the mean parameters, but does deviate from it. There are no changes due to the adapted seed.
 
-## 2.2 AVS variation analysis
-We will limit the AVS analysis to the data calculated by MRESULT.
+## 2.2 GSA variation analysis
+We will limit the GSA variation analysis to the data calculated by MRESULT.
 
 **Analysis of the M-sample**
 

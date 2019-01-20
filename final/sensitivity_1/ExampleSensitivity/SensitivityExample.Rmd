@@ -1,6 +1,6 @@
 ---
 title: "Example code for doing sensitivity analysis"
-author: "Lieke Melsen"
+author: "the WANT team"
 date: "24/09/2018"
 output:
    html_document:
@@ -16,8 +16,8 @@ The R-code illustrates how to do the two forms of sensitivity analysis discussed
 
 1. Local sensitivity analysis: 
 The abbreviation __LSA__ will be used for this technique.
-2. Sensitivity analysis of variation through sampling:
-The abbreviation __AVS__ will be used for this technique.
+2. Sensitivity analysis of variation through sampling, global sensitivity analysis:
+The abbreviation __GSA__ will be used for this technique.
 
 The sensitivities will be shown:
 
@@ -64,7 +64,7 @@ grad.flux = function(x,state,gradstate)
     }
   }
 ```
-Technically: as the `grad.flux` function calls the global variables `kL`, `kR` and `D`, changing the values of these variables will immediately change the model to use this new values, without any extra code. This will prove to be productive in the sensitivity analysis. 
+Technically: as the `grad.flux` function calls the global variables `kL`, `kR` and `D`, changing the values of these variables will immediately change the model to use these new values, without any extra code. This will prove to be productive in the sensitivity analysis. 
 
 With this, the basic conceptual model can be constructed:
 ```{r}
@@ -135,8 +135,7 @@ base= list(kL=kL,kR=kR,D=D,P=P,hL=hL,hR=hR)
 str(base)
 ```
 
-The scales of variation (standard deviation) for the parameters have to be provided by the modeller.
-We store these in a list as well:
+The scales of variation (we assume are standard deviations) for the parameters have to be provided by the modeller. We store these in a list as well:
 
 ```{r}
 scale= list(kR = 0.3*kR,
@@ -209,9 +208,7 @@ abline(h=0,col="red",lwd=3)
 grid(col="black")
 ```
 
-An increase in $D$ causes a decrease of the groundwater table over the whole domain, with the largest changes about in the middle. Again, this makes sense, because a deeper aquifer will allow easier discharge of groundwater. 
-At the endpoints of the domain the sensitivity is zero as the state is determined by the boundary conditions.
-The maximum groundwater level M also decreases, but its change is less than the changes in the middle of the domain.
+An increase in $D$ causes a decrease of the groundwater table over the whole domain, with the largest changes about in the middle. Again, this makes sense, because a deeper aquifer will allow easier discharge of groundwater. At the endpoints of the domain the sensitivity is zero as the state is determined by the boundary conditions. The maximum groundwater level M also decreases.
 
 ## 2.4 Sensitivity with respect to P
 Here we investigate the sensitivity to the recharge flux.
@@ -229,8 +226,7 @@ grid(col="black")
 ```
 
 An increase in $P$ causes an increase of the groundwater table over the whole domain, with the largest changes occurring in the middle of the domain.
-At the endpoints of the domain, the sensitivity is zero as the state is determined by the boundary conditions.
-The maximum groundwater level M also increases, but its change is less than in the middle of the domain.
+At the endpoints of the domain, the sensitivity is zero as the state is determined by the boundary conditions. The maximum groundwater level M also increases.
 
 ## 2.5 Sensitivity with respect to hL
 Here we investigate the sensitivity to the water level in the left river.
@@ -277,6 +273,8 @@ The maximum groundwater level M also increases. The increase caused by the right
 <div class = "comment">
 I changed "variation" is this part to "standard deviation" and "variance" to make it more clear. The lecture also calls it that way. Is the text correct like this?
 </div>
+<div class = "comment">
+**[LM]** Yes, it's correct. It is important though to keep in mind that the parameter distribution can be not normally distributed, but with the central limit theorem you can defend using st devs  </div>
 
 First we calculate the variance in M that is caused by each of the separate parameters. We use the variance for this, because the standard deviations cannot be summed directly.  
 The variance-per-parameter is given by the scaled squared sensititivities:
@@ -334,10 +332,7 @@ plot(nodes,sqrt(varStateTot),type="l",col="blue",lwd=3,
 grid(col="black")
 ```
 
-We see that the largest scale of variation is at the boundaries: 10 cm.
-This 10 cm was of course imposed by the modeller by choosing a scale of variation
-for the boundary conditions of 10 cm. 
-At no place in the domain the scale of uncertainty is less than 7 cm.
+We see that the largest scale of variation is at the boundaries: 10 cm. This 10 cm was of course imposed by the modeller by choosing a scale of variation for the boundary conditions of 10 cm. At no place in the domain the scale of variation is less than 8 cm.
 
 The following plot gives an overview of the relative contributions of the parameters to the variance over the domain:
 ```{r}
@@ -360,7 +355,7 @@ legend("topright", bty="n",
 The boundary conditions contribute most to the uncertainty/scale of variation in de groundwater levels.
 Only in the middle part of the domain the left conductivity and the rainfall contribute.
 
-# 4. AVS calculations
+# 4. GSA calculations
 
 For the sensitivity-by-sampling we will make use of the functions defined in the `samplehelpers` script: 
 ```{r}
@@ -369,7 +364,7 @@ source("samplehelpers.R")
 
 ## 4.1 Constructing the parameter sample
 
-The creation of a parameter sample by means of a Latin Hypercube is the base of the AVS technique.
+The creation of a parameter sample by means of a Latin Hypercube is the base of the GSA technique.
 For this the `GaussianLHS` function ('Latin Hypercube Sampling') provided by `samplehelpers` can be used.
 
 This function requires as arguments:
@@ -491,7 +486,7 @@ The standard deviation interval for the state for each x contains about 2/3 of a
 StatesSampleMeans = colMeans(statesSample) #mean of the calculated states at each node
 allSDs = colSds(statesSample) #standard deviation of the states at each node
 plot(nodes,StatesSampleMeans,col="blue",type="l",lwd=4,ylim=c(0.8,1.4),
-     ylab="groundwater level",main="Mean states of AVS (blue) & LSA base run (red)")
+     ylab="groundwater level",main="Mean states of GSA (blue) & LSA base run (red)")
 lines(nodes,StatesSampleMeans-allSDs,col="blue")
 lines(nodes,StatesSampleMeans+allSDs,col="blue")
 points(nodes,state_base,pch=10, col="red")
@@ -499,9 +494,8 @@ points(nodes,state_base,pch=10, col="red")
 
 It can be seen that the mean result of all the random parameter runs is very close to the model result calculated with the mean parameters. It is also clearly visible that the standard deviation is almost uniformly 10 cm over the whole range.
 
-# 5. AVS variation analysis
-The AVS variation analysis for the state at all nodes will take too much time and effort.
-For that reason we will limit the AVS analysis to the data calculated by MRESULT.
+# 5. GSA variation analysis
+The GSA variation analysis for the state at all nodes is time consuming. For that reason we will limit the GSA variation analysis to the data calculated by MRESULT - the max groundwater level.
 
 ## 5.1 Analysis of the M-sample
 

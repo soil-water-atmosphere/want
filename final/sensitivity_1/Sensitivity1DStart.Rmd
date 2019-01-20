@@ -1,7 +1,7 @@
 ---
-title: "Sensitivity practical 1 - 1D systems"
+title: "Sensitivity Assignment 1 - 1D systems"
 subtitle: "Determining sensitivities and scales of variation in a 1D groundwater model"
-author: "Lieke Melsen"
+author: "EB"
 date: "24/09/2018"
 output:
    html_document:
@@ -10,12 +10,12 @@ output:
 ---
 
 # Learning goals
-*  Performing local sensitivity analysis and analysis of variation through sampling on a simple model *(Exercise 1-3)*
+*  Performing local and global sensitivity analysis on a simple model *(Exercise 1-3)*
 *  Understanding the influence of the epsilon value on the results of the sensitivity analysis *(Exercise 4,5)*
 *  Understanding the importance of the size of the parameter sample for the results of the sensitivity analysis *(Exercise 6,7)*
 
 # Introduction
-In this practical you will do your own analysis of the sensitivity of a groundwater model to its parameters. The model you will study simulates a groundwater extraction well that is located next to a nature reserve (depicted by the reed vegetation), as shown in the figure below. A river is situated on the left side of the nature reserve.  
+In this practical you will conduct your own sensitivity analysis of a groundwater model to its parameters. The model you will study simulates a groundwater extraction well that is located next to a nature reserve (depicted by the reed vegetation), as shown in the figure below. A river is situated on the left side of the nature reserve.  
 
 ![1D saturated stationary groundwater model](1Dsensmodel.png)   
 
@@ -33,13 +33,13 @@ First of all, install the following packages from CRAN:
 </div>
 
 <div class="exercise">
-1. Read carefully the example of a sensitivity analysis, found in the 'Example Sensitivity' folder. Reading through the html is a good recap of the material you should understand for the exam. If there are questions about techniques or interpretations, please ask them.
+1. Read the example of a sensitivity analysis carefully, found in the 'ExampleSensitivity' folder. Reading through the html is a good recap of the material you should understand. If there are questions about techniques or interpretations, please ask them.
 </div>
 
 # 2. Building the model
 
 ## The mathematical setup
-First, the 1D groundwater model is built in the same way as the ones you built in earlier practicals.
+First, the 1D groundwater model is built in the same way as the ones you built in earlier assignments.
 The first step is choosing the spatial model domain:
 ```{r}
 domain = c(0,500) 
@@ -65,8 +65,7 @@ GWmodel = newFLOW1D(domain,internal.flux)
 set.name(GWmodel,"base run")
 ```
 
-There is constant recharge flux (rainfall) on top of the model; and an extraction well.  
-The recharge is a spatial flux, the extraction well is a point flux.   
+There is constant recharge flux (rainfall) on top of the model, and an extraction well. The recharge is a spatial flux, the extraction well is a point flux.   
 
 ```{r}
 P = 0.001
@@ -76,7 +75,7 @@ add.pointflux(GWmodel,at = 275, value= 'Qwell',name = 'well')
 ```
 
 On the left hand side, the river with a water level of 1 m is used as a boundary condition.
-The right hand side is a water divide: a zero flux boundary, which is automatically applied as the default in the FVFE1D package.
+The right hand side is a water divide, implying a zero flux boundary, which is automatically applied as the default in the FVFE1D package.
 
 ```{r}
 hl = 1
@@ -123,7 +122,7 @@ The `MRESULT` function calculates the mean groundwater level in the nature area.
 You will now conduct your own sensitivity analysis on the model we just created.
 
 <div class="exercise">
-3. Analyse the sensitivity of the model states and the MRESULT to all the parameters of the model. Perform both the local sensitivity analysis (LSA) and the analysis of variation through sampling (AVS).
+3. Analyse the sensitivity of the model states and the MRESULT to all the parameters of the model. Perform both the local sensitivity analysis (LSA) and the global sensitivity analysis (GSA).
 
 Finish the script by systematically and one-by-one adding the sections of the `SensitivityExample.Rmd` you studied. Adjust the comments and conclusions in the example code to the case of the assignment!
 
@@ -134,7 +133,7 @@ Finish the script by systematically and one-by-one adding the sections of the `S
 
 The upper and lower boundaries for the parameters should be chosen such that:   
 - all sampled transmissivities are positive   
-- for all other cases: the boundaries should be invisible in the parameter histograms. 
+- for all other cases: the parameter histograms should display all values. 
 </div>
 
 <div class="student_answer">
@@ -179,18 +178,17 @@ Fill in your answer here...
 
 <div class="answer">
 See `Sens1DAnswer2.Rmd`.   
-Some small changes are visible, for instance, there are changes in the minimum values of dstate/dkDl and dstate/dkDr. Changes in the sensitivity due to a different `eps` point to a nonlinear dependence of M on this parameter. The d{state}/d{hl} line over the model domain shows some fluctuations. These are numerical roundoff errors, and the value is still effectively 1 everywhere.
+Some small changes are visible, for instance, there are changes in the minimum values of dstate/dkDl and dstate/dkDr. Changes in the sensitivity due to a different `eps` point to a nonlinear dependence of M on this parameter. In local sensitivity analysis, the local derivative is approached using `eps`. This approach locally linearizes the function to determine the slope. The more non-linear the function is, the smaller `eps` has to be to justify this local lineariation.  
 
 The relative contribution of the parameters to the uncertainty in M or the overall groundwater levels stays the same. Only the uncertainty in the groundwater level at the right end of the domain decreases.
 </div>
 
 <div class="comment">
-In question 4 and 5 the effect of eps is investigated, but we don't discuss what this means for how to choose eps. Maybe we should include something about that?
-</div>
+In question 4 and 5 the effect of eps is investigated, but we don't discuss what this means for how to choose eps. Maybe we should include something about that? [LM] I added something to the answer about that.</div>
 
 # 5. Influence of the random seed
 <div class="exercise">
-6. The sample generation for the AVS depends on the random seed. Do you see any significant differences in the AVS results if you change this seed?
+6. The sample generation for the GSA depends on the random seed. Do you see any significant differences in the GSA results if you change this seed?
 </div>
 
 <div class="student_answer">
@@ -212,5 +210,5 @@ Fill in your answer here...
 
 <div class="answer">
 See `Sens1DAnswer4.Rmd` (larger sample, seed=237) and `Sens1DAnswer5.Rmd` (larger sample, seed=238).   
-With a sample size of about 1000, the differences between seed 237 and 238 are minimal. This shows that a sufficient sample size is important to ensure the AVS conclusions are correct. 
+With a sample size of about 1000, the differences between seed 237 and 238 are minimal. This shows that a sufficient sample size is important to ensure the GSA conclusions are correct. 
 </div>
