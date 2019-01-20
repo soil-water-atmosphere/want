@@ -1,5 +1,5 @@
 ---
-title: "Sensitivity practical 0 - Local sensitivity analysis"
+title: "Extr Sensitivity assignment - Local sensitivity analysis"
 author: "Lieke Melsen"
 date: "24/09/2018"
 output:
@@ -21,7 +21,7 @@ require('raster')
 * Understand the implications and limitations of local sensitivity analysis 
 
 # Introduction
-In this assignment, we will manually work out the local sensitivity for several functions. This gives insight into the working of local sensitivity. The idea is that you can do these calculations by hand (or, at least, supported by basic R). 
+In this assignment, we will manually work out the local sensitivity for several functions. This gives insight into the functioning of local sensitivity analysis. The idea is that you can do these calculations by hand (or, at least, supported by basic R). 
 
 # 1.Linear systems
 We have a linear function $y = ax + b$, with parameters $a$ and $b$. 
@@ -47,7 +47,7 @@ y = a*x + b
 plot(x,y,type="o")
 ```
 
-This is a linear function, where $a$ is the slope of the function and $b$ the intersect. Depending on what we will evaluate sensitivity on, $y$ is probably more sensitive to $a$. You can derive this from the formula: when $a$ is increased by one and the rest stays the same, $y$ will increase by $x$. When $b$ is increased by 1, $y$ will also increase by 1. So in most of the range of $x$, $y$ reacts more strongly to $a$ than to $b$.
+This is a linear function, where $a$ is the slope of the function and $b$ the intersect. Depending on what we will evaluate sensitivity on, $y$ is probably more sensitive to $a$. You can derive this from the formula: when $a$ is increased by one and the rest stays the same, $y$ will increase by $x$. When $b$ is increased by 1, $y$ will also increase by 1. So for most ranges of $x$, $y$ reacts more strongly to $a$ than to $b$.
 </div>
 
 We have observations available of variable y at x from 0 to 10 (which might be 11 points in space, for example):
@@ -55,8 +55,7 @@ We have observations available of variable y at x from 0 to 10 (which might be 1
 y_obs = c(7.195, 10.203, 13.167, 16.228, 19.211, 22.222, 25.201, 28.167, 31.204, 34.162, 37.226)
 ```
 <div class="exercise">
-2.Determine the sensitivity of the $a-b$ model for $a$ and $b$ with the given base-values and observations. You can do this manually, or use R as calculator.   
-Remember that when you have a model, you can calculate the sensitivity of many different kinds of model output. It can be the result at one point in time or space, an aggregated value, or some other derived value, depending on what is of interest. In the lecture, you had just one model output you were interested in, and no observations were available. In this case the "model output" consists of 11 values (for 11 values of x), and you have observations available. What (single) number could you use to evaluate the sensitivity here? 
+2.Determine the sensitivity of the $a-b$ model for $a$ and $b$ with the given base-values and observations. You can do this manually, or use R as calculator. Remember that when you have a model, you can calculate the sensitivity of many different kinds of model output. It can be the result at one point in time or space, an aggregated value, or some other derived value, depending on what is of interest. In the lecture, you had just one model output you were interested in, and no observations were available. In this case the "model output" consists of 11 values (for 11 values of x), and you have observations available. What (single) number could you use to evaluate the sensitivity here? 
 </div>
 
 <div class="hint">
@@ -107,7 +106,7 @@ tot = abs(LocSens_a) + abs(LocSens_b)
 print(paste('sensitivity SSE to a: ',abs(round(LocSens_a*100)/100),' and to b: ',abs(round(LocSens_b*100)/100),sep=" "))
 print(paste('relative contribution of a: ',round(abs(LocSens_a)/tot*100),'% and of b: ',round(abs(LocSens_b)/tot*100),'%',sep=""))
 ```
-In this particular example, $a$ and $b$ have no units, and we do not specify a scale of variation, because we are not investigating a physical system with clearly defined boundary conditions. Therefore, we can directly interpret the restuls obtained above. This shows that our model $y$ is more sensitive to parameter $a$ than to parameter $b$, given that we evaluate $y$ based on the SSE-metric. 
+In this particular example, $a$ and $b$ have no units, and we do not specify a scale of variation, because we are not investigating a physical system with clearly defined physical boundary conditions or unceratinty in observations. Therefore, we can directly interpret the restuls obtained above. This shows that our model $y$ is more sensitive to parameter $a$ than to parameter $b$, given that we evaluate $y$ based on the SSE-metric. 
 </div>
 
 <div class="exercise">
