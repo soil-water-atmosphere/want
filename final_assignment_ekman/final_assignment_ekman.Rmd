@@ -1,5 +1,5 @@
 ---
-title: "The Ekman spiral: why weather systems do not last forever"
+title: "The Ekman spiral: why does ice flows in a diffent direction than the wind?"
 author: "Chiel van Heerwaarden"
 date: "1/15/2019"
 output: html_document
@@ -11,49 +11,52 @@ library(plotly)
 ```
 
 ## Introduction
-In the end of the 19th century, Fridtjof Nansen observed that floating ice drifts at angle that 20 to 40 degrees to the right of the prevailing wind direction at higher altitudes. The reason is that friction and turbulent mixing disturb the geostrophic wind balance between the pressure force and the coriolis force. 
+In the end of the 19th century, Fridtjof Nansen observed that floating ice drifts at angle that 20 to 40 degrees to the right of the prevailing wind direction at higher altitudes. Ekman, who was a student at that time, discovered in 1902 why this is the case. His discovery is the now famous *Ekman spiral* (https://en.wikipedia.org/wiki/Ekman_layer) that is found in every text book on atmospheric dynamics.
 
-The set of momentum equations is
+The set of momentum equations that was the starting point for Ekman was
 $$
 \begin{align}
 \dfrac{\partial \overline{u}}{\partial t} &= -\dfrac{\partial \overline{u^\prime w^\prime} }{\partial z} + f_0 \left( \overline{v} - v_g \right) , \\
-\dfrac{\partial \overline{v}}{\partial t} &= -\dfrac{\partial \overline{v^\prime w^\prime} }{\partial z} - f_0 \left( \overline{u} - u_g \right)\\
+\dfrac{\partial \overline{v}}{\partial t} &= -\dfrac{\partial \overline{v^\prime w^\prime} }{\partial z} - f_0 \left( \overline{u} - u_g \right),\\
 \end{align}
 $$
 where $\overline{u}$ and $\overline{v}$ are the zonal and meridional wind components, $\overline{u^\prime w^\prime}$ and $\overline{v^\prime w^\prime}$ are the vertical turbulent fluxes. We can approximate the turbulent fluxes, which are the internal fluxes of this problem, using a diffusion model. We can write
 $$
 \begin{align}
-\overline{u^\prime w^\prime} = - K_m \dfrac{\partial \overline{u}}{\partial z} \\
-\overline{v^\prime w^\prime} = - K_m \dfrac{\partial \overline{v}}{\partial z}
+\overline{u^\prime w^\prime} = - K_m \dfrac{\partial \overline{u}}{\partial z}, \\
+\overline{v^\prime w^\prime} = - K_m \dfrac{\partial \overline{v}}{\partial z},
 \end{align}
 $$
-
-The steady-state of this system can be written as
+where $K_m$ is the *eddy-diffusivity* that represents the strength of the turbulence in the atmospheric boundary layer. Ekman managed to solve the steady state of this set of equations, which can be written as
 $$
 \begin{align}
 \dfrac{\partial}{\partial z}\left( K_m \dfrac{\partial \overline{u} }{\partial z} \right) + f_0 \overline{v} &= f_0 v_g, \\
 \dfrac{\partial}{\partial z}\left( K_m \dfrac{\partial \overline{v} }{\partial z} \right) - f_0 \overline{u} &= -f_0 u_g\\
 \end{align}
 $$
+This equation can be solved analytically if $K_m$ is assumed to be constant with height (which is not true in the real atmosphere). Ekman assumed that at the surface there is no wind $\overline{u} = \overline{v} = 0$, while high in the atmosphere $\overline{u}$ and $\overline{v}$ are constant with height. There is assumed to be no geostrophic wind in the meridional direction ($v_g = 0$).
 
-This equation can be solved analytically. We assumed that at the surface there is no wind $\overline{u} = \overline{v} = 0$, while high in the atmosphere $\overline{u}$ and $\overline{v}$ are constant with height. In the analytical solution, we assume $K_m$ to be constant with height and we assume $v_g = 0$.
-
-This gives the analytical solution
+This gives solution
 $$
 \begin{align}
-\gamma &= \left( \dfrac{f_0}{2 K_m} \right)^\frac{1}{2}\\
-\overline{u} &= u_g \left( 1 - \cos \left( \gamma z \right) \exp \left( -\gamma z \right) \right) \\
-\overline{v} &= u_g \sin \left( \gamma z \right) \exp \left( -\gamma z \right)
+\gamma &= \left( \dfrac{f_0}{2 K_m} \right)^\frac{1}{2},\\
+\overline{u} &= u_g \left( 1 - \cos \left( \gamma z \right) \exp \left( -\gamma z \right) \right),\\
+\overline{v} &= u_g \sin \left( \gamma z \right) \exp \left( -\gamma z \right).
 \end{align}
 $$
 
+## The challenge
+Your challenge will be to implement this solver numerically. First with constant $K_m$, but if time permits, also with $K_m(z)$. You will use the following set of parameters.
+
 ```{r parameters}
-u_g = 10.
-v_g = 0.
-f_0 = 1e-4
-z_top = 5.e3
-K_m = 10.
+u_g = 10.    # 10 m/s
+v_g = 0.     # 0 m/s
+f_0 = 1e-4   # 1e-4 1/s
+z_top = 1.e3 # 1e3 m
+K_m = 10.    # 10 m2/s
 ```
+
+The analytical solution is computed using the code below:
 
 ```{r analytical_solution}
 n_ref = 1001
@@ -64,14 +67,72 @@ u_ref = u_g * (1. - cos(gamma*z_ref)*exp(-gamma*z_ref))
 v_ref = u_g * sin(gamma*z_ref)*exp(-gamma*z_ref)
 ```
 
-```{r numerical_solution}
-n_sol = 11
+Here, the number of grid points for the analytical solution is set, the grid is computed, and the two vectors `u_sol` and `v_sol` that should eventually contain the solution are provided.
+
+```{r setup_for_numerical_solution}
+n_sol = 11 # 11 was the starting value
 dz_sol = z_top / (n_sol-1)
 z_sol = seq(0, z_top, dz_sol)
 u_sol = rep(0, n_sol)
 v_sol = rep(0, n_sol)
 ```
 
+Your task is to write the code that fills the vectors `u_sol` and `v_sol` using matrix-vector algebra.
+
+<div class="student_answer">
+```{r numerical_implementation}
+# IMPLEMENT THE SOLUTION HERE.
+```
+</div>
+
+<div class="answer">
+```{r numerical_implementation_solution}
+M = matrix(0, nrow=n_sol*2, ncol=n_sol*2)
+v = rep(0, n_sol*2)
+K = K_m * rep(1, n_sol-1)
+n = n_sol
+
+# Set the surface Dirichlet BC
+M[  1,  1] = 1.
+M[n+1,n+1] = 1.
+v[  1] = 0.
+v[n+1] = 0.
+    
+# Set the diffusion in the matrix.
+for (i in 2:(n-1))
+{
+  for (j in 0:1)
+  {
+    ii = i+j*n
+    M[ii,ii-1] = M[ii,ii-1] + K[i-1]/dz_sol**2
+    M[ii,ii  ] = M[ii,ii  ] - (K[i-1] + K[i])/dz_sol**2
+    M[ii,ii+1] = M[ii,ii+1] + K[i]/dz_sol**2
+  }
+}
+            
+# Set the coriolis force and pressure gradient in the matrix.
+for (i in 1:n)
+{
+  ii = i+n
+  M[i,ii] = M[i ,ii] + f_0
+  M[ii,i] = M[ii, i] - f_0
+  v[i ] = v[ i] + f_0*v_g
+  v[ii] = v[ii] - f_0*u_g
+}
+
+# Neumann BC at top (free slip, no gradient)
+M[n, n-1] = M[n, n-1] - 1.
+M[n, n  ] = M[n, n  ] + 1.
+M[2*n, 2*n-1] = M[2*n, 2*n-1] - 1.
+M[2*n, 2*n  ] = M[2*n, 2*n  ] + 1. 
+
+sol = solve(M,v)
+u_sol = sol[1:n]
+v_sol = sol[(n+1):(2*n)]
+```
+</div>
+
+The appropriate plots are already created for you. If you have implemented the solver correctly, the solution with constant $K_m$ with height will be exactly the same as the analytical solution.
 
 ```{r message=FALSE, warning=FALSE}
 ref_line_u = list(color='black', dash='dot' , width=1.5)
@@ -92,15 +153,22 @@ p
 ```
 
 ## The tasks
-
 1. Set up solver that can acquire the Ekman spiral using matrix-vector algebra. Use Dirichlet boundary conditions at the surface and a Neumann boundary condition (no-gradient) at the top. Use only one matrix and one vector to solve $u$ and $v$ simultaneously. Use the values for `u_g`, `f_0`, `K_m`, `z_top` as given before the analytical solution. Assume `v_g` to be zero, but code it such that `v_g` can be non-zero.
 
 2. Store the acquired $u$ and $v$ in vectors `u` and `v` and enable the lines in the graph that are commented out. If everything worked out well, you have developed something that resembles the analytical solution.
 
-3. Explore the sensitivity to the vertical grid spacing. Which r
-3. Explore the sensitivity to the chosen domain top height `z_top`. How height does the top need to be in order to observe converged results with the analytical solution?
+3. Explore the sensitivity to the vertical grid spacing. Which grid spacing $\Delta z$ is sufficient for converged results?
 
-4. Replace the 
+4. Explore the sensitivity to the chosen domain top height `z_top`. How height does the top need to be in order to observe converged results with the analytical solution?
+
+5. Last but not least: explain the observation of Nansen. Why does floating ice move in a different direction than the wind at higher altitudes?
+
+## Bonus tasks
+5. Replace the Neumann boundary condition at the top by the appropriate Dirichlet boundary condition. 
+
+6. Explore again the sensitivity to the chosen domain top height `z_top`. Do you find the same results as in task 4?
+
+7. Implement an eddy diffusivity that is a function of height with 0 at $z = 0$ and $2 K_m$ at $z = z_\textrm{top}$. 
 
 **END OF ASSIGNMENT**
 
