@@ -1,0 +1,106 @@
+---
+title: "The Ekman spiral: why weather systems do not last forever"
+author: "Chiel van Heerwaarden"
+date: "1/15/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+library(plotly)
+```
+
+## Introduction
+In the end of the 19th century, Fridtjof Nansen observed that floating ice drifts at angle that 20 to 40 degrees to the right of the prevailing wind direction at higher altitudes. The reason is that friction and turbulent mixing disturb the geostrophic wind balance between the pressure force and the coriolis force. 
+
+The set of momentum equations is
+$$
+\begin{align}
+\dfrac{\partial \overline{u}}{\partial t} &= -\dfrac{\partial \overline{u^\prime w^\prime} }{\partial z} + f_0 \left( \overline{v} - v_g \right) , \\
+\dfrac{\partial \overline{v}}{\partial t} &= -\dfrac{\partial \overline{v^\prime w^\prime} }{\partial z} - f_0 \left( \overline{u} - u_g \right)\\
+\end{align}
+$$
+where $\overline{u}$ and $\overline{v}$ are the zonal and meridional wind components, $\overline{u^\prime w^\prime}$ and $\overline{v^\prime w^\prime}$ are the vertical turbulent fluxes. We can approximate the turbulent fluxes, which are the internal fluxes of this problem, using a diffusion model. We can write
+$$
+\begin{align}
+\overline{u^\prime w^\prime} = - K_m \dfrac{\partial \overline{u}}{\partial z} \\
+\overline{v^\prime w^\prime} = - K_m \dfrac{\partial \overline{v}}{\partial z}
+\end{align}
+$$
+
+The steady-state of this system can be written as
+$$
+\begin{align}
+\dfrac{\partial}{\partial z}\left( K_m \dfrac{\partial \overline{u} }{\partial z} \right) + f_0 \overline{v} &= f_0 v_g, \\
+\dfrac{\partial}{\partial z}\left( K_m \dfrac{\partial \overline{v} }{\partial z} \right) - f_0 \overline{u} &= -f_0 u_g\\
+\end{align}
+$$
+
+This equation can be solved analytically. We assumed that at the surface there is no wind $\overline{u} = \overline{v} = 0$, while high in the atmosphere $\overline{u}$ and $\overline{v}$ are constant with height. In the analytical solution, we assume $K_m$ to be constant with height and we assume $v_g = 0$.
+
+This gives the analytical solution
+$$
+\begin{align}
+\gamma &= \left( \dfrac{f_0}{2 K_m} \right)^\frac{1}{2}\\
+\overline{u} &= u_g \left( 1 - \cos \left( \gamma z \right) \exp \left( -\gamma z \right) \right) \\
+\overline{v} &= u_g \sin \left( \gamma z \right) \exp \left( -\gamma z \right)
+\end{align}
+$$
+
+```{r parameters}
+u_g = 10.
+v_g = 0.
+f_0 = 1e-4
+z_top = 5.e3
+K_m = 10.
+```
+
+```{r analytical_solution}
+n_ref = 1001
+dz_ref = z_top / (n_ref-1)
+z_ref = seq(0, z_top, dz_ref)
+gamma = ( f_0 / (2*K_m) )^0.5
+u_ref = u_g * (1. - cos(gamma*z_ref)*exp(-gamma*z_ref))
+v_ref = u_g * sin(gamma*z_ref)*exp(-gamma*z_ref)
+```
+
+```{r numerical_solution}
+n_sol = 11
+dz_sol = z_top / (n_sol-1)
+z_sol = seq(0, z_top, dz_sol)
+u_sol = rep(0, n_sol)
+v_sol = rep(0, n_sol)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+ref_line_u = list(color='black', dash='dot' , width=1.5)
+ref_line_v = list(color='black', dash='dash', width=1.5)
+p = plot_ly()
+p = add_trace(p, x=u_sol, y=z_sol, name="u", mode="lines")
+p = add_trace(p, x=v_sol, y=z_sol, name="v", mode="lines")
+p = add_trace(p, x=u_ref, y=z_ref, name="u_ref", mode="lines", line=ref_line_u)
+p = add_trace(p, x=v_ref, y=z_ref, name="v_ref", mode="lines", line=ref_line_v)
+p
+```
+
+```{r message=FALSE, warning=FALSE}
+p = plot_ly()
+p = add_trace(p, x=u_sol, y=v_sol, name="spiral", mode="lines")
+p = add_trace(p, x=u_ref, y=v_ref, name="spiral_ref", mode="lines", line=ref_line_u)
+p
+```
+
+## The tasks
+
+1. Set up solver that can acquire the Ekman spiral using matrix-vector algebra. Use Dirichlet boundary conditions at the surface and a Neumann boundary condition (no-gradient) at the top. Use only one matrix and one vector to solve $u$ and $v$ simultaneously. Use the values for `u_g`, `f_0`, `K_m`, `z_top` as given before the analytical solution. Assume `v_g` to be zero, but code it such that `v_g` can be non-zero.
+
+2. Store the acquired $u$ and $v$ in vectors `u` and `v` and enable the lines in the graph that are commented out. If everything worked out well, you have developed something that resembles the analytical solution.
+
+3. Explore the sensitivity to the vertical grid spacing. Which r
+3. Explore the sensitivity to the chosen domain top height `z_top`. How height does the top need to be in order to observe converged results with the analytical solution?
+
+4. Replace the 
+
+**END OF ASSIGNMENT**
+
