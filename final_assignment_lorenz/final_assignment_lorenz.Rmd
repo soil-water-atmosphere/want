@@ -1,5 +1,5 @@
 ---
-title: "The Lorenz equations: the (in)predictability of weather"
+title: "The Lorenz equations: why is the weather unpredictable?"
 author: "Chiel van Heerwaarden"
 date: "1/15/2019"
 output: html_document
@@ -16,9 +16,9 @@ In 1963, Edward Lorenz developed a system of three equations to describe atmosph
 The set of equations is
 $$
 \begin{align}
-\dfrac{\mathrm{d}x}{\mathrm{d}t} &= \sigma (y - x), \\
-\dfrac{\mathrm{d}y}{\mathrm{d}t} &= x (\rho - z) - y, \\
-\dfrac{\mathrm{d}z}{\mathrm{d}t} &= x y - \beta z,
+\dfrac{dx}{dt} &= \sigma (y - x), \\
+\dfrac{dy}{dt} &= x (\rho - z) - y, \\
+\dfrac{dz}{dt} &= x y - \beta z,
 \end{align}
 $$
 where $x(t)$, $y(t)$ and $z(t)$ are the three variables of the system, and $\sigma$, $\rho$, and $\beta$ are the three parameters. 
