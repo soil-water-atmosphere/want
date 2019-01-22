@@ -1,7 +1,7 @@
 ---
 title: "The Ekman spiral: why do ice floes not move with the wind?"
 author: "Chiel van Heerwaarden"
-date: "1/15/2019"
+date: "1/22/2019"
 output: html_document
 ---
 
@@ -11,7 +11,7 @@ library(plotly)
 ```
 
 ## Introduction
-In the end of the 19th century, Fridtjof Nansen observed that floating ice drifts at angle that 20 to 40 degrees to the right of the prevailing wind direction at higher altitudes. Ekman, who was a student at that time, discovered in 1902 why this is the case. His discovery is the now famous *Ekman spiral* (https://en.wikipedia.org/wiki/Ekman_layer) that is found in every text book on atmospheric dynamics.
+In the end of the 19th century, Fridtjof Nansen observed from a ship that floating ice drifts at an angle that is 20 to 40 degrees to the right of the wind direction. Ekman, who was a student at that time, discovered in 1902 why this is the case. His discovery is the now famous *Ekman spiral* (https://en.wikipedia.org/wiki/Ekman_layer) that is found in every text book on geophysical fluid dynamics.
 
 The set of momentum equations that was the starting point for Ekman was
 $$
@@ -161,7 +161,7 @@ p
 
 4. Explore the sensitivity to the chosen domain top height `z_top`. How height does the top need to be in order to observe converged results with the analytical solution?
 
-5. Last but not least: explain the observation of Nansen. Why does floating ice move in a different direction than the wind at higher altitudes?
+5. Last but not least: explain the observation of Nansen. Why do ice floes not move with the wind direction?
 
 ## Bonus tasks
 5. Replace the Neumann boundary condition at the top by the appropriate Dirichlet boundary condition. 
