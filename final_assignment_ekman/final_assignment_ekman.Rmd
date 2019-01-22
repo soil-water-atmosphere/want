@@ -127,8 +127,8 @@ M[2*n, 2*n-1] = M[2*n, 2*n-1] - 1.
 M[2*n, 2*n  ] = M[2*n, 2*n  ] + 1. 
 
 sol = solve(M,v)
-u_sol = sol[1:n]
-v_sol = sol[(n+1):(2*n)]
+u_sol[] = sol[1:n]
+v_sol[] = sol[(n+1):(2*n)]
 ```
 </div>
 
