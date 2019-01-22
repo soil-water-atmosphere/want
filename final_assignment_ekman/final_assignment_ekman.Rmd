@@ -1,5 +1,5 @@
 ---
-title: "The Ekman spiral: why does ice flows in a diffent direction than the wind?"
+title: "The Ekman spiral: why do ice floes not move with the wind?"
 author: "Chiel van Heerwaarden"
 date: "1/15/2019"
 output: html_document
