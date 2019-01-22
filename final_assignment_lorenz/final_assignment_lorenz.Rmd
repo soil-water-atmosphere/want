@@ -206,7 +206,9 @@ p
 
 8. Analyze the system with $\rho = 28$ in detail. Are the answers of question 5 and 6 still valid?
 
-9. Be creative... Test, calculate, or plot whatever you think helps you in  understanding the system.
+9. Can you explain from your findings why weather is inpredictable?
+
+10. Be creative... Test, calculate, or plot whatever you think helps you in  understanding the system.
 
 **END OF ASSIGNMENT**
 
