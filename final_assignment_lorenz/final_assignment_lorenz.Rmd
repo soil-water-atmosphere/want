@@ -75,7 +75,8 @@ z_ref[1] = z0
 ```
 
 <div class="student_answer">
-Implement your code here. As as many code blocks as you need. You are free to design it in your own way.
+# IMPLEMENT YOUR CODE HERE.
+# READ THE REST OF THE INSTRUCTIONS BEFORE YOU START IMPLEMENTING :).
 </div>
 
 <div class="answer"
@@ -185,7 +186,6 @@ p = add_trace(p, x=x_rk , y=y_rk , z=z_rk , name="rk" , mode="lines")
 p = add_trace(p, x=x_ref, y=y_ref, z=z_ref, name="ref", mode="lines")
 p
 ```
-
 
 ## The tasks
 ### Coding the model
