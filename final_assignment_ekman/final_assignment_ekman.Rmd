@@ -49,11 +49,11 @@ $$
 Your challenge will be to implement this solver numerically. First with constant $K_m$, but if time permits, also with $K_m(z)$. You will use the following set of parameters.
 
 ```{r parameters}
-u_g = 10.    # 10 m/s
-v_g = 0.     # 0 m/s
-f_0 = 1e-4   # 1e-4 1/s
-z_top = 1.e3 # 1e3 m
-K_m = 10.    # 10 m2/s
+u_g   = 10.   # 10 m/s
+v_g   = 0.    # 0 m/s
+f_0   = 1e-4  # 1e-4 1/s
+z_top = 1.e3  # 1e3 m
+K_m   = 5     # 5 m2/s
 ```
 
 The analytical solution is computed using the code below:
@@ -81,7 +81,8 @@ Your task is to write the code that fills the vectors `u_sol` and `v_sol` using 
 
 <div class="student_answer">
 ```{r numerical_implementation}
-# IMPLEMENT THE SOLUTION HERE.
+# IMPLEMENT THE SOLUTION HERE. 
+# MAKE SURE YOU HAVE READ ALL INSTRUCTIONS BEFORE STARTING.
 ```
 </div>
 
@@ -161,14 +162,100 @@ p
 
 4. Explore the sensitivity to the chosen domain top height `z_top`. How height does the top need to be in order to observe converged results with the analytical solution?
 
-5. Last but not least: explain the observation of Nansen. Why do ice floes not move with the wind direction?
+5. Adapt the code, such that it represents the boundary layer of the ocean. Assume for simplicity that in this case the surface has a non-zero Dirichlet boundary condition, while the geostrophic wind equals zero.
+
+6. Last but not least: explain the observation of Nansen. Why do ice floes not move with the wind direction?
 
 ## Bonus tasks
-5. Replace the Neumann boundary condition at the top by the appropriate Dirichlet boundary condition. 
+Apply these modifications to the solution of the atmospheric boundary layer.
 
-6. Explore again the sensitivity to the chosen domain top height `z_top`. Do you find the same results as in task 4?
+7. Replace the Neumann boundary condition at the top by the appropriate Dirichlet boundary condition. 
 
-7. Implement an eddy diffusivity that is a function of height with 0 at $z = 0$ and $2 K_m$ at $z = z_\textrm{top}$. 
+8. Explore again the sensitivity to the chosen domain top height `z_top`. Do you find the same results as in task 4?
+
+9. Implement an eddy diffusivity that is a linear function of height with 0 at $z = 0$ and $2 K_m$ at $z = z_\textrm{top}$. By doing so, you address the most relevant criticism to Ekman's solution, namely that in the real atmosphere the eddy diffusivity $K_m$ is not constant with height.
 
 **END OF ASSIGNMENT**
 
+<div class="answer">
+
+Worked out example for ocean Ekman layer.
+
+```{r parameters_2}
+u_g   = 0.
+v_g   = 0.
+u_s   = 1.
+f_0   = 1e-4
+z_bot = -3e3
+z_top = 0
+K_m   = 5
+```
+
+```{r setup_for_numerical_solution_2}
+n_sol = 101 # 11 was the starting value
+dz_sol = (z_top - z_bot) / (n_sol-1)
+z_sol = seq(z_bot, z_top, dz_sol)
+u_sol = rep(0, n_sol)
+v_sol = rep(0, n_sol)
+```
+
+```{r numerical_implementation_solution_2}
+M = matrix(0, nrow=n_sol*2, ncol=n_sol*2)
+v = rep(0, n_sol*2)
+K = K_m * rep(1, n_sol-1)
+n = n_sol
+
+# Set the deep water to Neumann.
+M[1, 1] = M[1, 1] - 1.
+M[1, 2] = M[1, 2] + 1.
+M[n+1, n+1] = M[2*n, 2*n-1] - 1.
+M[n+1, n+2] = M[2*n, 2*n  ] + 1. 
+
+# Set the diffusion in the matrix.
+for (i in 2:(n-1))
+{
+  for (j in 0:1)
+  {
+    ii = i+j*n
+    M[ii,ii-1] = M[ii,ii-1] + K[i-1]/dz_sol**2
+    M[ii,ii  ] = M[ii,ii  ] - (K[i-1] + K[i])/dz_sol**2
+    M[ii,ii+1] = M[ii,ii+1] + K[i]/dz_sol**2
+  }
+}
+            
+# Set the coriolis force and pressure gradient in the matrix.
+for (i in 1:n)
+{
+  ii = i+n
+  M[i,ii] = M[i ,ii] + f_0
+  M[ii,i] = M[ii, i] - f_0
+  v[i ] = v[ i] + f_0*v_g
+  v[ii] = v[ii] - f_0*u_g
+}
+
+# Dirichtlet at water level.
+M[n, n-1] = 1.
+M[2*n, 2*n] = 1.
+v[  n] = u_s
+v[2*n] = 0.
+
+sol = solve(M,v)
+u_sol[] = sol[1:n]
+v_sol[] = sol[(n+1):(2*n)]
+```
+
+```{r message=FALSE, warning=FALSE}
+ref_line_u = list(color='black', dash='dot' , width=1.5)
+ref_line_v = list(color='black', dash='dash', width=1.5)
+p = plot_ly()
+p = add_trace(p, x=u_sol, y=z_sol, name="u", mode="lines")
+p = add_trace(p, x=v_sol, y=z_sol, name="v", mode="lines")
+p
+```
+
+```{r message=FALSE, warning=FALSE}
+p = plot_ly()
+p = add_trace(p, x=u_sol, y=v_sol, name="spiral", mode="lines")
+p
+```
+</div>
