@@ -79,7 +79,7 @@ z_ref[1] = z0
 # READ THE REST OF THE INSTRUCTIONS BEFORE YOU START IMPLEMENTING :).
 </div>
 
-<div class="answer"
+<div class="answer">
 ```{r rhs}
 calc_rhs = function(xyz)
 {
