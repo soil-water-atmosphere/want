@@ -52,7 +52,7 @@ First of all, make sure you have the package FVFE1D installed (available on Blac
 *  Learning the steps to set up a numerical model (stationary, spatial 1D) (sections [Mathematical model setup], [Solving and checking convergence] _exercise 3-11,3_ and section [Model setup] _exercise 3,4_ ).
 *	 Understanding the concepts of internal and external fluxes; applying different forms of these fluxes (sections [Internal flux], [Mathematical model setup] _exercise 1,2,8_ and section[**Extra Assignment**: Including a radiative cooling sink] _exercise 10_ )
 *  Understanding the difference between linear and nonlinear internal flow functions (section [Type 2 internal flow] _exercise 22,23_)*
-*  Evaluating the model results by checking convergence, analytical solutions and water/heat balances (sections [Solving and checking convergence], [Comparing with the analytical solution], [Examining the water balance] _exercise 11, 12, 14, 15_ and sections [Testing different resolutions], [**Exta assignment**: Surface flux as a Cauchy/Robin boundary] _exercise 5,14_)
+*  Evaluating the model results by checking convergence, analytical solutions and water/heat balances (sections [Solving and checking convergence], [Comparing with the analytical solution], [Examining the water balance] _exercise 11, 12, 14, 15_ and sections [Testing different resolutions], [**Extra assignment**: Surface flux as a Cauchy/Robin boundary] _exercise 5,14_)
 *  Working with spatially varying parameters (section [A non-uniform kD field] _exercise 20,21_)
 * Test the effect of spatial resolution on model results (section [Testing different resolutions], [Stratification-dependent diffusivity] _exercise 5,6_)
 * Applying different kinds of boundary conditions (section [Adding a Cauchy Boundary Condition] _exercise 18,19_ and section [**Extra Assignment**: Surface flux as a Cauchy/Robin boundary] _exercise 13_)
@@ -743,10 +743,11 @@ For $D=5$ m, the linear and nonlinear method give about the same result. When yo
 ## Introduction
 Because the emissivity of the Earth's surface is usually higher than the emissivity of the air layers aloft, the Earth's surface emits more longwave radiation than it receives from the overlying atmosphere. As a result, after sunset, the Earth's surface starts to cool, and this cooling is faster than the cooling of the overlying atmospheric air layers. The enhanced cooling of the surface as compared to the adjacent air layers leads to downward transport of heat from the atmosphere to the surface. This downward heat flux extracts energy from the atmosphere, implying that subsequently air layers close to ground start to cool as well. The successive cooling of the atmospheric layers lead to profiles of (potential) temperature in the so-called stable boundary layer (SBL) as illustrated below.    
 
-<div align="center">
-![](potentialT_height.png)   
-Figure 3: profiles of potential temperature in the Atmospheric Boundary Layer.
-</div>
+```{r potentialH, fig.align='center', fig.cap='profile of potential temperature in the Atmospheric Boundary Layer.',echo=FALSE}
+knitr::include_graphics('potentialT_height.png')
+```
+
+
 
 The transport of heat through the atmosphere towards the surface can be modelled in a similar way as the groundwater system from the previous assignment. You will build a 1D, stationary model to simulate vertical heat flow. Here, the potential temperature $\theta$ [K] is the state variable. The *potential temperature* of a parcel of air is the temperature it would have at a standard (surface) pressure (see also http://glossary.ametsoc.org/wiki/Potential_temperature). 
 
@@ -756,7 +757,11 @@ The transport of heat through the atmosphere towards the surface can be modelled
 The **flow domain** has a length of 99.5 m, starting at a height of 0.5 m above the surface and ending at the top of the SBL, which is set at a (fixed) height of 100 m.
 
 The **internal flux** is a flux of energy in the x-direction (height). This is calculated using Fick's law with a so-called eddy diffusivity:
-$$ Q=-K_{eddy} \frac{\partial\theta}{\partial x} $$
+\begin{equation}
+Q=-K_{eddy} \frac{\partial\theta}{\partial x}
+(\#eq:Fick-eq)
+\end{equation}
+
 where $Q$ is the internal flux (defined positive upwards), $K_{eddy}$ is the eddy diffusivity and $\frac{\partial\theta}{\partial x}$ is the gradient of the potential temperature.
 The eddy diffusivity can be calculated as: 
 $$ K_{eddy}=ku_* x$$
@@ -867,7 +872,11 @@ plot(Meteo_1Dmodel,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 ## Testing different resolutions
 In this section you will test how the nodal spacing affects the solution of the model.   
 Like the groundwater case, this system also has an analytical solution:
-$$  \theta(x)=290+\frac{(295-290)}{\ln(100/0.03)} \ln(\frac{x}{0.03}) $$
+\begin{equation}
+\theta(x)=290+\frac{(295-290)}{\ln(100/0.03)} \ln(\frac{x}{0.03})
+(\#eq:analyt)
+\end{equation}
+
 <div class="exercise"> 
 5. Make a plot to compare the numerical results to the analytical solution. You can use `dataframe.states` to get a dataframe of the resulting states, that you can plot the way you like it. Then set the nodal spacing to 20 m and compare again. What is your conclusion? 
 </div>
@@ -903,11 +912,20 @@ Clearly, a nodal distance of 20 m is too coarse for this case. If you try out di
 
 ## Stratification-dependent diffusivity
 In reality, the eddy diffusivity $K_{eddy}$ depends on the stratification of the atmosphere:
-$$ K_{eddy}=\frac{ku_*x}{1+5 x/MOL} $$
+\begin{equation}
+K_{eddy}=\frac{ku_*x}{1+5 x/MOL}
+(\#eq:K-eddy)
+\end{equation}
+
 where MOL is the Monin-Obukhov length in m. The Monin-Obukhov length reflects the temperature stratification of the atmospheric boundary layer, which depends on the surface heat flux (sensible heat from the earth surface).     
 
 The MOL for the surface layer is often calculated as: 
-$$ MOL=-\frac{u_*^3}{k(g/\theta_{ref})(w'\theta')_0} $$
+\begin{equation}
+MOL=-\frac{u_*^3}{k(g/\theta_{ref})(w'\theta')_0}
+(\#eq:MOL-eq)
+\end{equation}
+
+
 where $g$ is the gravitational constant (=9.81 $kg m^2 s^{-1}$), $\theta_{ref}$ is the reference temperature (~ 288 K) and $(w'\theta')_0$ is the energy flux at the surface [Km/s]. 
 
 For more information on the Obukhov length, you can have a look at:
@@ -1069,7 +1087,11 @@ dataframe.balance(Meteo_1Dmodel_sink,c(14,15,16))
 ## **Extra Assignment**: Surface flux as a Cauchy/Robin boundary
 Until now, we have prescribed the BCs as either fixed states or fixed fluxes (exercise 12.3). In many meteorological models however, the surface BC is defined using so-called drag laws. The flux at the surface, a heat flux in our case, is calculated as a drag coefficient times the difference in temperature between the surface and lowest model level:
 
-$$ F_S=C_H (T_S-\theta_1 ) $$
+\begin{equation}
+F_S=C_H (T_S-\theta_1 )
+(\#eq:Robin)
+\end{equation}
+
 
 where $F_S$ is the heat flux between the surface and the lowest model level [K m/s]; $C_H$ is the drag coefficient for heat [m/s], $T_S$ is the surface temperature, and $\theta_1$ is the temperature at the lowest model level. This boundary condition is a Cauchy or Robin BC, where the flux is directly coupled to the state of the variable at the boundary. These BCs can be applied using the function `set.BC.fluxstate()`. 
 
@@ -1128,8 +1150,6 @@ The external fluxes are still equal the boundary fluxes, while the net internal 
 Comments:     
 * The meteo part can use a bit more elaborate introduction for the non-meteo students --> Chiel      
 </div>
-
-Ik verwijs naar de eerste figuur \@ref(fig:1D2rivers)
 
 <!-- include the hint.js -->  
 <script src="hints_B.js"></script>
