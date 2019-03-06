@@ -747,6 +747,19 @@ Because the emissivity of the Earth's surface is usually higher than the emissiv
 knitr::include_graphics('potentialT_height.png')
 ```
 
+<button class="collapsible">Background info</button>
+<div class="content">
+**CHiel hier graag uitleg over dit stromingsprobleem 'for dummies'**  
+_internal flux_  
+
+aanvullend; in assignment 1 "this flux is a flux of energy" met de eenheid is Km/s.  
+
+Is het niet aardig om deze 'energy' in de eenheid terug te 'zien'. M.a.w. hoe kom je van Km/s naar J? Je zal vast constanten moeten gebruiken van vocht en lucht om te berekenen hoeveel energie het kost om zeg 1 $m^3$ lucht 1 graad te verwarmen maar de details mis ik hier een beetje.  
+_external flux_  
+
+_boundary conditions_
+
+</div>
 
 
 The transport of heat through the atmosphere towards the surface can be modelled in a similar way as the groundwater system from the previous assignment. You will build a 1D, stationary model to simulate vertical heat flow. Here, the potential temperature $\theta$ [K] is the state variable. The *potential temperature* of a parcel of air is the temperature it would have at a standard (surface) pressure (see also http://glossary.ametsoc.org/wiki/Potential_temperature). 
