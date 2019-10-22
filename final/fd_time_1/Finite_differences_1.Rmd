@@ -586,15 +586,15 @@ If everything went well, there are two lines in the graph. The grey line is the 
 </span>
 
 # Part 4 - Different integration methods
-So far, you have used the *explicit* integration scheme. This means that information of the current time step is used to calculate the future. In mathematical notation, this sentence can be formulated as:
+So far, you have used the *explicit* integration scheme. This means that information of the current time step is used to calculate the future. In mathematical notation, this sentence can be formulated in a generic way as:
 
-$$\frac{dV}{dt} = A\dfrac{ds}{dt} = f(t, s(t)) \tag{15}$$
+$$\dfrac{ds}{dt} = f(t, s(t)) \tag{15}$$
 However, other methods do exist. In the following sections, you will encounter the implicit, midpoint, and Runge-Kutta time-integration methods that each have their own specific properties.
 
 ## Section 4.1 - Implicit method
-The implicit integration scheme is based on taking the derivative not with the current information, but with the information from the next time-step. In mathematical formulation it looks like this:
+The implicit integration scheme is based on taking the derivative not with the current information, but with the information from the next time-step. In its generic form, it is:
 
-$$\frac{dV}{dt} = A\dfrac{ds}{dt} = f(t+\Delta t, s(t + \Delta t)) \tag{16}$$
+$$\dfrac{ds}{dt} = f(t+\Delta t, s(t + \Delta t)) \tag{16}$$
 The difference between explicit and implicit is explained best with a couple of graphs. The first graph shows the explicit method. The grey lines show the derivative field, the rate of change. In the explicit solution you following the line found at the current point for one time-step. This will overshoot the answer in this case but with the second time-step the approximation comes close to the real solution given in red.
 
 ![](vectorfield_explicit.png)
@@ -689,9 +689,7 @@ As you can see in the implementation of the both the explicit and the implicit i
 The system that we are studying is represented by an exponential function with a negative exponenent. Therefore, its gradient decreases over time until it approaches zero. The explicit scheme evaluates the gradient at the beginning of a time step (thus at $t$), whereas the implicit method evaluates the gradient at the end of the time step $t + \Delta t$. The true value of the slope is in between the explicit and implicit evaluation of the gradient. Therefore the former is always below the true solution, whereas the latter is below.
 </span>
 
-<span class="comment">I am not very satisfied with the answer yet, but don't know how to formulate it better</span>
-
-Midpoint methods calculate the solution in two steps and exist in many variants. The midpoint method that you will use, tries to combine the explicit and implicit methods and aims to keep the good properties of both. First, the method takes half a time-step using the explicit method, and subsequently the implicit method will be used for the second half step. In mathematical formulation it works as follows:
+Midpoint methods calculate the solution in two steps and exist in many variants. The midpoint method that you will use, tries to combine the explicit and implicit methods and aims to keep the good properties of both. First, the method takes half a time-step using the explicit method, and subsequently the implicit method will be used for the second half step. In its generic mathematical formulation it works as follows:
 
 $$\widetilde{s} = s(t) + \frac{\Delta t}{2} \ f(t,s(t)) \tag{17}$$
 $\tilde{s}$ is the midpoint. Then we calculate s at $t+\Delta t$:
@@ -702,31 +700,11 @@ $$s(t+\Delta t) = \widetilde{s} + \frac{\Delta t}{2} \ f(t+\Delta t,s(t+\Delta t
 
 In comparison with the implicit and explicit schemes, the midpoint method converges faster. It is also twice as expensive to run since it creates a temporary midpoint for calculation. It is, however, often worth the investment in time and effort.
 
-<span class="question"> 
-4.2.2 Copy the chunk with the implicit scheme here. To make the code more readable the following function can be added to the code (before the `sys.fun` function). This function performs the explicit half step. In the emptying bucket with input this formula looks as follows:
-
-$$ g_{explicit}(t,s(t)) = \widetilde{s} = s(t) + \dfrac{dt}{2A}((\sin(t) + 1) - \alpha s(t)) \tag{19}$$
-```{}
-g_explicit = function(time, state){
-  return(state + dt/(2*A)*((sin(time)+1)-alpha*state))
-}
-```
-
-a similar function `g_implicit` can be added for the implicit part of the step
-
-</span>
-
-<span class="comment">
-g_implicit and g_explicit step might be combined in one single formula, but this is easier to oversee.
-</span>
-
 <span class="question">
-4.2.3 Update the `sys.fun` function to implement the midpoint method. Use the function given in question 4.2.2 as a starting point.
+4.2.2 Update the `sys.fun` function to implement the midpoint method. You can choose yourself whether you want to do it in two steps, or to do a direct calculation.
 </span>
 
 <span class="answer">
-
-<span class="comment"> Is this the best way to implement the midpoint scheme? </span>
 
 ```{r Midpoint}
 rm(list=ls())
@@ -790,11 +768,10 @@ while(time < end.time)
 }
 lines(result.time,result.state,type='o',col='blue')
 ```
-
 </span>
 
 <span class="question">
-4.2.4 Does this midpoint method converge faster or slower than the previous explicit and implicit method?
+4.2.3 Does this midpoint method converge faster or slower than the previous explicit and implicit method?
 </span>
 
 <span class="answer">
@@ -804,11 +781,7 @@ faster
 This can be proven mathematically. If you are up for the challenge, open **Exercise 4** of `Finite_differences_1_extended.Rmd`.
 
 ## Section 4.3 - Runge-Kutta method
-For many applications, the best compromise between calculation time and numerical accuracy is the Runge-Kutta 4 (RK4) numerical approximation. RK4 is an explicit method. As seen before explicit methods are much easier to define because the formula(s) don't need reworking before implementation. RK4, Instead of one intermediate or auxiliary state value (Midpoint), uses four intermediate function evaluations:
-
-<span class="comment">
-Is this correct and readable?
-</span>
+For many applications, the best compromise between calculation time and numerical accuracy is the Runge-Kutta 4 (RK4) numerical approximation. RK4 is an explicit method. As seen before explicit methods are much easier to define because the formula(s) don't need reworking before implementation. RK4 uses four intermediate function evaluations, compared to the two evaluations that we used in the midpoint method.
 
 $$
 \begin{matrix}\tag{20}
@@ -1131,7 +1104,7 @@ Its practical use may for example be found in meteorology, where you could have 
 
 *Double piped reservoir with both outlets active (left) and with lower outlet active (right).*  
 
-Depending on the state of the reservoir, the discharge out of the upper outlet is active or inactive and depends on the exact location of the upper outlet. In simple terms, this means that if the water-level is high enough it can come out at the upper outlet (left image). If the water level is lower than the upper outlet the outlet becomes inactive (right image).
+Depending on the state of the reservoir, the discharge out of the upper outlet is active or inactive and depends on the exact height of the upper outlet $\textit{level}_{res,up}$. In simple terms, this means that if the water-level is high enough it can come out at the upper outlet (left image). If the water level is lower than the upper outlet the outlet becomes inactive (right image).
 
 For this situation, we will still use the same equation for the outflows: $Q_{out}=\alpha*H$, where H is the height of water above the outlet. Note that before we used only a lower outlet, located at the bottom of the reservoir, so that $H = s$ and $Q_{out}=\alpha*s$. For the upper outlet, H depends on the height of the outlet pipe. Besides a different height, the two outlets might also have a different $\alpha$.
 
