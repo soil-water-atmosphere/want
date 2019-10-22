@@ -35,8 +35,8 @@ The first model that you will study, is that of an emptying bucket (see Figure).
 *Sketch of the emptying bucket*
 
 This system can be represented by the following ODE:
-$$ \dfrac{ds(t)}{dt} = -\alpha s(t) \tag{1}$$
-This equation shows that change in the state variable $s$, in this case the water level, is proportional to the water level itself, multiplied with a positive constant $\alpha$ that describes the properties of the outlet. The larger $\alpha$, the easier water can flow out of the reservoir. Later in this tutorial, you will derive this model in detail, but first you will learn about its basic properties.
+$$ \dfrac{ds(t)}{dt} = -c_0 s(t) \tag{1}$$
+This equation shows that change in the state variable $s$, in this case the water level, is proportional to the water level itself, multiplied with a positive constant $c_0$ that is a lumped variable that represents the outlet properties (area and friction coefficient) and the conversion factor from volume to height changes. For now, it is important to know that the larger $c$, the easier water can flow out of the reservoir. Later in this tutorial, you will derive this model from first principles taking into account all relevant parameters, but first you will learn about its basic properties, and the discretization of the equation.
 
 The mathematical definition of a **time derivative of** the function $s(t)$ is as follows
 
@@ -55,8 +55,8 @@ With equation 3, we can build models in which we can approximate the value of th
 </span>
 
 <span class="answer">
-$$ s(t+\Delta t) = s(t) - \Delta t *\alpha  s(t) \tag{4}$$
-$$ s(t+\Delta t) = s(t)(1-\alpha \Delta t) \tag{5}$$
+$$ s(t+\Delta t) = s(t) - \Delta t\,c_0\,s(t) \tag{4}$$
+$$ s(t+\Delta t) = s(t)(1-c_0 \Delta t) \tag{5}$$
 </span>
 
 <span class="question">
@@ -66,14 +66,14 @@ $$ s(t+\Delta t) = s(t)(1-\alpha \Delta t) \tag{5}$$
 <span class = "answer">
 $$
 \begin{align}\tag{6}
-ds &= -as \ dt\\
-\dfrac{1}{-as} ds &= dt\\
-\int \dfrac{1}{-as} ds &= \int dt\\
-\dfrac{1}{-a} \int \dfrac{1}{s} ds &= \int dt\\
-\dfrac{\ln(s)}{-a} &= t + C\\
-\ln(s) &= -at - aC\\
-s &= \mathrm{e}^{-aC}\mathrm{e}^{-at}\\
-s &= s_{0}\mathrm{e}^{-at}
+ds &= -c_0 s \ dt\\
+\dfrac{1}{-c_0 s} ds &= dt\\
+\int \dfrac{1}{-c_0 s} ds &= \int dt\\
+\dfrac{1}{-c_0} \int \dfrac{1}{s} ds &= \int dt\\
+\dfrac{\ln(s)}{-c_0} &= t + C\\
+\ln(s) &= -c_0 t - c_0 C\\
+s &= \mathrm{e}^{-c_0 C}\mathrm{e}^{-c_0 t}\\
+s &= s_{0}\mathrm{e}^{-c_0 t}
 \end{align}
 $$
 </span>
@@ -97,7 +97,7 @@ sys.fun = function(state)
 ```{r chunk1_answer}
 sys.fun = function(state)
 {
-    newstate = state*(1-alpha*dt)
+    newstate = state*(1-c0*dt)
     return(newstate)
 }
 ```
@@ -111,7 +111,7 @@ begin.time = 0     # usually this variable is set to 0
 end.time   = 50    # end time of the simulation (50)
 dt         = 0.1   # delta t; time discretisation (0.1)
 init.state = 3     # state of the system at the beginning of the simulation (3)
-alpha      = 0.25  # decay constant (0.25)
+c0         = 0.25  # decay constant (0.25)
 
 # Simulation initialisation
 time = begin.time
@@ -129,7 +129,7 @@ while(time < end.time)
 }
 
 # Plotting
-plot(result.time,result.state,type='o', xlab="time", ylab="state")
+plot(result.time, result.state,type='o', xlab="time", ylab="state")
 title(main='Emptying reservoir')
 grid()
 ```
@@ -144,9 +144,9 @@ For small values of `dt` run-time will be significantly higher and can become im
 </span>
 
 <span class="question">
-1.2.4 Reset `dt` to 0.1 and vary alpha between 0.25 and 25. Describe for `alpha` 0.25, 5, 10, 15, 20, 25 whether the simulation is physically correct, converging (approximation and exact solution advance to the same, or at least roughly the same, solution) and stable, and explain why, with the help of the equation that calculates the next state. 
+1.2.4 Reset `dt` to 0.1 and vary `c0` between 0.25 and 25. Describe for `c0` 0.25, 5, 10, 15, 20, 25 whether the simulation is physically correct, converging (approximation and exact solution advance to the same, or at least roughly the same, solution) and stable, and explain why, with the help of the equation that calculates the next state. 
 
-$\alpha$ | physically correct | convergent | stability | explanation 
+$c_0$ | physically correct | convergent | stability | explanation 
 ---------| ------------------ | ---------- | --------- | ----------- 
 0.25     | | | |  
 5        | | | | 
@@ -154,17 +154,16 @@ $\alpha$ | physically correct | convergent | stability | explanation
 15       | | | |  
 20       | | | |  
 25       | | | |  
-
 </span>
 
 <span class="answer">
 
-$\alpha$ | physically correct | convergent | stability | explanation 
+$c_0$ | physically correct | convergent | stability | explanation 
 ---------| ------------------ | ---------- | --------- | ----------- 
 0.25 | correct | converging | stable |  
 5 | correct |  converging | stable | 
 10 | correct |  converging | stable |  
-15 | incorrect |  converging | stable | solution becomes negative because alpha*dt goes under 1 
+15 | incorrect |  converging | stable | solution becomes negative because `c0*dt` goes under 1 
 20 | incorrect | not converging | (un)stable | solution does not go to zero as it should be continues jumping between -3 and 3
 25 | incorrect | not converging | unstable | solution goes to infinity 
 
@@ -184,7 +183,7 @@ begin.time = 0     # usually this variable is set to 0
 end.time   = 50    # end time of the simulation (50)
 dt         = 5     # delta t; time discretisation (0.25)
 init.state = 3     # state of the system at the beginning of the simulation (3)
-alpha      = 0.25  # decay constant (0.25)
+c_0        = 0.25  # decay constant (0.25)
 
 # Simulation initialisation
 time = begin.time
@@ -204,7 +203,7 @@ while(time < end.time)
 # Plotting
 plot(result.time, result.state, type='o', col="blue", xlab="time", ylab="state")
 time.sequence = seq(begin.time,end.time, by=0.1)
-analyt.state=init.state * exp(-time.sequence*alpha)
+analyt.state=init.state * exp(-time.sequence*c0)
 lines(time.sequence, analyt.state, col='grey', lwd=2)
 title(main='Numerical and analytical solution compared')
 grid()
