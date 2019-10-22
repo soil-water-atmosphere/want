@@ -82,7 +82,7 @@ $$ \dfrac{2\Delta x^{3}}{3!} \dfrac{d^{3}s}{dx^{3}} \frac{1}{2\Delta x} = \dfrac
 In order to visualize the effects of the three different approximations, you will now implement each of them for an example containing a *standing wave*. You will compute the derivatives of $s(x) = \sin(x)$. This you will do for each of the three methods: forward, backward, and centered.
 
 <div class="exercise">
-1.2.3 Implement the calculations for the three different methods below.
+1.2.3 Implement the calculations for the three different methods below. You can construct a loop over all elements, or write out the expression directly using ranges (for instance `dsdx.forward[1:(length(s)-1)]) = ...`)
 <br><br>
 1.2.4 Which of the three methods performs the best?
 <br><br>
@@ -1132,7 +1132,7 @@ grid()
 # Part 4: Solving equations using matrix inversions.
 Before solving the advection diffusion equation directly, you will learn how to combine the spatial operators and the matrix inversion that you have learned before. 
 
-Imagine now, that rather than knowing the state $s(x)$ of the system, you know the values of the first derivative at each node. Assuming that the value of the derivative is given by $\cos(x)$, we can invert the system to acquire the values of $s(x)$ at each node. Let us assume, we use the forward differencing operator as worked out in *exercise 3.1.2*.
+Imagine now, that rather than knowing the state $s(x)$ of the system, you know the values of the first derivative at each node. Assuming that the value of the derivative is given by $\cos(x)$, we can invert the system to acquire the values of $s(x)$ at each node. Use the **forward operator** as worked out in *exercise 3.1.2*.
 
 We can now define the system as a set of equations in the form
 $$
@@ -1252,7 +1252,7 @@ Esther: Giving it is ok I think, it is not the most important message here
 
 ## Section 5.2 - Implementation with Dirichlet boundary conditions
 <div class="exercise">
-5.2.1 Work out (pen and paper or $\LaTeX$) the stationary advection-diffusion equation (given at the beginning of this section) with 5 nodes (n=5) and two Dirichlet boundaries (left=0 and right=1) in the following notation:
+5.2.1 Work out (pen and paper or $\LaTeX$) the stationary advection-diffusion equation (given at the beginning of this section) with 5 nodes (n=5) and two Dirichlet boundaries (left=0 and right=1) in the notation below. Use a centered derivative for the first derivative in the advection term.
 
 $$
 \begin{bmatrix}
@@ -1261,7 +1261,7 @@ M_{1,1}&&\dots&&M_{1,n}\\
 \vdots&&\ddots&&\vdots\\
 &&&&\\
 M_{n,1}&&\dots&&M_{n,n}\\
-\end{bmatrix} * 
+\end{bmatrix} \cdot 
 \begin{bmatrix}
 s_1\\
 s_2\\
@@ -1284,11 +1284,11 @@ TIP: remember that a boundary condition is just an equation that replaces one in
 $$
 \begin{bmatrix}
 1&.&.&.&.\\
--\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.&.\\
-.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.\\
-.&.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}\\
+\frac{u}{2dx} + \frac{D}{dx^2}&-\frac{2D}{dx^2}&-\frac{u}{2dx} + \frac{D}{dx^2}&.&.\\
+.&\frac{u}{2dx} + \frac{D}{dx^2}&-\frac{2D}{dx^2}&-\frac{u}{2dx} + \frac{D}{dx^2}&.\\
+.&.&\frac{u}{2dx} + \frac{D}{dx^2}&-\frac{2D}{dx^2}&-\frac{u}{2dx} + \frac{D}{dx^2}\\
 .&.&.&.&1
-\end{bmatrix} * 
+\end{bmatrix} \cdot 
 \begin{bmatrix}
 s_1\\
 s_2\\
@@ -1326,9 +1326,9 @@ M     = matrix(0, nrow=length(xcoor), ncol=length(xcoor))
 
 for(j in 2:(length(xcoor)-1))
 {
-  M[j,j-1] = -u/(2*dx) - D/(dx^2)
-  M[j,j  ] = 2*D/(dx^2)
-  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  M[j,j-1] = u/(2*dx) + D/(dx^2)
+  M[j,j  ] = -2*D/(dx^2)
+  M[j,j+1] = -u/(2*dx) + D/(dx^2)
   v[j]     = 0
 }
 
@@ -1365,9 +1365,9 @@ M     = matrix(0, nrow=length(xcoor), ncol=length(xcoor))
 
 for(j in 2:(length(xcoor)-1))
 {
-  M[j,j-1] = -u/(2*dx) - D/(dx^2)
-  M[j,j  ] = 2*D/(dx^2)
-  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  M[j,j-1] = u/(2*dx) + D/(dx^2)
+  M[j,j  ] = -2*D/(dx^2)
+  M[j,j+1] = -u/(2*dx) + D/(dx^2)
   v[j]     = 0
 }
 
@@ -1423,12 +1423,11 @@ M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor))
 
 for(j in 2:(length(xcoor)-1))
 {
-  M[j,j-1] = -u/(2*dx) - D/(dx^2)
-  M[j,j  ] = 2*D/(dx^2)
-  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  M[j,j-1] = u/(2*dx) + D/(dx^2)
+  M[j,j  ] = -2*D/(dx^2)
+  M[j,j+1] = -u/(2*dx) + D/(dx^2)
   v[j]     = 0
 }
-
 # Left boundary
 M[1,1] = 1
 v[1]   = bl
@@ -1493,9 +1492,9 @@ and inserted in the matrix:
 $$
 \begin{bmatrix}
 1&.&.&.&.\\
--\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.&.\\
-.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}&.\\
-.&.&-\frac{u}{2dx} - \frac{D}{dx^2}&\frac{2D}{dx^2}&\frac{u}{2dx} - \frac{D}{dx^2}\\
+\frac{u}{2dx} + \frac{D}{dx^2}&-\frac{2D}{dx^2}&-\frac{u}{2dx} + \frac{D}{dx^2}&.&.\\
+.&\frac{u}{2dx} + \frac{D}{dx^2}&-\frac{2D}{dx^2}&-\frac{u}{2dx} + \frac{D}{dx^2}&.\\
+.&.&\frac{u}{2dx} + \frac{D}{dx^2}&-\frac{2D}{dx^2}&-\frac{u}{2dx} + \frac{D}{dx^2}\\
 .&.&.&-1&1
 \end{bmatrix} * 
 \begin{bmatrix}
@@ -1541,9 +1540,9 @@ M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor))
 
 for(j in 2:(length(xcoor)-1))
 {
-  M[j,j-1] = -u/(2*dx) - D/(dx^2)
-  M[j,j  ] = 2*D/(dx^2)
-  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  M[j,j-1] = u/(2*dx) + D/(dx^2)
+  M[j,j  ] = -2*D/(dx^2)
+  M[j,j+1] = -u/(2*dx) + D/(dx^2)
   v[j]     = 0
 }
 
@@ -1578,9 +1577,9 @@ M     = matrix(0,nrow=length(xcoor),ncol=length(xcoor))
 
 for(j in 2:(length(xcoor)-1))
 {
-  M[j,j-1] = -u/(2*dx) - D/(dx^2)
-  M[j,j  ] = 2*D/(dx^2)
-  M[j,j+1] = u/(2*dx) - D/(dx^2)
+  M[j,j-1] = u/(2*dx) + D/(dx^2)
+  M[j,j  ] = -2*D/(dx^2)
+  M[j,j+1] = -u/(2*dx) + D/(dx^2)
   v[j]     = 0
 }
 
