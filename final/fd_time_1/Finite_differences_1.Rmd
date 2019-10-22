@@ -222,8 +222,8 @@ Around `dt = 1` the analytical solution and the numerical approximation come qui
 
 # Part 2 - Taylor series
 ## Section 2.1 - Introduction of Taylor Series 
-The previous exercise can also be done in a more formal way, such that the error of the numerical approximation can be calculated. For that you will make use of **Taylor series**. Taylor series (https://en.wikipedia.org/wiki/Taylor_series) can be used to make approximations of complex mathematical functions using extrapolation. 
-<span class="comment">**[LM]** expansion</span>
+The previous exercise can also be done in a more formal way, such that the error of the numerical approximation can be calculated. For that you will make use of **Taylor series**. Taylor series (https://en.wikipedia.org/wiki/Taylor_series) can be used to make approximations of complex mathematical functions using expansion. 
+
 If you use an infinite series, the approximation is exact. The finite difference approximation that you have derived earlier, can also be derived using a Taylor series. **TIP**: if you are unfamiliar with this topic or you simply want a refresher, you can watch the following video by *3Blue1Brown*: https://www.youtube.com/watch?v=3d6DsjIBzJ4
 
 The mathematical definition of a Taylor series is as follows:
@@ -406,7 +406,8 @@ plot(time, sin(time)+1, type='o', xlab="time", ylab="state")
 This time, you will derive the emptying reservoir model a bit more rigorously. The amount water stored in the reservoir is the volume $V$. The change in volume over time is equal to the influx $Q_{in}$ minus the outflux $Q_{out}$:
 
 $$\frac{dV}{dt} = Q_{in} - Q_{out} \tag{14}$$
-The volume of the bucket, $V$, can be replaced by the area times the height: $A\ s(t)$. The outflux is calculated as the reservoir constant $\alpha$ multiplied with the (current) water level $s(t)$. The earlier model that you used in Part 1 and 2 was a simplification of this model, with $Q_{in}$ equals 0 and A equals unity.
+The volume of the bucket, $V$, can be replaced by the area times the height: $A\ s(t)$. The outflux is calculated as the reservoir constant $\alpha$ multiplied with the (current) water level $s(t)$. Reservoir constant $\alpha$ is proportional to the area of the outlet and inversely proportional to the friction.
+The earlier model that you used in Part 1 and 2 was a simplification of this model, with $Q_{in}$ equals 0 and A equals unity.
 
 <span class="question">
 3.1.0 What are the units of $V$, $Q_{in}$, $A$ and $\alpha$? Do the units of the equation match?
@@ -418,7 +419,7 @@ $$
 V &=& [m^3] &&=&& [L^3]\\
 Q_{in} &=& [m^3s^{-1}] &&=&& [L^3T^{-1}]\\
 A &=& [m^2] &&=&& [L^2]\\
-\alpha &=& [s^{-1}] &&=&& [T^{-1}]
+\alpha &=& [m^2 s^{-1}] &&=&& [L^2 T^{-1}]
 \end{align}
 $$
 which is consistent with both the numerical approximation and the analytical solution.
@@ -685,7 +686,7 @@ As you can see in the implementation of the both the explicit and the implicit i
 </span>
 
 <span class="answer">
-Most natural systems have a negative feedback on themselves. In this case, the smaller the volume in the reservoir, the lower the outflux is. When taking the derivative at $t$, the outflux will, by definition, be higher than in reality because of this decay in outflux. $t+\Delta t$ will have a lower outlfux at the beginning of the step than in the 'real' situation.
+The system that we are studying is represented by an exponential function with a negative exponenent. Therefore, its gradient decreases over time until it approaches zero. The explicit scheme evaluates the gradient at the beginning of a time step (thus at $t$), whereas the implicit method evaluates the gradient at the end of the time step $t + \Delta t$. The true value of the slope is in between the explicit and implicit evaluation of the gradient. Therefore the former is always below the true solution, whereas the latter is below.
 </span>
 
 <span class="comment">I am not very satisfied with the answer yet, but don't know how to formulate it better</span>
