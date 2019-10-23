@@ -64,9 +64,9 @@ $$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\par
 If you are in for a **challenging** assignment, you can open **Exercise 1** from the `Finite_difference_3_extended.Rmd` markdown.
 
 ### Discretisation
-The first step in the discretisation is choosing the differencing scheme for the time and space derivatives. An often used approach is the forward in time and central in space scheme (FTCS scheme). We will follow that scheme here.
+The first step in the discretisation is choosing the differencing scheme for the time and space derivatives. An often used approach is the explicit in time and central in space scheme (FTCS scheme). We will follow that scheme here.
 
-First, we apply the forward scheme in time (first in the original notation and then in the short notation of section 1.1):
+First, we apply the explicit scheme in time (first in the original notation and then in the short notation of section 1.1):
 $$
 \dfrac{ds}{dt} = \dfrac{s(x, t+\Delta t) - s(x, t)}{\Delta t} = f(x,t,s(x,t))\\
 \dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = f(x,t,s(x,t))
@@ -151,7 +151,7 @@ $$
 ## Section 2.2 - Setting up the program
 In the time practical, all calculations required an initial state to calculate the future time-steps. To solve an equation in space and time, exactly the same initial state is needed. The difference is, however, that a state on all locations needs to be given. The initial state is therefore a vector. 
 
-In this tutorial, we choose a Gaussian as an initial state vector for the advection-diffusion equation, because of its ability to show the performance of a numerical scheme visually. This could be thought of as a pulse going through the system.
+In this tutorial, we choose a Gaussian bell as an initial state vector for the advection-diffusion equation, because of its ability to show the performance of a numerical scheme visually. This could be thought of as a pulse going through the system.
 
 <div class="exercise">
 2.2.1 Run the following chunk and plot the `init.state` variable. 
