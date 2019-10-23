@@ -322,6 +322,10 @@ u|D|$\Delta t$|$\Delta x$| Scheme|Von Neumann number (V) |Courant number (C)|Cla
 1|1|1  |2.5|Implicit|.|.|.|
 1|1|1  |2.5|Explicit|.|.|.|
 
+```{r advection_diffusion_app, eval=F, echo=F}
+
+```
+
 ```{R advection_diffusion_app, eval=F, echo=F}
 rm(list=ls())
 library(plotly)
@@ -342,7 +346,7 @@ solve_ad = function(domain=c(0,100),
                       exp(-(x-domain[2]/2)^2/2^2)
                     },
                     delay = 200
-                    ){
+){
   # omega = 1   , explicit
   # omega = 0   , implicit
   # omega = 0.5 , CN
@@ -540,7 +544,7 @@ ui <- fluidPage(
       
     )
   )
-)
+    )
 
 server <- function(input, output) {
   output$p  = renderPlotly({solve_ad(dt      = input$dt,
