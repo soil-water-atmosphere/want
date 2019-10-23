@@ -12,7 +12,7 @@ output:
     toc_depth: '2'
 ---
 <!-- include the hint.js -->
-<script src="hints.js"></script>
+<!-- <script src="hints.js"></script> -->
 
 # Introduction
 Here, you will combine the topics of the previous two assignments. Until now, you have dealt with systems that have a state that is a function of time $s(t)$, such as the emptying reservoir, and with systems that are steady state in time but vary in space $s(x)$, such as the stationary advection-diffusion equation. Now, you will analyze systems that have a state that varies in time and in space $s(x,t)$.
@@ -79,7 +79,7 @@ $$
 $$
 
 <div class="exercise">
-2.1.1 Complete the equation above by using the central scheme for both the first and second order derivative in space. 
+2.1.1 Replace function $f$ in the equation above by the right-hand side of the advection diffusion equation. Use the central scheme for both the first and second-order derivative in space. 
 </div>
 
 <div class="answer">
@@ -182,15 +182,32 @@ init.state  = initfun(x)
 </div>
 
 <div class="exercise">
-2.2.2 Construct the matrix and invert it. Make use of the coefficients `a`, `b` and `c` defined in section 2.1.
+2.2.2 Construct the matrix and invert it. You can do it first on paper and then implement it into the chuck below. TIP: You can make use of the coefficients `a`, `b` and `c` to define simpler code, but it is not required.
 </div>
 
-<div class="answer">
-```{R matrix_construction}
+<div class="student_answer">
+```{R matrix_construction, eval=F}
 # MATRIX CONSTRUCTION
 M = matrix(0,nrow=N,ncol=N)
 
-# For now a dirichlet boundary is used for the solution
+# Fill in a dirichlet boundary conditions for the solution.
+
+# Construct a loop to fill the matrix
+for(XXX)
+{
+  XXX
+}
+
+Minv = solve(M)
+```
+</div>
+
+<div class="answer">
+```{R matrix_construction_student}
+# MATRIX CONSTRUCTION
+M = matrix(0,nrow=N,ncol=N)
+
+# Fill in a dirichlet boundary conditions for the solution.
 M[1,1] = 1
 M[N,N] = 1
 a      = (omega-1) * ( u/(2*dx) +   D/dx^2 )
@@ -305,7 +322,7 @@ u|D|$\Delta t$|$\Delta x$| Scheme|Von Neumann number (V) |Courant number (C)|Cla
 1|1|1  |2.5|Implicit|.|.|.|
 1|1|1  |2.5|Explicit|.|.|.|
 
-```{R advection_diffusion_app, eval=F,echo=F}
+```{R advection_diffusion_app, eval=F, echo=F}
 rm(list=ls())
 library(plotly)
 library(shiny)
