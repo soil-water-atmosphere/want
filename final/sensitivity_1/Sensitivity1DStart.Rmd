@@ -48,11 +48,45 @@ These are the specifics for the model:
 ## Run the model
 - Solve and run the model
 
+<details>
+  <summary>Show how to set-up the model</summary>
+```{r, eval=FALSE}
+# Domain
+ domain = c(0,500) 
 
-<div class="hint">
-<button type="button" onclick="showHint(1)">Show how to set-up the model</button>
-<p id="Q1"> </p>
-</div>
+# Internal flux
+kDl = 55
+kDr = 35
+kD.fun = approxfun(domain,c(kDl,kDr)) #gives a (linear) function for the transmissivity
+# caution: every time you change kDl or kDr you have to rerun this function
+internal.flux = function(x,state,gradstate) 
+  {
+  return(-kD.fun(x)*gradstate)
+  }
+
+# Define the model
+GWmodel = newFLOW1D(domain,internal.flux) 
+set.name(GWmodel,"base run")
+
+# External fluxes
+P = 0.001
+add.spatialflux(GWmodel,"P","recharge")
+Qwell = -0.35
+add.pointflux(GWmodel,at = 275, value= 'Qwell',name = 'well')
+
+# Set boundary conditions
+hl = 1
+set.BC.fixedstate(GWmodel,"left","hl") 
+
+# numerical setup
+nodes = seq(from=domain[1],to=domain[2],length=50) 
+set.discretisation(GWmodel,nodes,"FV")
+
+# run the model
+control = solve.steps(GWmodel)
+plot(GWmodel,fluxplot=TRUE)
+```
+</details>
 
 <div class="answer">
 ```{r}
