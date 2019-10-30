@@ -1,21 +1,25 @@
 ---
-title: "Sensitivity Assignment 1 - 1D systems"
-subtitle: "Determining sensitivities and scales of variation in a 1D groundwater model"
-author: "EB"
-date: "24/09/2018"
+title: "Sensitivity Assignment 1 - Local sensitivity analysis "
+subtitle: "Determining scales of variation and sensitivities"
+author: "EB,LM"
+date: "29/10/2019"
 output:
    html_document:
     css: want.css
     toc: yes
 ---
+<!-- include the hint.js -->
+<script src="hintsSens1.js"></script>
 
 # Learning goals
-*  Performing local and global sensitivity analysis on a simple model *(Exercise 1-3)*
+*  Performing local sensitivity analysis on a simple model *(Exercise 1-3)*
 *  Understanding the influence of the epsilon value on the results of the sensitivity analysis *(Exercise 4,5)*
-*  Understanding the importance of the size of the parameter sample for the results of the sensitivity analysis *(Exercise 6,7)*
+*  Applying local sensitivity analysis in a more complex, 2D system *(Section 2,3)*
+*  Understanding why sensitivity can vary within a domain *(Section 2,3)*
+*  Understanding the effect of a changed base value on the sensitivity analysis *(Section 4)*
 
 # Introduction
-In this practical you will conduct your own sensitivity analysis of a groundwater model to its parameters. The model you will study simulates a groundwater extraction well that is located next to a nature reserve (depicted by the reed vegetation), as shown in the figure below. A river is situated on the left side of the nature reserve.  
+In this assignment you will conduct your own sensitivity analysis on the parametrs of a groundwater model. The model you will study simulates a groundwater extraction well that is located next to a nature reserve (depicted by the reed vegetation), as shown in the figure below. A river is situated on the left side of the nature reserve. We want to investigate which parameter of our 1D groundwater model has most influence on the groundwaterlevel in the nature reserve. Therefore, we will conduct a local sensitivity analysis.   
 
 ![1D saturated stationary groundwater model](1Dsensmodel.png)   
 
@@ -24,79 +28,74 @@ rm(list=ls())
 library(FVFE1D)
 ```
 
-# 1. An example of sensitivity analysis
-<div class="exercise">
-First of all, install the following packages from CRAN:   
-*  `LHS`   
-*  `truncnorm`   
-*  `matrixStats`   
-</div>
-
-<div class="exercise">
-1. Read the example of a sensitivity analysis carefully, found in the 'ExampleSensitivity' folder. Reading through the html is a good recap of the material you should understand. If there are questions about techniques or interpretations, please ask them.
-</div>
-
-# 2. Building the model
+# 1. Building the model
 
 ## The mathematical setup
-First, the 1D groundwater model is built in the same way as the ones you built in earlier assignments.
-The first step is choosing the spatial model domain:
+First, build the 1D groundwater model in the same way as the ones you built in earlier assignments. 
+These are the specifics for the model:
+
+- Domain from 0 to 500
+- The system interal flux is a Dupuit flux with transmissivity $kD$ 
+- The $kD$ changes linearly between the left and the right side of the domain
+- Take these values for transmissivity: kDl = 55 (left), kDr = 35 (right)
+- There are two external fluxes: There is a constant spatial recharge flux (rainfall) of 0.001, and there is an extraction well, extracting -0.35 at point 275.   
+- The right hand side is a water divide, implying a zero flux boundary, which is automatically applied as the default in the FVFE1D package.
+
+## The numerical setup
+- Divide the domain into 50 nodes
+- Use Finite Volumes as numerical technique
+
+## Run the model
+- Solve and run the model
+
+
+<div class="hint">
+<button type="button" onclick="showHint(1)">Show how to set-up the model</button>
+<p id="Q1"> </p>
+</div>
+
+<div class="answer">
 ```{r}
+# Domain
 domain = c(0,500) 
-```
 
-The system (internal) flux will be a simple Dupuit flux, with a transmissivity $kD$ 
-that changes linearly between the left and right side of the domain.
-
-```{r}
+# Internal flux
 kDl = 55
 kDr = 35
 kD.fun = approxfun(domain,c(kDl,kDr)) #gives a (linear) function for the transmissivity
-# caution: every time you change kDl or kDr you have to reconstruct this function
+# caution: every time you change kDl or kDr you have to rerun this function
 internal.flux = function(x,state,gradstate) 
   {
   return(-kD.fun(x)*gradstate)
   }
-```
 
-The chunk below constructs the new model with the name 'base run':  
-```{r}
+# Define the model
 GWmodel = newFLOW1D(domain,internal.flux) 
 set.name(GWmodel,"base run")
-```
 
-There is constant recharge flux (rainfall) on top of the model, and an extraction well. The recharge is a spatial flux, the extraction well is a point flux.   
-
-```{r}
+# External fluxes
 P = 0.001
 add.spatialflux(GWmodel,"P","recharge")
 Qwell = -0.35
 add.pointflux(GWmodel,at = 275, value= 'Qwell',name = 'well')
-```
 
-On the left hand side, the river with a water level of 1 m is used as a boundary condition.
-The right hand side is a water divide, implying a zero flux boundary, which is automatically applied as the default in the FVFE1D package.
-
-```{r}
+# Set boundary conditions
 hl = 1
 set.BC.fixedstate(GWmodel,"left","hl") 
-```
 
-## The numerical setup and base run solution
-The domain is discretized with nodes and a solution technique. Here the Finite Volume technique is used.
-
-```{r}
+# numerical setup
 nodes = seq(from=domain[1],to=domain[2],length=50) 
 set.discretisation(GWmodel,nodes,"FV")
-```
 
-```{r}
+# run the model
 control = solve.steps(GWmodel)
 plot(GWmodel,fluxplot=TRUE) 
 ```
+</div>
+
 
 ## Choice of MRESULT
-
+Now we start with the first step of the sensitivity analysis; defining the model output for which we want to investigate how model parameters influence this output. Below we define a function that calculates the output that we are interested in for this exercise:  
 ```{r}
 MRESULT = function()
 {
@@ -107,7 +106,7 @@ MRESULT = function()
 ```
 
 <div class="exercise">
-2. What does the `MRESULT` mean in water management terms?
+What does the defined `MRESULT` mean in water management terms?
 </div>
 
 <div class="student_answer">
@@ -118,42 +117,397 @@ Write your answer here...
 The `MRESULT` function calculates the mean groundwater level in the nature area. We are interested in the effect of the extraction well on the nature reserve. The groundwater level at the location of the reserve is therefore an important model output.
 </div>
 
-# 3. Sensitivity analysis
-You will now conduct your own sensitivity analysis on the model we just created.
+# 2. Sensitivity analysis
+You will now conduct your own local sensitivity analysis on the model we just created.
 
 <div class="exercise">
-3. Analyse the sensitivity of the model states and the MRESULT to all the parameters of the model. Perform both the local sensitivity analysis (LSA) and the global sensitivity analysis (GSA).
+Analyse the sensitivity of the model states and MRESULT to all the parameters of the model. Finish the script below by systematically and one-by-one adding the steps of sensitivity analysis as discussed in the lectures.
+</div>
 
-Finish the script by systematically and one-by-one adding the sections of the `SensitivityExample.Rmd` you studied. Adjust the comments and conclusions in the example code to the case of the assignment!
+**Define base-value and scale of variation of all parameters**
 
-**Choice of scales:**   
-*  for the transmissivities, let the scale of variation be 1 times the base value at the left side of the domain, and 7.5 times the base value on the right side.   
+The parameter values defined before will form the base values:
+```{r}
+base= list(kDl=kDl,kDr=kDr,P=P,Qwell=Qwell,hl=hl)
+str(base)
+```
+
+Now define the scale of variation:
+
+*  for the transmissivities, let the scale of variation be 1 times the base value at the left side of the domain, and 7.5 times the base value on the right side   
 *  for the spatial external fluxes, let the scale of variation be 25% of the base value   
-*  for the point external fluxes, let the scale of variation be 40% of the base value 
+*  for the point external fluxes, let the scale of variation be 40% of the base value (note that a scale of variation cannot be negative - think about why)
+*  for the left boundary condition, let the scale of variation be 5 cm.
 
-The upper and lower boundaries for the parameters should be chosen such that:   
-- all sampled transmissivities are positive   
-- for all other cases: the parameter histograms should display all values. 
+<div class="exercise"> Adapt the list below according to the descriptions above, don't forget to remove the eval=FALSE statement:
+```{r, eval=FALSE}
+scale= list(kDl = ...,
+            kDr = ...,
+            P = ...,
+            Qwell = ...,
+            hl = ...)
+#str(scale)
+```
 </div>
-
-<div class="student_answer">
-**Local sensitivity analysis**
-</div>
-Start adding code...
-
-<div class="student_answer">
-**Analysis of variation through sampling**
-</div>
-Start adding code...
 
 <div class="answer">
-See `Sens1DAnswer1.Rmd`.   
-The *local sensitivity analysis* shows that the variation of the groundwater extraction rate has a large influence on the uncertainty in M. When looking at the groundwater levels over the whole domain, the rainfall, river level and right-side transmissivity are also important sources of uncertainty, depending on the location in the domain.
-
-The *analysis by sampling* shows that the uncertainty in the groundwater results increases strongly from left to right in the domain. Again Qwell turns out to be the most important contributor to the variation in M, but P and kDl also have an important contribution, which is larger than in the LSA.
+```{r}
+scale= list(kDl = 1*kDl,
+            kDr = 7.5*kDr,
+            P = 0.25*P,
+            Qwell = -0.4*Qwell,
+            hl = 0.05)
+str(scale)
+```
 </div>
 
-# 4. Influence of the epsilon value *eps*
+<div class="exercise">
+How do you determine the scale of variation, if it is not given? (such as in this exercise)
+</div>
+
+<div class="student_answer">
+Write your answer here...
+</div>
+
+<div class="answer">
+The defined scale of variation is highly critical, because it influences the results of the senstivity analysis, but is also highly subjective. The scale of variation can be inspired by literature research (a parameter turns out to vary between several values), it can be based on repetition of measurements (determining the standard deviation among the different measurements) or can be based on prescribed accuracy of the measurement device (often, measurement devices indicate their accuracy in the manual).   
+</div>
+
+
+**Perform the base run and store the model results, in M_base (our target variable) and state_base (states of base run)**
+```{r}
+M_base = MRESULT()
+print(M_base)
+state_base = dataframe.states(GWmodel)$state
+```
+
+**Define the epsilon-value (step-size)**
+
+<div class="exercise">
+Think about a reasonable step-size for epsilon, and adapt accordingly. Don't forget to remove the eval=FALSE statement:
+```{r, eval=FALSE}
+eps = ...
+```
+</div>
+
+<div class="answer">
+```{r}
+eps = 1e-3
+```
+</div>
+
+**Calculate parameter sensitivity** 
+<div class="exercise">
+Complete the following script and repeat this for every parameter value separately. 
+```{r}
+#Add epsilon-value to base-value of parameter P, keep all other parameters at base-value
+
+# Rerun the model
+
+# Set parameter P back to base value (for next parameter)
+
+# Calculate the sensitivity of MRESULT to parameter P 
+
+# Calculate the sensitivity of the model states to parameter P
+
+```
+</div>
+
+
+
+
+<button type="button" onclick="toggle('Q3')">How to calculate sensitivity</button>
+<div id="Q3" style="display: none">
+Sensitivity is change in output as a result of change in input. The change in output is the difference between MRESULT (the last run) van M_base (the base run). The change in input is epsilon; this is the change in the parameter value. Sensitivity can then be calculated as:  (MRESULT()-M_base)/eps
+</div>
+
+<button type="button" onclick="toggle('Q4')">Show an example for kD</button>
+<div id="Q4" style="display: none">
+```{r, eval=FALSE}
+#Add epsilon-value to base-value of parameter P, keep all other parameters at base-value
+kDl=base$kDl+eps
+kD.fun = approxfun(domain,c(kDl,kDr)) # the kD.fun has to be recreated whenever the kD values are changed
+
+# Rerun the model
+control = solve.steps(GWmodel)
+
+# Set parameter P back to base value (for next parameter)
+kDl=base$kDl
+kD.fun = approxfun(domain,c(kDl,kDr)) 
+
+#Calculate the sensitivity of MRESULT to parameter P 
+dMdkDl  = (MRESULT()-M_base)/eps
+print(paste("dM/dkDl=",dMdkDl))
+
+# Calculate the sensitivity of the model states to parameter P
+dstatedkDl = (dataframe.states(GWmodel)$state-state_base)/eps
+```
+</div>
+
+**Determine relative contribution of each parameter to variation in model output** 
+
+So far, we have determined to what extent each parameter influences the model output, but we don't know their relative contribution yet (i.e., which parameter has most influence on the model output) because the sensitivity that we calculated for each parameter has different units (check this!). Furthermore, we have to account for the scale of variation. 
+
+<div class="exercise">
+Complete the following script to determine the relative contribution of each parameter to variation in MRESULT:
+```{r}
+# Calculate the partial variances of all parameters using the scale of variation
+
+# Calculate the total model variance
+
+# Determine the relative contribution of each parameter and plot the results in an informative way 
+
+
+```
+</div>
+<button type="button" onclick="toggle('Q5')">Show an example for kD</button>
+<div id="Q5" style="display: none">
+```{r, eval=FALSE}
+# Calculate the partial variances of all parameters using the scale of variation
+varM.kDl   = (scale$kDl*dMdkDl)^2
+# .. add all parameters.. 
+
+# Calculate the total model variance
+varMtot = varM.kDl+varM.kDr+varM.P+varM.Qwell+varM.hl
+
+# Determine the relative contribution of each parameter 
+relvarkDl = varM.kDl/varMtot
+```
+</div>
+
+<div class="exercise">
+Why do we use variances rather than standard deviations? 
+</div>
+
+<div class="student_answer">
+Write your answer here...
+</div>
+
+<div class="answer">
+Because variances can be added, and standard deviations not (see derivation in the lecture slides). We want to know the total model variance, and we can achieve this by adding up all the partial variances caused by the tested parameters. In this way, we can determine the relative contribution of each parameter to variation in model output. 
+</div>
+
+**Relative contribution of each parameter to variation in whole domain**  
+We can repeat the analysis of the previous section (where we focussed on one specific model output, MRESULT) for all simulated states over the model domain. 
+
+<div class="exercise">
+Complete the following script to determine the relative contribution of each parameter to variation in model states over the model domain:
+```{r}
+# Calculate the partial variances of all parameters using the scale of variation
+
+# Calculate the total model variance
+
+# Plot the results in an informative way 
+
+
+```
+</div>
+
+<button type="button" onclick="toggle('Q6')">Show an example for kD</button>
+<div id="Q6" style="display: none">
+```{r, eval=FALSE}
+# Calculate the partial variances of all parameters using the scale of variation
+varState.kDl = (scale$kDl*dstatedkDl)^2
+# .. add all parameters.. 
+
+# Calculate the total model variance
+varStateTot = varState.kDl+varState.kDr+varState.P+varState.Qwell+varState.hl
+
+# Plot the results over the nodes, to see changes in sensitivity over the domain
+plot(nodes,sqrt(varStateTot),type="l",col="blue",lwd=3,
+     ylab="standard deviation [m]",xlab="x",main="Total scale of variation of groundwater levels")
+grid(col="black")
+```
+</div>
+
+<div class="exercise">
+Does the sensitivity vary over the domain? Does this align with our expectation?
+</div>
+
+<div class="student_answer">
+Write your answer here...
+</div>
+
+<div class="answer">
+The contributions differ between parts of the domain:   
+*  left: the boundary condition is the main source of variation   
+*  middle : Qwell is most important, followed by recharge      
+*  right: the value of the right-side transmissivity is most important.   
+This all makes sense; the parameters are most sensitive in the region that they tend to describe - it would for instance be counterintuitive if kDl was more sensitive than kDr in the right part of the domain. 
+</div>
+
+
+
+
+
+<div class="answer">
+**Sensitivity with respect to kDl**
+
+```{r,fig.height=4}
+kDl=base$kDl+eps
+kD.fun = approxfun(domain,c(kDl,kDr)) # the kD.fun has to be recreated whenever the kD values are changed
+control = solve.steps(GWmodel)
+kDl=base$kDl
+kD.fun = approxfun(domain,c(kDl,kDr)) 
+dMdkDl  = (MRESULT()-M_base)/eps
+print(paste("dM/dkDl=",dMdkDl))
+dstatedkDl = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedkDl,type="l",lwd=3,col="blue",main="d{state}/d{kDl}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the left value of the kD clearly decreases the groundwater levels over the whole domain.
+On the left edge, the sensitivity is zero due to the boundary condition set there.
+
+**Sensitivity with respect to kDr**
+
+```{r,fig.height=4}
+kDr=base$kDr+eps
+kD.fun = approxfun(domain,c(kDl,kDr)) 
+control = solve.steps(GWmodel)
+kDr=base$kDr
+kD.fun = approxfun(domain,c(kDl,kDr)) 
+dMdkDr  = (MRESULT()-M_base)/eps
+print(paste("dM/dkDr=",dMdkDr))
+dstatedkDr = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedkDr,type="l",lwd=3,col="blue",main="d{state}/d{kDr}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the right value of the kD decreases the groundwater levels mainly on the right hand side of the well. On the left hand side the change is almost zero.
+
+**Sensitivity with respect to P**
+
+```{r,fig.height=4}
+P=base$P+eps
+control = solve.steps(GWmodel)
+P=base$P
+dMdP  = (MRESULT()-M_base)/eps
+print(paste("dM/dP=",dMdP))
+dstatedP = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedP,type="l",lwd=3,col="blue",main="d{state}/d{kP}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the rainfall causes groundwater level increases through the whole domain. On the left edge of the domain, the rate of change is zero due to the fixed state  boundary condition. The sensitivity increases gradually towards the right.
+
+**Sensitivity with respect to Qwell**
+
+```{r,fig.height=4}
+Qwell=base$Qwell+eps
+control = solve.steps(GWmodel)
+Qwell=base$Qwell
+dMdQwell  = (MRESULT()-M_base)/eps
+print(paste("dM/dQwell=",dMdQwell))
+dstatedQwell = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedQwell,type="l",lwd=3,col="blue",main="d{state}/d{Qwell}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the Qwell (so lowering the extraction rate) causes the groundwater level to increase throughout the whole domain. 
+On the left edge, the change is zero due to the fixed state boundary condition. To the right of the well the change is constant. 
+
+**Sensitivity with respect to hl**
+
+```{r,fig.height=4}
+hl=base$hl+eps
+control = solve.steps(GWmodel)
+hl=base$hl
+dMdhl  = (MRESULT()-M_base)/eps
+print(paste("dM/dhl=",dMdhl))
+dstatedhl = (dataframe.states(GWmodel)$state-state_base)/eps
+plot(nodes,dstatedhl,type="l",lwd=3,col="blue",main="d{state}/d{hl}")
+abline(h=0,col="red",lwd=3)
+grid(col="black")
+```
+
+Increasing the left boundary condition (river level) causes groundwater levels to increase by the same amount everywhere (dstate/dhl = 1).
+
+**Contributions to  variance of M**
+
+Partial variances:
+
+```{r}
+varM.kDl   = (scale$kDl*dMdkDl)^2
+varM.kDr   = (scale$kDr*dMdkDr)^2
+varM.P     = (scale$P*dMdP)^2
+varM.Qwell = (scale$Qwell*dMdQwell)^2
+varM.hl    = (scale$hl*dMdhl)^2
+varMtot = varM.kDl+varM.kDr+varM.P+varM.Qwell+varM.hl
+```
+
+Relative contributions with pie chart:
+```{r}
+relvarM = list(kDl = varM.kDl/varMtot,
+             kDr = varM.kDr/varMtot,
+             P  = varM.P/varMtot,
+             Qwell = varM.Qwell/varMtot,
+             hl = varM.hl/varMtot)
+
+str(relvarM)
+pie(as.numeric(relvarM),labels=names(relvarM),
+    main=paste("Standard deviation of M =",round(sqrt(varMtot),4),"m"),
+    col = rainbow(length(relvarM)))
+```
+
+The scale of variation of the mean groundwater level in the nature reserve is 60 cm!
+By far the largest contribution comes from the variation of the $Qwell$. 
+Large, but second is the contribution of the rainfall. Also the left-side transmissivity 
+has a visible contribution. The contributions of the other parameters can be neglected.
+
+**Contributions to variation over the whole domain**
+
+Partial variances:
+
+```{r}
+varState.kDl = (scale$kDl*dstatedkDl)^2
+varState.kDr = (scale$kDr*dstatedkDr)^2
+varState.P  = (scale$P*dstatedP)^2
+varState.Qwell = (scale$Qwell*dstatedQwell)^2
+varState.hl = (scale$hl*dstatedhl)^2
+varStateTot = varState.kDl+varState.kDr+varState.P+varState.Qwell+varState.hl
+```
+
+Plot the scale of variation of the states over the whole domain:
+```{r}
+plot(nodes,sqrt(varStateTot),type="l",col="blue",lwd=3,
+     ylab="standard deviation [m]",xlab="x",main="Total scale of variation of groundwater levels")
+grid(col="black")
+```
+
+We see that the largest uncertainty is at the right boundary: over 250cm.
+The scale of variation increases over the domain going from left to right, with a small peak at the well. 
+
+A plot giving an overview of the relative contributions:
+```{r}
+plot(nodes,rep(1,length(nodes)),ylim=c(0,1),type="l",
+     ylab="relative contribution to variance",xlab="x",
+     main="Contribution to scale of variation of groundwater levels")
+
+cols = rainbow(5)
+lines(nodes,varState.kDl/varStateTot,col=cols[1],lwd=2)
+lines(nodes,varState.kDr/varStateTot,col=cols[2],lwd=2)
+lines(nodes,varState.P/varStateTot,col=cols[3],lwd=2)
+lines(nodes,varState.Qwell/varStateTot,col=cols[4],lwd=2)
+lines(nodes,varState.hl/varStateTot,col=cols[5],lwd=2)
+legend("topright", bty="n",
+   legend=c("kDl","kDr","P","Qwell","hl"),lty=1,col=cols,
+   horiz=TRUE)
+```
+
+The contributions differ between parts of the domain:   
+*  left: the boundary condition is the main source of variation   
+*  middle : Qwell is most important, followed by recharge      
+*  right: the value of the right-side transmissivity is most important.   
+
+The *local sensitivity analysis* shows that the variation of the groundwater extraction rate has a large influence on the uncertainty in M. When looking at the groundwater levels over the whole domain, the rainfall, river level and right-side transmissivity are also important sources of uncertainty, depending on the location in the domain.
+</div>
+
+# 3. Influence of the epsilon value *eps*
 The local sensitivity analysis depends on the choice of the 'disturbance' `eps`.
 
 <div class="exercise">
@@ -177,38 +531,8 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-See `Sens1DAnswer2.Rmd`.   
 Some small changes are visible, for instance, there are changes in the minimum values of dstate/dkDl and dstate/dkDr. Changes in the sensitivity due to a different `eps` point to a nonlinear dependence of M on this parameter. In local sensitivity analysis, the local derivative is approached using `eps`. This approach locally linearizes the function to determine the slope. The more non-linear the function is, the smaller `eps` has to be to justify this local lineariation.  
 
 The relative contribution of the parameters to the uncertainty in M or the overall groundwater levels stays the same. Only the uncertainty in the groundwater level at the right end of the domain decreases.
 </div>
 
-<div class="comment">
-In question 4 and 5 the effect of eps is investigated, but we don't discuss what this means for how to choose eps. Maybe we should include something about that? [LM] I added something to the answer about that.</div>
-
-# 5. Influence of the random seed
-<div class="exercise">
-6. The sample generation for the GSA depends on the random seed. Do you see any significant differences in the GSA results if you change this seed?
-</div>
-
-<div class="student_answer">
-Fill in your answer here...
-</div>
-
-<div class="answer">
-See `Sens1DAnswer3.Rmd`.    
-When you change the seed e.g. to 238, there are no visible changes to the parameter distributions. However, the Msample does change: its standard deviation is increased somewhat. Also there are quite significant changes in the calculated contributions of the parameters to the uncertainty in M: the contribution of kDl becomes much smaller, while the contribution of P increases.
-</div>
-
-<div class= "exercise">
-7. How large do you have to make the sample size, to make the difference in results with two different seeds become insignificant?
-</div>
-
-<div class="student_answer">
-Fill in your answer here...
-</div>
-
-<div class="answer">
-See `Sens1DAnswer4.Rmd` (larger sample, seed=237) and `Sens1DAnswer5.Rmd` (larger sample, seed=238).   
-With a sample size of about 1000, the differences between seed 237 and 238 are minimal. This shows that a sufficient sample size is important to ensure the GSA conclusions are correct. 
-</div>
