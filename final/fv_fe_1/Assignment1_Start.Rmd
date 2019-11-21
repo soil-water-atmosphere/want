@@ -1,42 +1,129 @@
 ---
-title: "FVFE Practical 1 - Flow in 1D"
-subtitle: "Finite Volumes, stationary 1D"
-date: "24/08/2018"
+title: "FVFE Practical 1 - Stationary Flow in 1D"
+subtitle: "Groundwater flow towards rivers and Heat transfer in the atmospheric boundary layer"
+date: "March 2019"
 output:
-  html_document:
-    css: want.css
-    toc: yes
+  bookdown::html_document2:
+    css: gbwant.css
+    toc: yes  
+#  html_document:
+#    css: gbwant.css
+#    toc: yes
+#    number_sections: true
+#    fig_catption: yes
+#  html_notebook:
+#    css: gbwant.css
+#    toc: yes
+#    number_sections: true
+#    fig_catption: yes
 ---
-<!-- include the hint.js -->
-<script src="hints.js"></script>
+
+```{r, echo=FALSE}
+library(knitr)
+```
+
+<button class="collapsible">Info on this document</button>
+<div class="content">
+This document is a so called r-markdown document, which generates a html document and contains:  
+
+1.  different chapters and sections 
+2.  code chunks
+3.  questions and assignments
+4.  answers and worked out assignments  
+
+The different chapters and sections cover different aspects of the material in this document  
+In the code chunks a specific piece of code can be run  
+Questions and assignments are colored red and the answers and worked out assigments are in blue.  
+The 'answer' version will be available on Blackboard when suitable.  
+
+This docouments is meant to be self contained, meaning that all aspects required to work with it, are included.  
+
+Simply load this *.Rmd document into R-studio and "knit" of "preview" this document and have a look at the created html (in the previewer of R-studio or in a browser)
+
+Questions on the answers can be typed dirctly into this document. The assignments, most of the time finishing code chunks, also need to be worked out in this document. With this you will have a completed set of _your_ answers and _your_ worked out assignments in this document.  
+At the end of the time slot of this assignment a completely filled out document (including answers and worked out assignments)  will be available on Blackboard.  
+
+First of all, make sure you have the package FVFE1D installed (available on Blackboard > Week 2: FV/FE > Assignment packages). You can find the Help-pages of this package in the bottom right part of your screen, under Packages > FVFE1D. If you click on FVFE1D here, all functions in the package are displayed. When you click on one of the functions, it shows a description of what the function does, and the required input. Consult the Help-pages if you want to know if a certain function exists, and what the required inputs are. 
+
+</div>
+
 
 ## Learning goals
-*  Learning the steps to set up a numerical model (stationary, spatial 1D) *(Exercise 1-3,9,10)* 
-*	 Understanding the concepts of internal and external fluxes; applying different forms of these fluxes *(Exercise 1,2,8,9,13)*
-*  Understanding the difference between linear and nonlinear internal flow functions *(Exercise 8)*
-*  Evaluating the model results by checking convergence, analytical solutions and water/heat balances *(Exercise 4-6,11,13,14)*
-*  Working with spatially varying parameters *(Exercise 7,9)*
-* Test the effect of spatial resolution on model results *(Exercise 11)*
-* Applying different kinds of boundary conditions *(Exercise 2,12,14)*
+*  Learning the steps to set up a numerical model (stationary, spatial 1D) (sections [Mathematical model setup], [Solving and checking convergence] _exercise 3-11,3_ and section [Model setup] _exercise 3,4_ ).
+*	 Understanding the concepts of internal and external fluxes; applying different forms of these fluxes (sections [Internal flux], [Mathematical model setup] _exercise 1,2,8_ and section[**Extra Assignment**: Including a radiative cooling sink] _exercise 10_ )
+*  Understanding the difference between linear and nonlinear internal flow functions (section [Type 2 internal flow] _exercise 22,23_)*
+*  Evaluating the model results by checking convergence, analytical solutions and water/heat balances (sections [Solving and checking convergence], [Comparing with the analytical solution], [Examining the water balance] _exercise 11, 12, 14, 15_ and sections [Testing different resolutions], [**Extra assignment**: Surface flux as a Cauchy/Robin boundary] _exercise 5,14_)
+*  Working with spatially varying parameters (section [A non-uniform kD field] _exercise 20,21_)
+* Test the effect of spatial resolution on model results (section [Testing different resolutions], [Stratification-dependent diffusivity] _exercise 5,6_)
+* Applying different kinds of boundary conditions (section [Adding a Cauchy Boundary Condition] _exercise 18,19_ and section [**Extra Assignment**: Surface flux as a Cauchy/Robin boundary] _exercise 13_)
 
-# Part 1: Stationary groundwater flow
-First of all, make sure you have the package FVFE1D installed (avalaible on Blackboard > Week 2: FV/FE > Assignment packages). You can find the Help-pages of this package in the bottom right part of your screen, under Packages > FVFE1D. If you click on FVFE1D here, all functions in the package are displayed. When you click on one of the functions, it shows a description of what the function does, and the required input. Consult the Help-pages if you want to know if a certain function exists, and what the required inputs are. 
+# Part I: Groundwater flow towards rivers
 
 ## Introduction 
 The first part of this assignment will deal with a hydrological problem: saturated groundwater flow. In the second part the same ideas will be applied to a meteorological case.
 
-In this first part, a model will be developed to simulate saturated groundwater flow towards two rivers, left and  right, in a one dimensional domain as shown in the graph below. The flow is stationary.
-![](assignment1_1D_2rivers.png)
+In this first part, a model will be developed to simulate saturated groundwater flow towards two rivers, left and  right, in a one dimensional domain as shown in the graph below. The flow is stationary.  
 
-Figure 1 : 1D stationary saturated groundwater flow towards two rivers.   
+
+```{r 1D2rivers, fig.cap="Saturated 1D groundwater flow towards rivers", echo=FALSE}
+
+include_graphics("assignment1_1D_2rivers.png")
+```
+
    
 ***   
 
 The total length of the model-domain is 200 m and both rivers form prescribed head (*Dirichlet*) boundary conditions with a level of 5 m A.M.S.L. (Above Mean Sea Level). The model is discretized with a nodal distance of 10 m.  
-The net rainfall (recharge) on top of the model is the only external flux and is $0.001 \, m/d$. The transmissivity $kD$ of the aquifer (hydraulic conductivity * thickness) is $45 \, m^2/d$.  
-The model will calculate the hydraulic head. 
+The net rainfall (recharge) on top of the model is the only external flux and is $0.001 [\mathsf{m/d}]$.  
+The transmissivity $kD$ of the aquifer (hydraulic conductivity * thickness) is $45 [\mathsf{m^2/d}]$ .  
+The model will calculate the hydraulic head.
 
-## 1.1 Internal flux 
+<button class="collapsible">Background info</button>
+<div class="content">
+
+_internal flux_:  
+
+In this zone, groundwater flow is predominantly horizontal and can flow for several hundreds of meters or even in the order of kilometers. The velocity of groundwater is low; in the order of a centimeter up to a meter per day or so.  
+The energy used to get groundwater flowing comes from potential energy which is contained in the difference of (piezometer) heads (=water level as if one would install a tube at that position) over a certain distance.  
+This "Darcy" flux is : 
+\begin{equation}
+q_{Darcy}=-k \frac{\partial H}{\partial s}
+(\#eq:darcy-eq)
+\end{equation}
+
+With:  
+
+* k:  hydraulic conductivity [$\mathsf{m/d}$]  
+* H:  (piezometer) head [$\mathsf{m}$]  
+* s:  spatial dimension, x, y or z [$\mathsf{m}$]  
+
+The saturated part of groundwater begins at the groundwater table and stops, in principle at bedrock. For Dutch circumstances flow is mainly restricted to the coarser deposits in the subsoil such as gravel, coarser and finer sands. In clayey deposits (certainly the heavy ones) flow is limited and mostly vertical. The coarser deposits build up the water bearing layers which are called aquifers. In stratified sub soils, like in the Netherlands,  aquifers can be confined by (thick) clayey deposits building up an aquitard.  Thick clayey deposits could also be used as a lower boundary.  
+The permeability of the deposits is defined by the hydraulic conductivity $k$ with unit [$\mathsf{m/d}$].  The product of the conductivity and the (average) saturated thickness $D$ of an aquifer over which the flow occurs, is called **Transmissivity** $kD$ or $T$ with unit [$\mathsf{m^2/d}$].  This extends the basic Darcy equation to:  
+
+\begin{equation}
+q_{Darcy}=-kD \frac{\partial H}{\partial s}
+(\#eq:Dupuit-eq)
+\end{equation}
+With:  
+
+* D:  Saturated thickness over which the flow occurs [$\mathsf{m}$]  
+
+
+_external flux_:  
+The external flux applied to this model comes from the top and origins from precipitation. A reasonable value for this in this region is 1 $\mathsf{mm/d}$
+
+_boundary conditions_:  
+
+*  Dirichlet boundary condition (BC) which prescribes the head (state) and could be imagined as the water level of a river, lake or sea(not including density effects).  
+*  Neumann BC which prescribes the gradient of the head normal to that boundary. It could be used when e.g. a flow-line or  water divide would be assumed.  
+*  Cauchy BC which combines the above two BC's. It could be used to simulate the effect of e.g. a canal which does not fully penetrate the aquifer and contains a certain resistance against flow due to the canal-bed (due to e.g. plant residue deposits and sedimentation) and the aquifer. The prescribed water level is the Dirichlet part, and as a result of a potential difference between canal and aquifer and the resistance, a certain flux (Neumann part) will occur. One could call this a 'top' boundary condition.  
+
+</div>
+<br> 
+
+
+
+##Internal flux 
 
 In this model we apply a Darcy water flux, using the Dupuit assumption - this means we assume the flow in the aquifer to be mainly horizontal and uniform with depth, allowing us to make volume flow simply proportional to the thickness over which it occurs.   
 We may distinguish two types of internal Darcy fluxes:  
@@ -90,7 +177,7 @@ Note that the external flux, the net rainfall, is given to the model as a flux d
 The unit of the internal flux is already given to the model in m$^2$/d, because we use the transmissivity kD, which already includes the depth (D) over which the internal flow occurs.
 </div>
 
-## 1.2 Mathematical model setup
+##Mathematical model setup
 When setting up your model, you can make use of the model template `ModelTemplate1D.Rmd`, which is included in the folder of this assignment. This document explains all the steps needed in setting up a 1D flow model. The Help-pages of the FVFE1D package may also be helpful.
 
 <div class="exercise"> 
@@ -216,7 +303,7 @@ set.name(Hydro_1Dmodel_type1,'Hydro type-1 1D groundwater model ')
 ```
 </div>
 
-## 1.3 Numerical model setup
+##Numerical model setup
 In the section above, you defined the mathematical or conceptual model setup. This relates to your understanding of the system: the domain that is relevant for the system you study, a mathematical formulation of the fluxes that occur, and defining the boundary conditions. Now, the numerical setup needs to be formulated.
 
 <div class="exercise"> 
@@ -238,7 +325,7 @@ set.discretisation(Hydro_1Dmodel_type1,nodes,method='FV')
 ```
 </div>
 
-## 1.4 Solving and checking convergence
+##Solving and checking convergence
 
 <div class="exercise">
 11. Solve the model in the following chunk.
@@ -287,7 +374,7 @@ plot(Hydro_1Dmodel_type1,stateplot=TRUE,fluxplot=TRUE, FVstyle=T)
 ```
 </div>
 
-## 1.5 Comparing with the analytical solution 
+##Comparing with the analytical solution 
 It is interesting to see how well the numerical solution compares to the analytical solution.  Analytical solutions generally only exist in homogeneous and uniform conditions, which is the case in this situation. If the aquifer transmissivity would not be a constant, an analytical solution would be much harder to find.  The analytical solution is given by:
 
 $$
@@ -320,7 +407,7 @@ print(c('difference :',H_anal-H_num))
 ```
 </div>
 
-## 1.6 Examining the water balance
+##Examining the water balance
 
 A very important tool for a hydrologist is the water balance, to assess the flows into and out of the system.  
 
@@ -370,7 +457,137 @@ print(dataframe.boundaries(Hydro_1Dmodel_type1))
 So $0.1 m^2/d$ leaves the system through the left boundary and $0.1 m^2/d$ through the right boundary.
 </div>
 
-## 1.7 A non-uniform kD field
+##Adding a Cauchy Boundary Condition
+
+In this section the basic model is going to be adjusted with the replacement of the left river with a canal which does not fully penetrate the aquifer.  
+
+The new situation is illustrated in the following figure : \@ref(fig:1Drivercanal) .
+
+```{r 1Drivercanal, fig.cap="The 1 dimensional groundwater model with a Cauchy BC on the right side ; a canal replacing the fully penetrating river "}
+knitr::include_graphics("assignment1_1D_river_canal.png")
+```
+
+The main difference between the first situation (a river on the right hand side) in figure :\@ref(fig:1D2rivers), is the flow situation at the right hand side.  
+The river was implemented as a Dirichlet boundary condition with a prescribed head of 5 m. A.M.S.L. This results in a flux at that boundary depending on the head next to that river and the level of the river itself.  When the river level is lower flow will go out of the model at that boundary otherwise it will create an inflow.  
+There is one execption; when the head(state) calculated next to this river is exactly the same as the river level itself, no flow will occur at that boundary.  
+When this river is replaced with a canal, a few differences can be noticed:  
+
+*  the (entrance) resistance of 10 days of the canal-bed is added
+*  flow at that boundary is now forced to flow through that canal-bed
+
+The most obvious way to simulate such a situaton is by using a Cauchy/Robin boundary condition (BC).  
+The Cauchy BC contains aspects of both the Dirichlet and Neumann BC:  
+
+*  The prescribed head of the canal is the Dirichlet part (and is equal to the river level)
+*  An extra resistance is introduced, the canal-bed (brown hashes in figure \@ref(fig:1D2rivers)), through which flow takes place
+
+This means that the flux at this boundary depends on the calculated state next to the boundary and a certain _coefficient_ which regulates the flux_rate_ at that boundary. The coefficient in this case is the canal_resistance.  
+To accomplish this an additional function need to be developed describing the relation between the prescribed state, the coefficient and the flux rate. In a formula:  
+
+\begin{equation}
+q = -k \frac{\Delta H}{\Delta z}\rightarrow q=\frac{H_{canal}-H_{aquifer}}{C}
+(\#eq:cauchy-eq)
+\end{equation}  
+
+
+with: 
+$C^{-1} : \frac{k}{\Delta z}\rightarrow C=\frac{\Delta z}{k}$  
+
+One can see that this formula is simply Darcy's eqation again, see also: \@ref(eq:darcy-eq) in the "Background info"  
+
+###Implementation
+
+To implement this 'state dependent flux rate' the `set.BC.fluxstate(model, where, func)` function can be used from the FVFE1D-package. See the help of this package for details  
+This function requires a `func` : a function in stead of a `value` here.  
+In addition, this function requires a state of the node next to it and returns the flux-rate to the model.  
+
+The code chunk below gives a format to implement such a state dependent flux function:
+
+```{r}
+Cauchy_BC = function(state)
+{
+
+  flux = #  type here your 'flux' function here
+  return(flux)
+}
+```
+
+<div class="question">
+18.Finish the state dependent flux function in the example chunk above. Use the following chunk to create a copy of the base model.
+Add the new BC to the new model replacing the previous Dirichlet BC on the right hand side and run this model.  Create plot(use the FVFE package and set `fluxplot=TRUE`), a water balance of the whole model and a dataframe of the boundary fluxes.
+
+
+```{r}
+# create a copy of the basic model with function copy.model(), see help in FVFE1D package for details
+
+#define the new boundary condition replacing the old one.
+```
+</div>
+
+
+
+<div class="answer">
+For the Cauchy_BC one can simply implement the abovementioned equation: \@ref(eq:cauchy-eq).
+Next the model is copied and this BC will override the previous Dirichlet BC on the right hand side.
+```{r}
+H_canal = 5 #m water level in the canal
+bed_resist = 10 #d the entrance resistance of the canal bed
+Cauchy_BC = function(state)
+{
+  flux = (H_canal - state)/bed_resist
+  return(flux)
+}
+#create a copy of the base model and adjust the name (visible in the plots)
+Hydro_1Dmodel_cauchy = copy.model(Hydro_1Dmodel_type1) 
+set.name(Hydro_1Dmodel_cauchy,'Hydro type-1 with Cauchy BC')
+#check if all went OK
+summary(Hydro_1Dmodel_cauchy)
+#add the new BC which automatically replaces the old one.
+set.BC.fluxstate(model = Hydro_1Dmodel_cauchy, where = 'right',func = Cauchy_BC)
+#check the model if the BC right is adjusted
+summary(Hydro_1Dmodel_cauchy)
+#run the model with the new BC
+solve.steps(Hydro_1Dmodel_cauchy)
+#have a look at the results
+plot(Hydro_1Dmodel_cauchy,fluxplot=TRUE,FVstyle=TRUE  )
+
+#some dataframes to create tables
+w_bal = dataframe.balance(Hydro_1Dmodel_cauchy)
+
+bc_flux = dataframe.boundaries(Hydro_1Dmodel_cauchy)
+
+```
+
+The water balance of this model:  
+
+```{r}
+knitr::kable(head(w_bal),booktabs=TRUE,caption='water balance')
+```
+
+The outflow at the boundaries of this model:  
+
+```{r}
+knitr::kable(head(bc_flux),booktabs=TRUE,caption='boundary fluxes')
+```
+
+</div>
+
+<div class="question">
+19. Compare the results (head distribution, water balance and boundary outflow) with the basic model and explain the differences.  
+</div>  
+
+<div class="answer">
+_head_  
+The water divide is shifted towards the right indicating that more water is flowing towards the right.  
+_water balance_  
+Values of the water balance are identical. That is not surprising since the internal and exterenal fluxes are not altered.  
+_boundary outflow_  
+The specific outfluxes are clearly different. Most of the water: `r bc_flux[2,4]/w_bal[5,2]` % is flowing towards the river.  Since the canal introduces an extra resistance to flow water can be transported to the river more easily.  
+
+</div>
+
+
+##A non-uniform kD field
 
 Up till now the transmissivity of the aquifer has been constant. Now we are going to investigate the effect of a gradually increasing transmissivity from left to right in the model.  
 For this, a kD-function is created with `approxfun` in R, as shown in the chunk below. Type `help(approxfun)` at the console prompt to have some insight in the workings of this function.  
@@ -381,7 +598,7 @@ plot(kD.func(0:200),type="o",main="Transmissivity values over the domain",xlab="
 ```
 
 <div class="exercise">
-18.Create a new model which is based on the newly defined kD-values (which are a function of x). This requires the internal flux function to be redefined for this model. All other items of the model (domain, nodes, boundary conditions etc.) are identical to the previous model. For clarity you can give this model a new name.
+20.Create a new model which is based on the newly defined kD-values (which are a function of x). This requires the internal flux function to be redefined for this model. All other items of the model (domain, nodes, boundary conditions etc.) are identical to the previous model. For clarity you can give this model a new name.
 </div>
 
 <div class= "student_answer">
@@ -424,7 +641,7 @@ plot(Hydro_1Dmodel_kDvar,fluxplot=TRUE,FVstyle=TRUE)
 </div>
 
 <div class="exercise"> 
-19.Solve the model with a varying kD-value, make a plot of the fluxes and states and consider the following questions.  
+21.Solve the model with a varying kD-value, make a plot of the fluxes and states and consider the following questions.  
 
 *    What can you conclude about the water divide?  
 *    What is the fraction of water draining to the left and the right river?  
@@ -449,11 +666,11 @@ print(paste('fraction of total to right river :',db[2,4]/sum(db[,4])))
 ```
 </div>
 
-## 1.8 Type 2 internal flow
+##Type 2 internal flow
 Until now the model was of a type 1 flow: it assumed a constant saturated thickness $D$ over which groundwater flow occurred. In reality groundwater flow is limited to the saturated thickness $H(x)$. Such a change makes the model non-linear in the state (head).  
 
 <div class="exercise">
-20.Make a model with a type 2 flow (see [Question 1: Internal flux] ) where the k-value varies linearly between 3 and 12 from left to right. As the model is non-linear, the solution of the model will take more than one step. Add a verbose argument to the `solve.steps` call (see help) to count the number of iterations needed and plot the solution.
+22.Make a model with a type 2 flow (see [Question 1: Internal flux] ) where the k-value varies linearly between 3 and 12 from left to right. As the model is non-linear, the solution of the model will take more than one step. Add a verbose argument to the `solve.steps` call (see help) to count the number of iterations needed and plot the solution.
 </div>
 
 <div class="student_answer">
@@ -494,7 +711,7 @@ solve.steps(Hydro_1Dmodel_type2,verbose=TRUE)
 </div>
 
 <div class="exercise">
-21.The chunk below compares the results of the linear and nonlinear model. At `XLINEARMODELX` and `XNONLINEARMODELX`, fill in the name of your linear model and your nonlinear model respectively, both with varying k-values. Do you see differences?
+22.The chunk below compares the results of the linear and nonlinear model. At `XLINEARMODELX` and `XNONLINEARMODELX`, fill in the name of your linear model and your nonlinear model respectively, both with varying k-values. Do you see differences?
 </div>
 
 <div class="student_answer">
@@ -507,7 +724,7 @@ lines(dataframe.states(XNONLINEARMODELX),col="red")
 Now look at the effect of the aquifer depth $D$. Our reference level for the head is 0 m (this is the bottom of the system, bedrock or an aquitard, as displayed in Figure 1), so $D$ is simply equal to the river level at the boundaries (see Figure 1). In the current situation, $D=5$ m. The linear varying-kD model, with kD between 15 and 60, therefore has the same conductivities over the domain (from 15/5=3 m/d to 60/5=12 m/d) as the nonlinear model. Using this logic, depth $D$ can be varied by adapting the boundary conditions and kD values of the linear varying-kD model; and adapting the boundary conditions in the nonlinear model.
 
 <div class="exercise">
-22.Vary the $D$ for the two models. What effect does $D$ have on the differences between the linear and nonlinear model?
+23.Vary the $D$ for the two models. What effect does $D$ have on the differences between the linear and nonlinear model?
 </div>
 
 <div class="answer">
@@ -521,24 +738,43 @@ For $D=5$ m, the linear and nonlinear method give about the same result. When yo
 ![](Answer1.8.png)
 </div>
 
-# Part 2: Turbulent heat transfer in the stable atmospheric boundary layer
+# Part II: Turbulent heat transfer in the stable atmospheric boundary layer
 
 ## Introduction
 Because the emissivity of the Earth's surface is usually higher than the emissivity of the air layers aloft, the Earth's surface emits more longwave radiation than it receives from the overlying atmosphere. As a result, after sunset, the Earth's surface starts to cool, and this cooling is faster than the cooling of the overlying atmospheric air layers. The enhanced cooling of the surface as compared to the adjacent air layers leads to downward transport of heat from the atmosphere to the surface. This downward heat flux extracts energy from the atmosphere, implying that subsequently air layers close to ground start to cool as well. The successive cooling of the atmospheric layers lead to profiles of (potential) temperature in the so-called stable boundary layer (SBL) as illustrated below.    
 
-<div align="center">
-![](potentialT_height.png)   
-Figure 3: profiles of potential temperature in the Atmospheric Boundary Layer.
+```{r potentialH, fig.align='center', fig.cap='profile of potential temperature in the Atmospheric Boundary Layer.',echo=FALSE}
+knitr::include_graphics('potentialT_height.png')
+```
+
+<button class="collapsible">Background info</button>
+<div class="content">
+**CHiel hier graag uitleg over dit stromingsprobleem 'for dummies'**  
+_internal flux_  
+
+aanvullend; in assignment 1 "this flux is a flux of energy" met de eenheid is Km/s.  
+
+Is het niet aardig om deze 'energy' in de eenheid terug te 'zien'. M.a.w. hoe kom je van Km/s naar J? Je zal vast constanten moeten gebruiken van vocht en lucht om te berekenen hoeveel energie het kost om zeg 1 $m^3$ lucht 1 graad te verwarmen maar de details mis ik hier een beetje.  
+_external flux_  
+
+_boundary conditions_
+
 </div>
+
 
 The transport of heat through the atmosphere towards the surface can be modelled in a similar way as the groundwater system from the previous assignment. You will build a 1D, stationary model to simulate vertical heat flow. Here, the potential temperature $\theta$ [K] is the state variable. The *potential temperature* of a parcel of air is the temperature it would have at a standard (surface) pressure (see also http://glossary.ametsoc.org/wiki/Potential_temperature). 
 
-## 2.1 Model setup
+
+## Model setup
 
 The **flow domain** has a length of 99.5 m, starting at a height of 0.5 m above the surface and ending at the top of the SBL, which is set at a (fixed) height of 100 m.
 
 The **internal flux** is a flux of energy in the x-direction (height). This is calculated using Fick's law with a so-called eddy diffusivity:
-$$ Q=-K_{eddy} \frac{\partial\theta}{\partial x} $$
+\begin{equation}
+Q=-K_{eddy} \frac{\partial\theta}{\partial x}
+(\#eq:Fick-eq)
+\end{equation}
+
 where $Q$ is the internal flux (defined positive upwards), $K_{eddy}$ is the eddy diffusivity and $\frac{\partial\theta}{\partial x}$ is the gradient of the potential temperature.
 The eddy diffusivity can be calculated as: 
 $$ K_{eddy}=ku_* x$$
@@ -588,7 +824,7 @@ Space  (scale)      | m
 The unit of the internal flux can be derived from the formulas: as $u_*$ is a 'velocity' in m/s, the eddy diffusivity K has units $m^2/s$. The internal flux $Q$ is then in $m^2/s*K/m=K*m/s$.
 </div>
 
-## 2.2 Building the model
+## Building the model
 
 <div class="exercise">
 3.In the chunk below, set up the mathematical part of the stationary heat flow model. Specify the domain, the system flux function and the boundary conditions as given above. 
@@ -646,10 +882,14 @@ plot(Meteo_1Dmodel,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 ```
 </div>
 
-## 2.3 Testing different resolutions
+## Testing different resolutions
 In this section you will test how the nodal spacing affects the solution of the model.   
 Like the groundwater case, this system also has an analytical solution:
-$$  \theta(x)=290+\frac{(295-290)}{\ln(100/0.03)} \ln(\frac{x}{0.03}) $$
+\begin{equation}
+\theta(x)=290+\frac{(295-290)}{\ln(100/0.03)} \ln(\frac{x}{0.03})
+(\#eq:analyt)
+\end{equation}
+
 <div class="exercise"> 
 5. Make a plot to compare the numerical results to the analytical solution. You can use `dataframe.states` to get a dataframe of the resulting states, that you can plot the way you like it. Then set the nodal spacing to 20 m and compare again. What is your conclusion? 
 </div>
@@ -683,13 +923,22 @@ points(oneDstatescoarse$state,oneDstatescoarse$x, pch=16, col="blue")
 Clearly, a nodal distance of 20 m is too coarse for this case. If you try out different resolutions, you will find that a resolution of at most 5 m is necessary to get reasonable results. 
 </div>
 
-## 2.4 Stratification-dependent diffusivity
+## Stratification-dependent diffusivity
 In reality, the eddy diffusivity $K_{eddy}$ depends on the stratification of the atmosphere:
-$$ K_{eddy}=\frac{ku_*x}{1+5 x/MOL} $$
+\begin{equation}
+K_{eddy}=\frac{ku_*x}{1+5 x/MOL}
+(\#eq:K-eddy)
+\end{equation}
+
 where MOL is the Monin-Obukhov length in m. The Monin-Obukhov length reflects the temperature stratification of the atmospheric boundary layer, which depends on the surface heat flux (sensible heat from the earth surface).     
 
 The MOL for the surface layer is often calculated as: 
-$$ MOL=-\frac{u_*^3}{k(g/\theta_{ref})(w'\theta')_0} $$
+\begin{equation}
+MOL=-\frac{u_*^3}{k(g/\theta_{ref})(w'\theta')_0}
+(\#eq:MOL-eq)
+\end{equation}
+
+
 where $g$ is the gravitational constant (=9.81 $kg m^2 s^{-1}$), $\theta_{ref}$ is the reference temperature (~ 288 K) and $(w'\theta')_0$ is the energy flux at the surface [Km/s]. 
 
 For more information on the Obukhov length, you can have a look at:
@@ -851,12 +1100,16 @@ dataframe.balance(Meteo_1Dmodel_sink,c(14,15,16))
 ## **Extra Assignment**: Surface flux as a Cauchy/Robin boundary
 Until now, we have prescribed the BCs as either fixed states or fixed fluxes (exercise 12.3). In many meteorological models however, the surface BC is defined using so-called drag laws. The flux at the surface, a heat flux in our case, is calculated as a drag coefficient times the difference in temperature between the surface and lowest model level:
 
-$$ F_S=C_H (T_S-\theta_1 ) $$
+\begin{equation}
+F_S=C_H (T_S-\theta_1 )
+(\#eq:Robin)
+\end{equation}
+
 
 where $F_S$ is the heat flux between the surface and the lowest model level [K m/s]; $C_H$ is the drag coefficient for heat [m/s], $T_S$ is the surface temperature, and $\theta_1$ is the temperature at the lowest model level. This boundary condition is a Cauchy or Robin BC, where the flux is directly coupled to the state of the variable at the boundary. These BCs can be applied using the function `set.BC.fluxstate()`. 
 
 <div class="exercise"> 
-13.Make an R-function that takes the state as an argument and returns the surface heat flux. Use a value for $C_H$ of 1.2E-3 m/s and a value of 289 K for the surface temperature. Adapt your previous model such that this Robin BC is applied as the lower boundary. Then solve and plot the new model, the states as well as the fluxes.
+13.Make an R-function that takes the state as an argument and returns the surface heat flux. Use a value for $C_H$ of 1.2E-3 m/s and a value of 289 K for the surface temperature. Adapt your previous model such that this Robin BC is applied as the lower boundary. Then solve and plot the new model, the states as well as the fluxes. To see if the new boundary condition is implemented have a look at the `summary(yourmodel)` after the Robin BC is assigned to the model and just before it is solved.  
 </div>
 
 <div class="student_answer">
@@ -867,20 +1120,24 @@ where $F_S$ is the heat flux between the surface and the lowest model level [K m
 
 <div class="answer">
 ```{r}
+#the new state dependent flux a.k.a. a Robin/Cauchy boundary condition
 boundflux  = function(state)  #surface flux in K m/s
 {  
   boundflux = 1.2E-3*(289.-state)
   return(boundflux)
 }
-
+# create a copy of the previous model and set a new name
 Meteo_1Dmodel_robin = copy.model(Meteo_1Dmodel_sink)
 set.name(Meteo_1Dmodel_robin,"Heat flow, with Robin BC")
-summary(Meteo_1Dmodel_robin)
+#assign the new BC to the model and check it with `summary()`
 set.BC.fluxstate(Meteo_1Dmodel_robin,'left',boundflux)
+summary(Meteo_1Dmodel_robin)
+#solve the new model
 solve.steps(Meteo_1Dmodel_robin)
+#create some dataframes on the output for further inspection
 oneDstates = dataframe.states(Meteo_1Dmodel_robin)
 oneDfluxes = dataframe.internalfluxes(Meteo_1Dmodel_robin)
-
+#plot the model
 plot(Meteo_1Dmodel_robin,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 ```
 </div>
@@ -906,3 +1163,6 @@ The external fluxes are still equal the boundary fluxes, while the net internal 
 Comments:     
 * The meteo part can use a bit more elaborate introduction for the non-meteo students --> Chiel      
 </div>
+
+<!-- include the hint.js -->  
+<script src="hints_B.js"></script>
