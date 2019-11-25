@@ -3,13 +3,14 @@ title: "FVFE Practical 2 - Transient flow in 1D"
 subtitle: "Finite Volumes, transient 1D"
 date: "November 2019"
 output:
+  html_notebook: 
+    css: gbwant.css
+    toc: yes
   html_document:
-    css: want.css
+    css: gbwant.css
     toc: yes
 ---
 
-<!-- include the hint.js -->
-<script src="hints.js"></script>
 
 ## Learning Goals
 * Understand why the storage flux is introduced for transient systems.
@@ -790,15 +791,57 @@ The description of this system is largely equal to that of Assignment 1 Part 1. 
 
 Figure 1: Transient flow including an extraction well.
 
-## 2.1. Transient systems: The storage flux  
-Since this model will simulate states (heads) for transient conditions (i.e. in time), the following dynamical aspects need to be implemented: 
+## 2.1. Transient systems: The storage change  
 
-1.    The variable; Storage Coefficient $S$ 
-2.    A new spatial flux; 'from the past ' or simply the storage flux as explained in the previous part of this assignment: $$Q(t)=-S\frac {H(x)_{new}- H(x)_{old}}{\Delta t}$$
-3.    A point flux; the extraction well
+During time an amount of water can be stored into the soil or released from it. This storage change of water takes place in the pore space of the soil.  
+Figure 2 illustrates water stored in the pore space of a soil column.  
+![](water_storage.png)
+
+Figure 2: Water stored in the soil. Above the groundwater table (the unsaturated zone) pore space is filled with air, below it (saturated zone) it is filled with water.  
+
+In this assignment an extraction well is switched on and during time a _draw down cone_ of the head develops (see figure 1). In the beginning of the extraction most water is extracted from this pore space. As a consequence the head at the vicinity of the well will drop since the soil releases stored water from pore space and is then transported into the well tube.  Due to the head drop near the well, a head gradient develops creating groundwater flow towards the well.  
+
+<button class="collapsible">Physical interpretation of storage change</button>
+<div class="content">
+The state, head in this case, is not only a water level (potential energy for flow) but intrinsically contains an amount of water as well.  
+To clarify this; imagine a column of soil containing soil particles, water and air. The water level stands for the potential energy which is based on an amount of water and a given reference level or datum as shown in the following formula:
+
+
+$$
+H = \frac{P}{\rho g}+z
+$$
+With:  
+
+*    $H$ :Hydraulic Head $\left[\mathsf{L}\right]$
+*    $P$ :Pressure $\left[\mathsf{F/L^2}\right]$
+*    $\rho$ :Density fluid $\left[\mathsf{M/L^3}\right]$
+*    $g$ :Gravity force $\left[\mathsf{L/T^2}\right]$
+*    $z$ :Reference height, datum $\left[\mathsf{L}\right]$
+  
+
+The pressure term in the above formula, comes from the water column in the soil pressing on a certain surface. The column here is actually a volume of water with a certain density; $A\,l\,\,\rho$.  
+Knowing that $P=\frac{F}{A}$ for which the Force comes from the column water itself; $F=M\,g \rightarrow A\,\,l\,\rho\,g$, so $P=l\,\rho\,g$, which reduces this pressure term to simply $l$.  
+Finally, the effect of releasing water from storage towards the well, is in essence a decrease of $l$ and therefor head.
+
+
+</div>
+
+
+To account for this storage change an additional (flux) term need to be added to the model's balance:
+
+$$
+q_{sto}(x,t)=-S\frac {H(x,t)_{new}- H(x,t)_{old}}{\Delta t}
+$$
+With 
+
+1.    $q_{sto}$ Storage change being a recharge or discharge [$\mathsf{m/d}$]
+2.    $S$ Storage Coefficient [$\mathsf{m^3/m^3}$]
+3.    $H(x)_{new}$ Head at the new time step [$\mathsf{m}$]
+4.    $H(x)_{old}$ Head at the previous (old) time step [$\mathsf{m}$]
+
 
 <div class="question">
-1.What are the units of the above mentioned aspects?
+1.What are the units of the variables above and?
 </div>
 
 <div class="student_answer">
@@ -806,11 +849,15 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-The domain of the model has only one spatial dimension, (e.g. the x-direction). Therefore, the spatial flux should have the same dimensions. Here the flux density is defined as length per time, $m/d$. From this follows that the storage coefficient should be dimensionless. The dimensions in which the well is entered in the model is $m^2/d$, but internally the value is divided by the nodal distance at the specific location. Per time step a certain water height, $m/d$, is substracted in this situation.
+The domain of the model has only one spatial dimension, (e.g. the x-direction). Therefore, the spatial flux should have the same dimensions. Here the flux density is defined as length per time, $m/d$. From this follows that the storage coefficient should be dimensionless. The dimensions in which the well is entered in the model is $m^2/d$, but internally the value is divided by the nodal distance at the specific location. Per time step a certain water height, [$\mathsf{m/d}$]
+, is subtracted in this situation.
 
-1.    Phreatic storage coefficient: $m^3/m^3 \rightarrow (-)$ 
-2.    Spatial flux $m/d$
-3.    Extraction Well $m^2/d$
+1.    Phreatic storage coefficient: [$\mathsf{m^3/m^3 \rightarrow (-)}$]
+ 
+2.    Spatial flux [$\mathsf{m/d}$]
+
+3.    Extraction Well [$\mathsf{m^2/d}$]
+
 </div>
 
 ## 2.2. Setting up the stationary part of the model  
@@ -1361,3 +1408,6 @@ while(time < end.time)
 </div>
 
 **This finalizes the hydro part of assignment 2**
+
+<!-- include the hint.js -->
+<script src="hints_B.js"></script>
