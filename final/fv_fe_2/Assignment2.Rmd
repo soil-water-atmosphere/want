@@ -676,8 +676,10 @@ When you want to use the intermediate results of the time integration for furthe
 
 The code snippet below shows how this can be done.
 ```{r, eval=FALSE}
-result.store = data.frame()
-rbind(result.store, data.frame("t"=time, "lvalue"=dataframe.states(oneDtransientmodel)$state[1], "outflow"=dataframe.boundaries(oneDtransientmodel)[1]), dataframe.states(oneDtransientmodel)$state[26])
+#should be set first and outside the loop
+result.store = data.frame() 
+#should be set in the loop
+  Results.store = rbind(Results.store,data.frame('t'=time,'lvalue'=dataframe.states(oneDtransientmodel)$state[1],'outflow'=dataframe.boundaries(oneDtransientmodel)[1,4],'midstate'=dataframe.states(oneDtransientmodel)$state[26]))
 plot(result.store$t, result.store$outflow, type="o", col="red")
 ```
 
