@@ -3,6 +3,9 @@ title: "In-depth exercises assignment 3"
 author: "EB"
 date: "January 2019"
 output: 
+  html_notebook:
+    css: gbwant.css
+    toc: yes
   html_document:
     css: want.css
     toc: yes
