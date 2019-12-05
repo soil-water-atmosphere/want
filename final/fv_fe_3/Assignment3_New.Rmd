@@ -320,16 +320,9 @@ Sandy peat | | | |
 
 <div class="hint">
 <button type="button" onclick="showHint(3001)">Show Hint</button>
-<p id="3001"> </p>
+<p id="Q3001"> </p>
 </div>
 
-
-
-
-<button type="button" onclick="toggle('Q1')">Show hint</button>
-<div id="Q1" style="display: none">
-The concepts field capacity (pF 2) and wilting point (pF 4.2) are important here. When the water content of the soil is above the field capacity (pF<2) water will drain by gravity. The water in the soil below field capacity is the water that the soil can retain and supply to vegetation. However, when the soil water content is below wilting point (pF<4.2) the water is attached so strongly to the soil particles that plants cannot extract it any more. Therefore, the amount of water between field capacity and wilting point is considered to be the plant available water.
-</div>
 <br>
 
 <div class="answer">
@@ -981,11 +974,6 @@ As can be seen from these experiments, a loamy soil can deliver a substantial am
 
 </div>
 
-<button type="button" onclick="toggle('Q3')">Show hint</button>
-<div id="Q3" style="display: none">
-</div>
-<br>
-
 
 <div class="question">
 16. Determining the cap. rise flux in the previous exericse was based on the models 'crash'. Here you can experiment with different numerical aspects to see whether this alters the cap. rise fluxes.  
@@ -1531,11 +1519,9 @@ Now you will implement a more 'realistic' top forcing. The R-file `topforcing.R`
 20. Create a separate chunk that makes a plot of the precipitation, evapotranspiration and net input (rainfall surplus) provided by `topforcing.R`.
 </div>
 
-<button type="button" onclick="toggle('Q5')">Show hint</button>
-<div id="Q5" style="display: none">
-To make the rainfun and evapfun available for your code chunk you can add 'source('topforcing.R')' as first line. You can also just run the script separately.
-</div>
-<br>
+<button type="button" onclick="showHint(3002)">Show Hint</button>
+<p id="Q3002"> </p>
+
 
 <div class="answer">
 20. The code chunk below creates a plot of the fluxes provided by `topforcing.R`.
@@ -1853,7 +1839,7 @@ roots = function(x,state)
 }
 ```
 The code chunk below implements the actual evapotranspiration function:
-```{r echo=FALSE}
+```{r echo=TRUE}
 ##soil type
 Soil = soil.set[["B5"]]  ##B5 coarse sand
 domain = c(-50,0)
