@@ -1,0 +1,293 @@
+---
+title: "In-depth exercises assignment 3"
+author: "EB"
+date: "January 2019"
+output: 
+  html_notebook:
+    css: gbwant.css
+    toc: yes
+  html_document:
+    css: want.css
+    toc: yes
+---
+* note that this file might have difficulties knitting because of non-convergence. In order to knit, comment the ``solve.steps`` *
+
+## Challenging exercise 1
+*Challenging exercise 1 replaces exercises 11-13 in section 4*
+In these exercises you will study the tendency of the unsaturated zone model to "crash" and the effect of nonlinearity on this.
+
+<div class="exercise">
+1A.Take your `UnsatStat` model as starting point. Running so far went ok. Leave the soil type at B5, but now replace the upper boundary condition by an outgoing flux of 1 mm/day (an evaporation surplus). Run the model using `verbose=TRUE`. What happens? Why would this be the case?
+
+You can copy the `UnsatStat` model to a new one or build a fully new model; if you adapt `UnsatStat` itself, make sure you reset your changes afterwards.
+</div>
+
+<div class="answer">
+```{r}
+load(file='Staring.Rdata')
+library(FVFE1D)
+
+##### domain ####
+domain = c(-100,0)
+z.seq = seq(from=domain[1],to=domain[2],length=50)
+
+##### soil type #####
+Soil = soil.set[["B5"]]
+
+################ internal flux function #############
+unsatdarcy.flux = function(z,psi,dpsidz)
+{
+  return(-Soil$k.fun(psi)*(dpsidz+1))
+}
+
+################### make the model #################
+UnsatStat = newFLOW1D(domain,unsatdarcy.flux,"Unsaturated zone, 1D stationary")
+
+############## Boundary conditions ##################
+set.BC.fixedstate(UnsatStat,"left",0.0) 
+set.BC.fixedflux(UnsatStat,"right",-0.1) 
+
+####### discretisation #####################
+nodes = seq(from=domain[1],to=domain[2],by=2)
+set.discretisation(UnsatStat,nodes,"FV")
+Psi.equi = approxfun(c(domain[1],domain[2]),c(domain[2],domain[1]))
+do.initialize(UnsatStat,Psi.equi)
+
+# We want to avoid pressures to be too negative (<-1E-5)
+Psi.in.range = function(z,Psi) # it has 2 arguments; the position and the state
+{
+  if(Psi<=-1E5) return(FALSE)
+  else return(TRUE)
+}
+set.isacceptable(UnsatStat,Psi.in.range) 
+```
+
+```{r}
+do.initialize(UnsatStat,Psi.equi)
+solve.steps(UnsatStat,verbose=TRUE)
+```
+
+```{r}
+plot(UnsatStat,fluxplot=T,vert=T)
+
+#reset value for next assignments
+set.BC.fixedflux(UnsatStat,"right",0.1) 
+```
+The model tries to find a stationary solution to satisfy the boundary conditions we force on it. In this case, it will try to balance the outgoing flux at the top by an upwards flux from the bottom (capillary rise from the groundwater). However, as the hydraulic conductivity decreases so drastically with lower pressure heads, the model needs an extremely high moisture gradient to reach this flux. It doesn't manage to solve this.
+</div>
+
+<div class="exercise">
+1B.As you have seen, the conductivity-psi function is extremely nonlinear. You can find this function in the `soil.set` dataset. The function goes from K=52.91 cm/d (Ksat) at psi=0 cm to K=1e-5 cm/d at psi<-16000 cm, but in a very nonlinear way.
+
+Replace the `kfun` function by a linear function, that assumes K goes from Ksat linearly down to 1e-5 at psi=-16000. Make sure the function is defined for all psi values (that is, it should also give a K at psi>0 and at psi<-16000) (see the help of `approxfun`). Again run the model with the 1 mm/day net evaporation flux. What happens?
+</div>
+
+<div class="answer">
+```{r}
+Soil = soil.set[["B5"]]
+kfun=approxfun(c(0,-16000),c(52.91,1e-5),method="linear",yleft=1e-5,yright=52.91)
+unsatdarcy.flux = function(z,psi,dpsidz)
+{
+  return(-kfun(psi)*(dpsidz+1))
+}
+
+################### make the model #################
+UnsatStat_NewK = newFLOW1D(domain,unsatdarcy.flux,"Unsaturated zone, linear K function")
+
+############## Boundary conditions ##################
+set.BC.fixedstate(UnsatStat_NewK,"left",0.0) #Head at the bottom [cm]
+set.BC.fixedflux(UnsatStat_NewK,"right",-0.1) 
+
+####### discretisation #####################
+nodes = seq(from=domain[1],to=domain[2],by=2)
+set.discretisation(UnsatStat_NewK,nodes,"FV")
+Psi.equi = approxfun(c(domain[1],domain[2]),c(domain[2],domain[1]))
+do.initialize(UnsatStat_NewK,Psi.equi)
+
+# We want to avoid pressures to be too negative (<-1E-5)
+Psi.in.range = function(z,Psi) # it has 2 arguments; the position and the state
+{
+  if(Psi<=-1E5) return(FALSE)
+  else return(TRUE)
+}
+set.isacceptable(UnsatStat_NewK,Psi.in.range) 
+
+solve.steps(UnsatStat_NewK,verbose=TRUE)
+
+######## plotting #############################
+#we will create two plots, of the psi profile and the theta profile
+Psi.seq = dataframe.states(UnsatStat_NewK)$state
+z.seq = dataframe.states(UnsatStat_NewK)$x
+Psi.equi.seq = Psi.equi(z.seq) # the equilibrium profile to compare with
+Psi.range=range(Psi.seq,Psi.equi.seq)
+theta.seq = Soil$theta.fun(Psi.seq)
+old.par= par(no.readonly=TRUE)
+par(mfrow=c(1,2)) #this creates two plots next to each other
+
+plot(Psi.seq,z.seq,type="l",xlab="Psi",ylab="z",xlim=Psi.range,col="blue",lwd=2)
+lines(Psi.equi.seq,z.seq,type="l",lty="dashed")
+grid()
+plot(theta.seq,z.seq,type="l",xlab="theta",ylab="z",col="red",lwd=2,
+     xlim=c(0,Soil$theta.sat))
+grid()
+par(old.par)
+mtext(paste(Soil$soiltype,"=",Soil$name),side=3,line=1)
+#a plot of the internal fluxes gives additional insight:
+IntFlux=dataframe.internalfluxes(UnsatStat_NewK)
+plot(IntFlux$intflux,IntFlux$x,type="l",xlab="flux [cm/d]",ylab="z",main="Water fluxes, stationary model, linear K")
+abline(h=0,lty="dashed")
+grid()
+```
+As you see, the model now solves in one step. The psi gradient is constant over the whole depth. 
+</div>
+
+<div class="exercise">
+1C.Do you expect that the nodal distance affects the "crashing" behaviour of the model as you saw in exercise 1A?
+</div>
+
+<div class="exercise">
+1D.Reset the model to use the original k-psi function, still with the evaporation of 1 mm/d. Then reduce the nodal distance in the top 5 cm to 1 mm. What do you see?
+</div>
+
+<div class="answer">
+```{r}
+domain=c(-100,0)
+Soil = soil.set[["B5"]]
+unsatdarcy.flux = function(z,psi,dpsidz)
+{
+  return(-Soil$k.fun(psi)*(dpsidz+1))
+}
+
+################### make the model #################
+UnsatStat_Nodes = newFLOW1D(domain,unsatdarcy.flux,"Unsaturated zone, smaller control volumes")
+
+############## Boundary conditions ##################
+set.BC.fixedstate(UnsatStat_Nodes,"left",0.0) #Head at the bottom [cm]
+set.BC.fixedflux(UnsatStat_Nodes,"right",-0.1) 
+
+####### discretisation #####################
+nodes = c(seq(from=domain[1],to=-5,by=2),seq(from=-4.9,to=domain[2],by=0.1))
+set.discretisation(UnsatStat_Nodes,nodes,"FV")
+Psi.equi = approxfun(c(domain[1],domain[2]),c(domain[2],domain[1]))
+do.initialize(UnsatStat_Nodes,Psi.equi)
+
+# We want to avoid pressures to be too negative (<-1E-5)
+Psi.in.range = function(z,Psi) # it has 2 arguments; the position and the state
+{
+  if(Psi<=-1E5) return(FALSE)
+  else return(TRUE)
+}
+set.isacceptable(UnsatStat_Nodes,Psi.in.range) 
+
+solve.steps(UnsatStat_Nodes,verbose=TRUE)
+```
+The model needs a large number of iterations, but does find a solution. The small nodal distance in the top better describes the nonlinear psi-profile that is needed to draw up enough groundwater. 
+</div>
+
+## Challenging exercise 2
+
+The difference between Finite Volumes and Finite Elements can become more clear when:     
+-There is a point source or sink very close to one of the nodes;      
+-The spatial discretisation is very coarse;      
+-And/or the system is very nonlinear.      
+
+We will look at the effects of using Finite Element discretisation methods in a model with a coarse spatial discretisation and a very dry soil, causing the flux function (incl. K) to become very nonlinear.
+
+<div class="exercise">
+2A. Copy the chunk where you built the `UnsatTrans` model. Make the following adaptations:   
+-Give the model a different name, for example `UnsatTrans_Coarse`.   
+-Use soil type B5, coarse sand   
+-Use a dz of **10 cm**   
+-Apply an evaporation flux of **0.7 cm/d**, with no rainfall   
+-Let the simulation time run to t=10; keep the `delt` at 0.5.   
+
+We apply a very high evaporation flux, which may for example be applicable for some areas in the tropics. This flux will quickly lead to a very dry topsoil.
+
+Try out the Finite Volumes method, as well as the different versions of the Finite Elements method, including *quadratic Finite Elements* and *cubic Finite Elements* (see help --> `set.discretisation`).
+
+What do you observe? 
+</div>
+
+<div class="exercise">
+2B. Look up (online) what these different Finite Element methods do. Can you explain the differences in the results?
+</div>
+
+<div class="exercise">
+2C. Reset the dz to 1. What is the surface $\psi$ at the end of the simulation period (t=9.5)? Is this the same as predicted by the coarse models?
+</div>
+
+<div class="answer">
+```{r animation5, fig.show='animate', aniopts='controls'}
+UnsatTrans_Coarse=copy.model(UnsatStat)
+set.name(UnsatTrans_Coarse, "Unsaturated zone transient, coarse")
+domain = c(-50,0)
+dz=10
+nodes = seq(from=domain[1],to=domain[2],by=dz)
+set.discretisation(UnsatTrans_Coarse,nodes,"FEquadratic")
+
+##THE SOIL(TYPE)
+Soil = soil.set[["B5"]]
+
+topforcing = -0.7
+set.BC.fixedflux(UnsatTrans_Coarse,"right","topforcing") #flux at the top of the model in cm/d
+
+##TIME DiSCRETISATION 
+## ------------------------------------------------------------------------
+begin.time = 0
+end.time = 10 #100 smaller run period for html
+delt = 0.5 ##1/24 larger delt for html
+time = begin.time+delt
+
+##SIMULATING AND PLOTTING
+## ------------------------------------------------------------------------
+do.initialize(UnsatTrans_Coarse,Psi.equi)
+oldpsifun = Psi.equi
+
+psi.atsurface = c() #to keep track of psi at surface
+savestorage = c()
+savepercolation = c()
+
+while(time < end.time)
+{
+  control=solve.steps(UnsatTrans_Coarse)
+  
+  curresult = dataframe.states(UnsatTrans_Coarse)
+  ##saving intermediate results
+  psi.atsurface = c(psi.atsurface,curresult$state[length(nodes)])
+  savestorage = c(savestorage,dataframe.balance(UnsatTrans_Coarse)[2,4])
+  savepercolation = c(savepercolation,dataframe.boundaries(UnsatTrans_Coarse)[1,4])
+  ##saving intermediate results
+  Psi.seq = dataframe.states(UnsatTrans_Coarse)$state
+  z.seq = dataframe.states(UnsatTrans_Coarse)$x
+  Psi.equi.seq = Psi.equi(z.seq)
+  Psi.range=range(Psi.seq,Psi.equi.seq)
+  theta.seq = Soil$theta.fun(Psi.seq)
+  old.par= par(no.readonly=TRUE)
+  par(mfrow=c(1,2))
+  
+  plot(Psi.seq,z.seq,type="l",xlab="Psi",ylab="z",xlim=Psi.range,
+       main=paste("time=",round(time,2)), col="blue",lwd=2)
+  lines(Psi.equi.seq,z.seq,type="l",lty="dashed")
+  grid()
+  plot(theta.seq,z.seq,type="l",xlab="theta",ylab="z",
+       main=paste(Soil$soiltype,"=",Soil$name), col="red",lwd=2,
+       xlim=c(Soil$theta.res,Soil$theta.sat))
+  grid()
+  par(old.par)
+ 
+  Sys.sleep(0.1)
+  time = time+delt
+
+  oldpsifun = approxfun(curresult$x,curresult$state,rule=2)
+}
+```
+
+When the model is run with the Finite Volumes or linear Finite Elements methods, it gets stuck after a few time steps. The surface has dried out, but at all underlying nodes $\psi$ is still equal to its equilibrium value.
+
+When you use another FE method, such as the quadratic Finite Elements method, the model does reach the end of the simulation period. You can see that the $\psi$ profile, despite the coarse resolution, is more smooth, and also the deeper nodes are becoming dryer. At t=9.5, $\psi$ at the surface is about -90 cm.
+
+Finite Elements methods rely on integrals, both for the internal and the external flux, since both fluxes vary over space, also in-between the nodes. However, integrals are an infinite concept, and have to be approached numerically. Different methods exist to approach these integrals, the simples one being a linear approach. The  *quadratic Finite Elements* and *cubic Finite Elements* methods use a more complex, yet more accurate, method to approach the integrals. For more information on this topic, check:
+"Integration points for triangles and tetrahedrons obtained form the Gaussian quadrature points for a line". K. Sunder and R Cookson, Computers and Structures, Vol21, no 5, pp 881-885, 1985.
+
+When you reset dz to 1, $\psi$ at the surface is less than -100 cm. So despite the higher-order FE methods being able to work with the coarse resolution of 10 cm, the results are not as good as with a finer resolution.
+</div>
