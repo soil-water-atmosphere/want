@@ -99,16 +99,16 @@ This document is a so called r-markdown document, which generates a html documen
 The different chapters and sections cover different aspects of the material in this document  
 In the code chunks a specific piece of code can be run  
 Questions and assignments are colored red and the answers and worked out assigments are in blue.  
-The 'answer' version will be available on Blackboard when suitable.  
+The 'answer' version will be available on Brightspace when suitable.  
 
 This docouments is meant to be self contained, meaning that all aspects required to work with it, are included.  
 
 Simply load this *.Rmd document into R-studio and "knit" of "preview" this document and have a look at the created html (in the previewer of R-studio or in a browser)
 
 Questions on the answers can be typed dirctly into this document. The assignments, most of the time finishing code chunks, also need to be worked out in this document. With this you will have a completed set of _your_ answers and _your_ worked out assignments in this document.  
-At the end of the time slot of this assignment a completely filled out document (including answers and worked out assignments)  will be available on Blackboard.  
+At the end of the time slot of this assignment a completely filled out document (including answers and worked out assignments)  will be available on Brightspace.  
 
-First of all, make sure you have the package FVFE1D installed (available on Blackboard > Week 2: FV/FE > Assignment packages). You can find the Help-pages of this package in the bottom right part of your screen, under Packages > FVFE1D. If you click on FVFE1D here, all functions in the package are displayed. When you click on one of the functions, it shows a description of what the function does, and the required input. Consult the Help-pages if you want to know if a certain function exists, and what the required inputs are. 
+First of all, make sure you have the package FVFE1D installed (available on Brightspace > Week 2: FV/FE > Assignment packages). You can find the Help-pages of this package in the bottom right part of your screen, under Packages > FVFE1D. If you click on FVFE1D here, all functions in the package are displayed. When you click on one of the functions, it shows a description of what the function does, and the required input. Consult the Help-pages if you want to know if a certain function exists, and what the required inputs are. 
 
 </div>
 
