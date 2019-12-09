@@ -77,7 +77,7 @@ CheckInstallPackages <- function(pkgs){
  }})}})
 
 } 
-CheckInstallPackages(c("FVFE1D"))
+CheckInstallPackages(c("knitr","FVFE1D"))
 
 load(file='Staring.Rdata')
 # No further action needed if the code block runs without complaints.
