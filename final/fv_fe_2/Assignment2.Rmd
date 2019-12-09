@@ -2,7 +2,7 @@
 title: "FVFE Practical 2 - Transient flow in 1D"
 output:
   html_document:
-    df_print: paged
+#    df_print: paged
     toc: yes
     toc_depth: '4'
   html_notebook:
@@ -14,8 +14,70 @@ subtitle: Finite Volumes, transient 1D
 ---
 
 ```{r, echo=FALSE}
-library(knitr)
 rm(list=ls())
+
+#Check to see if package(s) are installed, install if not and then load
+
+#pkgs is a vector of strings with length >= 1
+
+CheckInstallPackages <- function(pkgs){
+
+#For each pkg in pkgs (attempt to load each package one at a time):
+
+ x <- lapply(pkgs, function(pkg){
+
+  #Load the package if available,
+
+  if(!do.call("require", list(pkg))) {
+
+   #Silently attempt to install into the default library
+
+   try(install.packages(pkg, lib=.Library,repos="http://cran.rstudio.com"))
+
+   #Now attempt to load the package, catch error if it wasn't installed
+
+   tryCatch(do.call("library", list(pkg)),
+
+    #Catch if we're unable to install into the default library
+
+    error = function(err) {
+
+     #If non-interactive, install into this user's personal library
+
+     if(!interactive()) {
+
+      #Get the path to this user's personal library
+
+      personalLibPath <- Sys.getenv("R_LIBS_USER")
+
+      #If the personal library is not in the list of libraries
+
+      if(is.na(match(personalLibPath, .libPaths()))) {
+
+       #Then create the personal library
+
+       dir.create(personalLibPath, recursive = TRUE)
+
+       #And add the personal library to the list of libraries
+
+       .libPaths(personalLibPath)
+
+      }
+
+      #Attempt to install the package into the personal library
+
+      #If this fails, raise the error back to the report
+
+      install.packages(pkg, lib=personalLibPath, repos="http://cran.rstudio.com")
+
+      #Finally, attempt to load the package
+
+      do.call("library", list(pkg))
+
+ }})}})
+
+} 
+CheckInstallPackages(c("knitr","FVFE1D"))
 ```
 
 ## Learning Goals
@@ -498,7 +560,7 @@ Now that the mathematical formulation of the model is completed, the numerical p
 * Set the discretization of the system by defining the method that is used to solve the system.
 * Calling the solve function on the transient model. Solving of the model requires finding the values of the state variables in all volumes such that the balances of all volumes are zero (the sum of the external fluxes and the storage flux equals the net internal flux of a specific volume). As in the stationary model, this requires the solving of (N-2) state variable balances (for all volumes) to get (N-2) values of the state variables, where N is the number of volumes that we have specified. As before, we simply use a function called ``solve.steps`` which takes the instance of the class FLOW1D as an argument and solves the values of the state variables at the specified volumes that lead to a minimal misfit between net internal flux and the external fluxes.
 
-**Extra assignment** Interested in knowing how the ``solve.steps``-function works? Check the extra assignment on Blackboard called ``Newton-Raphson``. 
+**Extra assignment** Interested in knowing how the ``solve.steps``-function works? Check the extra assignment on Brightspace called ``Newton-Raphson``. 
 
 The snippet below shows the missing elements of the numerical model.
 ```{r, eval=FALSE}
