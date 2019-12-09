@@ -3,11 +3,11 @@ title: "FVFE practical 3 - Flow in the unsaturated zone"
 subtitle: "Finite Elements, Finite Volumes, 1D stationary and transient simulations"
 date: "December 2019"
 output:
-  html_notebook:
+  html_document:
     css: gbwant.css
     toc: yes
     toc_depth: 4
-  html_document:
+  html_notebook:
     css: gbwant.css
     toc: yes
     toc_depth: 4
@@ -15,7 +15,70 @@ output:
 
 ```{r echo=FALSE}
 rm(list = ls())
-library(FVFE1D)
+
+#Check to see if package(s) are installed, install if not and then load
+
+#pkgs is a vector of strings with length >= 1
+
+CheckInstallPackages <- function(pkgs){
+
+#For each pkg in pkgs (attempt to load each package one at a time):
+
+ x <- lapply(pkgs, function(pkg){
+
+  #Load the package if available,
+
+  if(!do.call("require", list(pkg))) {
+
+   #Silently attempt to install into the default library
+
+   try(install.packages(pkg, lib=.Library,repos="http://cran.rstudio.com"))
+
+   #Now attempt to load the package, catch error if it wasn't installed
+
+   tryCatch(do.call("library", list(pkg)),
+
+    #Catch if we're unable to install into the default library
+
+    error = function(err) {
+
+     #If non-interactive, install into this user's personal library
+
+     if(!interactive()) {
+
+      #Get the path to this user's personal library
+
+      personalLibPath <- Sys.getenv("R_LIBS_USER")
+
+      #If the personal library is not in the list of libraries
+
+      if(is.na(match(personalLibPath, .libPaths()))) {
+
+       #Then create the personal library
+
+       dir.create(personalLibPath, recursive = TRUE)
+
+       #And add the personal library to the list of libraries
+
+       .libPaths(personalLibPath)
+
+      }
+
+      #Attempt to install the package into the personal library
+
+      #If this fails, raise the error back to the report
+
+      install.packages(pkg, lib=personalLibPath, repos="http://cran.rstudio.com")
+
+      #Finally, attempt to load the package
+
+      do.call("library", list(pkg))
+
+ }})}})
+
+} 
+CheckInstallPackages(c("FVFE1D"))
+
 load(file='Staring.Rdata')
 # No further action needed if the code block runs without complaints.
 ```
@@ -1519,8 +1582,10 @@ Now you will implement a more 'realistic' top forcing. The R-file `topforcing.R`
 20. Create a separate chunk that makes a plot of the precipitation, evapotranspiration and net input (rainfall surplus) provided by `topforcing.R`.
 </div>
 
+<div class = 'hint'>
 <button type="button" onclick="showHint(3002)">Show Hint</button>
 <p id="Q3002"> </p>
+</div>
 
 
 <div class="answer">
@@ -1913,6 +1978,7 @@ yrange = range(caprise.act,storage.act)
 tsteps = seq(begin.time+delt,end.time-delt,by=delt)
 plot(tsteps,evap.act, type="l",lwd=3,col='red',main="Evapotranspiration",
      ylab='evapotranspiration (cm/d)',xlab="time (d)")
+grid()
 plot (tsteps,caprise.act,ylim=yrange,lwd=3,col='blue', type="l",xlab="time (d)", ylab="flux rate (cm/d)", main="stor.flux (green), cap.rise (blue)")
 lines(tsteps,storage.act,lwd=3,col='green')
 lines(tsteps,(evap.act+storage.act+caprise.act),lty='dashed')
