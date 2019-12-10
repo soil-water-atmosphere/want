@@ -32,9 +32,71 @@ In these exercises the basic steps of two dimensional groundwater flow models wi
 ```{r, include=FALSE}
 # Clear the environment.
 rm(list=ls())
-# Load the FVFE2D package.
-library(FVFE2D)
-library(fields)
+#check packages to use and activate/install them
+#Check to see if package(s) are installed, install if not and then load
+
+#pkgs is a vector of strings with length >= 1
+
+CheckInstallPackages <- function(pkgs){
+
+#For each pkg in pkgs (attempt to load each package one at a time):
+
+ x <- lapply(pkgs, function(pkg){
+
+  #Load the package if available,
+
+  if(!do.call("require", list(pkg))) {
+
+   #Silently attempt to install into the default library
+
+   try(install.packages(pkg, lib=.Library,repos="http://cran.rstudio.com"))
+
+   #Now attempt to load the package, catch error if it wasn't installed
+
+   tryCatch(do.call("library", list(pkg)),
+
+    #Catch if we're unable to install into the default library
+
+    error = function(err) {
+
+     #If non-interactive, install into this user's personal library
+
+     if(!interactive()) {
+
+      #Get the path to this user's personal library
+
+      personalLibPath <- Sys.getenv("R_LIBS_USER")
+
+      #If the personal library is not in the list of libraries
+
+      if(is.na(match(personalLibPath, .libPaths()))) {
+
+       #Then create the personal library
+
+       dir.create(personalLibPath, recursive = TRUE)
+
+       #And add the personal library to the list of libraries
+
+       .libPaths(personalLibPath)
+
+      }
+
+      #Attempt to install the package into the personal library
+
+      #If this fails, raise the error back to the report
+
+      install.packages(pkg, lib=personalLibPath, repos="http://cran.rstudio.com")
+
+      #Finally, attempt to load the package
+
+      do.call("library", list(pkg))
+
+ }})}})
+
+} 
+CheckInstallPackages(c("fields","FVFE2D"))
+
+
 ```
 
 # 1. Construct the mathematical part of the two dimensional model
@@ -212,14 +274,14 @@ bgplot3d({
 ```
 </div>
 
-There are many other postprocessing and plotting possibilities built in the FVFE2D package. Some suggestions are given:
+There are many other post processing and plotting possibilities built in the FVFE2D package. Some suggestions are given:
 
 * Printing the first 10 rows of the x, y and state values of the model
 * Creating a 2D plot with contour lines for the values 1 to 8
 * Creating a 1D plot of a cross section through the domain
 
 <div class="exercise">
-6.Use the help function to carry out the postprocessing and plotting suggestions, as given above. Describe the results of the plots.
+6.Use the help function to carry out the post processing and plotting suggestions, as given above. Describe the results of the plots.
 </div>
 
 <div class="student_answer">
@@ -250,11 +312,11 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-In the Finite Elements method, contours can intersect through the segments because of linear interpolation between the nodes of the two dimensional system. This results in a smooth contour line. In the Finite Volume method each Voronoi cell is assigned a value and this value is constant for the complete segment. Therefore, a contour line can be located at the boundary of the segment only. This results in the blocky behaviour of the contour line.
+In the Finite Elements method, contours can intersect through the segments because of linear interpolation between the nodes of the two dimensional system. This results in a smooth contour line. In the Finite Volume method each Voronoi cell is assigned a value and this value is constant for the complete segment. Therefore, a contour line can be located at the boundary of the segment only. This results in the blocky behavior of the contour line.
 </div>
 
 # 3. Several interpolation functions
-In the one dimensional models, `approxfun()` was used to interpolate the kD parameter. In the transient models, we used the built-in `state.fun()` to interpolate the states at a certain timestep for use in the next timestep. A two dimensional equivalent of the interpolation functions is useful for two dimensional modelling. Several different functions will be discussed in this part.
+In the one dimensional models, `approxfun()` was used to interpolate the kD parameter. In the transient models, we used the built-in `state.fun()` to interpolate the states at a certain time step for use in the next time step. A two dimensional equivalent of the interpolation functions is useful for two dimensional modelling. Several different functions will be discussed in this part.
 
 <div class="exercise">
 8.The two dimensional interpolation functions are not built into the standard library of R. Therefore, three of these functions are built into the FVFE2D package. Use the help to find them.
@@ -306,7 +368,7 @@ points(tointerp$x, tointerp$y, cex=1, pch=10, col="black")
 
 # 3D plot
 new_dev = open3d()
-surface3d(xtopl,ytopl, z, opacity=0.3, col="lightblue")
+surface3d(xtopl,ytopl, z, opacity=0.3, col="light blue")
 spheres3d(tointerp$x, tointerp$y, tointerp$T, radius=2, col="red")
 box3d()
 
@@ -329,7 +391,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-This should remind you of the FV principle. The same state is assigned to all positions within the volume. A blocky behaviour is found. 
+This should remind you of the FV principle. The same state is assigned to all positions within the volume. A blocky behavior is found. 
 </div>
 
 <div class="exercise">
@@ -359,7 +421,7 @@ points(tointerp$x, tointerp$y, cex=1, pch=10, col="black")
 
 # 3D plot
 new_dev = open3d()
-surface3d(xtopl,ytopl, z, opacity=0.3, col="lightblue")
+surface3d(xtopl,ytopl, z, opacity=0.3, col="light blue")
 spheres3d(tointerp$x, tointerp$y, tointerp$T, radius=2, col="red")
 box3d()
 
@@ -396,7 +458,7 @@ points(tointerp$x, tointerp$y, cex=1, pch=10, col="black")
 
 # 3D plot
 new_dev = open3d()
-surface3d(xtopl,ytopl, z, opacity=0.3, col="lightblue")
+surface3d(xtopl,ytopl, z, opacity=0.3, col="light blue")
 spheres3d(tointerp$x, tointerp$y, tointerp$T, radius=2, col="red")
 box3d()
 
@@ -433,7 +495,7 @@ points(tointerp$x, tointerp$y, cex=1, pch=10, col="black")
 
 # 3D plot of power=0.5 interpolation.
 new_dev = open3d()
-surface3d(xtopl,ytopl, z, opacity=0.3, col="lightblue")
+surface3d(xtopl,ytopl, z, opacity=0.3, col="light blue")
 spheres3d(tointerp$x, tointerp$y, tointerp$T, radius=2, col="red")
 box3d()
 
@@ -454,7 +516,7 @@ points(tointerp$x, tointerp$y, cex=1, pch=10, col="black")
 ```{r}
 # 3D plot of power=4 interpolation.
 new_dev = open3d()
-surface3d(xtopl,ytopl, z, opacity=0.3, col="lightblue")
+surface3d(xtopl,ytopl, z, opacity=0.3, col="light blue")
 spheres3d(tointerp$x, tointerp$y, tointerp$T, radius=2, col="red")
 box3d()
 
@@ -477,7 +539,7 @@ kD.Data = data.frame(
 ```
 
 <div class="exercise">
-13.Choose the smoothest interpolator that still respects the data and plot the two dimensional model domain of TwoDModel with the interpolated transmissivity values. For this use one of the previous interpolation chunks.  
+13.Choose, from the interpolation functions available, the smoothest interpolator that still respects the data and plot the two dimensional model domain of TwoDModel with the interpolated transmissivity values. For this use one of the previous interpolation chunks.  
 </div>
 
 <button type="button" onclick="showHint(413)">Show Hint</button>
@@ -764,19 +826,19 @@ bgplot3d({
 
 # 5. Flow through a dike
 
-In the last part of this assignment, (simplified) flow through a dike will be modelled, in a situation similar to figure 2.
+In the last part of this assignment, (simplified) flow through a dike will be modeled, in a situation similar to figure 2.
 
 <div align="center">
 ![Figure 2: Photo of a Dutch dike.](DikePhoto.png)
 
 </div>
 
-In figure 3 a schematised vertical cross section of a dike is presented. Note the different scale of the y-direction compared to the x-direction. From figure 3 can be seen that the y-to-x-ratio is not equal to one. This can be graphically observed in this particular case, but this is not always so clear. Be aware that this y-to-x-ratio exists in this model. 
+In figure 3 a schematized vertical cross section of a dike is presented. Note the different scale of the y-direction compared to the x-direction. From figure 3 can be seen that the y-to-x-ratio is not equal to one. This can be graphically observed in this particular case, but this is not always so clear. Be aware that this y-to-x-ratio exists in this model. 
 
 ![Figure 3: Schematized vertical dike cross section.](DikeDomain.png)
 
 <div class="exercise">
-20.Define the model domain in a new R-code chunk, as illustrated in figure 3, and plot the new domain. Firstly, clear the defined objects from the workspace to prevent unwanted interference with previous model simulations. What is the y-to-x-ratio in this example?
+20.Define the model domain in a new R-code chunk, as illustrated in figure 3, and plot the new domain. Firstly, clear the defined objects from the work space to prevent unwanted interference with previous model simulations. What is the y-to-x-ratio in this example?
 </div>
 
 <button type="button" onclick="showHint(420)">Show Hint</button>
@@ -828,7 +890,8 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-The hydraulic conductivity is positively related to pressure in the unsaturated zone. As pressure gets more negative with increasing distance from the saturated zone, the hydraulic conductivity strongly decreases too. Therefore, the flow in the unsaturated part is overestimated using the current internal flux function.
+The hydraulic conductivity is a constant $k_{sat}$ for saturated conditions but a function of pressure $\psi$ and highly non-linear for unsaturated conditions, see FVFE assignment 3 for details on this.  
+As pressure gets more negative with increasing distance from the saturated zone, the hydraulic conductivity strongly decreases too. Therefore, the flow in the unsaturated part is overestimated using the current internal flux function.
 </div>
 
 Next, several boundary conditions have to be defined. The boundaries should be implemented as follows:
@@ -893,7 +956,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-The largest flux is observed at the lower west boundary, where all the water is forced through a relatively small surface. The highest flux density is observed here. The lenght of these vectors represent the magnitude of the flux. The arrows point in the direction of the flow.
+The largest flux is observed at the lower west boundary, where all the water is forced through a relatively small surface. The highest flux density is observed here. The length of these vectors represent the magnitude of the flux. The arrows point in the direction of the flow.
 ```{r}
 # Solve
 solve.steps(DikeFlow)
@@ -935,4 +998,86 @@ plot(DikeFlow, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, len
 * How do the water levels left and right of the dike influence the flow?
 * How do heterogeneities (e.g. a very conductive layer) influence the flow?
 * How does the rainfall intensity influence the flow?
+
+<div class="answer">
+26.a  
+The following chunk contains results with an equal water level on the left and right side:  
+However, the right eastern boundary is 1.0 m high for which only the lower 0.5 m should contain the prescribed head (H). Now the model simulates a prescribed head of 0.5 m AMSL over the total height and therefor also the not saturated upper part which is not correct.
+To adjust for this segment with ID= 2 need to be cut in a lower and upper part and the model need to be recreated on with this.
+
+```{r}
+#make a copy of the original model
+Dike_equal_levels = copy.model(DikeFlow)
+
+#eastern boundary (nr 2) is set equal to western BC (fixed level 0.5 m)
+set.BC.fixedstate(Dike_equal_levels, 2, 0.5)
+
+# Solve
+solve.steps(Dike_equal_levels)
+
+# Plotting
+plot(Dike_equal_levels, fill="state", fill.contours=seq(0, 1, length=10), fill.name="head", fluxvecsize=1)
+plot(Dike_equal_levels, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, length=9))
+
+```
+
+26.b  
+To include an extra layer with high conductivity hydraulic conductivity need to be transformed into a function based on interpolation.
+Suppose there would be a gravel layer of 0.25 m starting 0.20 m above the bottom.
+
+```{r}
+gravel = data.frame(
+  x = c(0,10,10,10,10,0,0,0),
+  y =c(0,0,0.2,0.21,2,2,0.21,0.2),
+  k =c(25,25,25,0.1,0.1,0.1,0.1,25))
+gravel.fun = nearestneighbour.fun(data=gravel,zname = "k")
+#make a plot to visualize
+nrpoints = 20
+rows = seq(0,10,length=nrpoints)
+cols = seq(0,2,length=nrpoints)
+kfield = outer(rows,cols,gravel.fun)
+image(rows,cols,kfield)
+#create a new model with a internal flux depending on location
+dike.flux = function(x,y,state,grad)
+{
+  return(-gravel.fun(x,y)*grad)
+}
+Dike_gravel = newFLOW2D(domain=domain,systemfluxfunction = dike.flux,name = "dike_gravel_layer")
+set.BC.fixedstate(Dike_gravel,where = 2,value = 1.0)
+set.BC.fixedstate(Dike_gravel,where = 6, value = 0.5)
+set.BC.fixedflux(Dike_gravel,where =4, value = 0.001 )
+set.discretisation(Dike_gravel,nodes=list(type="geomgen", optdist=0.5, ytoxratio=5, verbose=FALSE), method="FE")
+solve.steps(Dike_gravel)
+plot(Dike_gravel, fill="state", fill.contours=seq(0, 1, length=10), fill.name="head", fluxvecsize=0.5)
+
+plot(Dike_gravel, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, length=9))
+
+```
+
+The results clearly shows preferential flow through the gravel layer
+
+26.c  
+This is simply accomplished by increasing the amount of recharge on top of the dike.  
+To make it a bit more practical the 'rate' will be replaced by a variable. See the code:  
+
+```{r}
+#first make a copy of the original mode:
+Dike_rain = copy.model(DikeFlow)
+set.name(Dike_rain,"recharge rate")
+#replace the old prescribed rain which has a constant value.
+recharge.rate = 0.0 #10 mm/d
+set.BC.fixedflux(Dike_rain,where = 4, value = "recharge.rate")
+
+solve.steps(Dike_rain,verboselevel = 2)
+
+plot(Dike_rain, fill="state", fill.contours=seq(0, 1, length=10), fill.name="head", fluxvecsize=1)
+plot(Dike_rain, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, length=9))
+
+dataframe.balance(Dike_rain)
+recharge.bc = dataframe.boundaries(Dike_rain,segids = c(4))
+sum(recharge.bc$flux)
+```
+
+When the recharge rate is increased to 10 mm/d one can clearly see the water table ($\psi=0$) risen to more than half way the dike
+</div>
 </div>
