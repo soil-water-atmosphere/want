@@ -188,7 +188,7 @@ _boundary conditions_:
 
 
 
-##Internal flux 
+## Internal flux 
 
 In this model we apply a Darcy water flux, using the Dupuit assumption - this means we assume the flow in the aquifer to be mainly horizontal and uniform with depth, allowing us to make volume flow simply proportional to the thickness over which it occurs.   
 We may distinguish two types of internal Darcy fluxes:  
@@ -242,7 +242,7 @@ Note that the external flux, the net rainfall, is given to the model as a flux d
 The unit of the internal flux is already given to the model in m$^2$/d, because we use the transmissivity kD, which already includes the depth (D) over which the internal flow occurs.
 </div>
 
-##Mathematical model setup
+## Mathematical model setup
 When setting up your model, you can make use of the model template `ModelTemplate1D.Rmd`, which is included in the folder of this assignment. This document explains all the steps needed in setting up a 1D flow model. The Help-pages of the FVFE1D package may also be helpful.
 
 <div class="exercise"> 
@@ -368,7 +368,7 @@ set.name(Hydro_1Dmodel_type1,'Hydro type-1 1D groundwater model ')
 ```
 </div>
 
-##Numerical model setup
+## Numerical model setup
 In the section above, you defined the mathematical or conceptual model setup. This relates to your understanding of the system: the domain that is relevant for the system you study, a mathematical formulation of the fluxes that occur, and defining the boundary conditions. Now, the numerical setup needs to be formulated.
 
 <div class="exercise"> 
@@ -390,7 +390,7 @@ set.discretisation(Hydro_1Dmodel_type1,nodes,method='FV')
 ```
 </div>
 
-##Solving and checking convergence
+## Solving and checking convergence
 
 <div class="exercise">
 11. Solve the model in the following chunk.
@@ -439,7 +439,7 @@ plot(Hydro_1Dmodel_type1,stateplot=TRUE,fluxplot=TRUE, FVstyle=T)
 ```
 </div>
 
-##Comparing with the analytical solution 
+## Comparing with the analytical solution 
 It is interesting to see how well the numerical solution compares to the analytical solution.  Analytical solutions generally only exist in homogeneous and uniform conditions, which is the case in this situation. If the aquifer transmissivity would not be a constant, an analytical solution would be much harder to find.  The analytical solution is given by:
 
 $$
@@ -472,7 +472,7 @@ print(c('difference :',H_anal-H_num))
 ```
 </div>
 
-##Examining the water balance
+## Examining the water balance
 
 A very important tool for a hydrologist is the water balance, to assess the flows into and out of the system.  
 
@@ -522,7 +522,7 @@ print(dataframe.boundaries(Hydro_1Dmodel_type1))
 So $0.1 m^2/d$ leaves the system through the left boundary and $0.1 m^2/d$ through the right boundary.
 </div>
 
-##Adding a Cauchy Boundary Condition
+## Adding a Cauchy Boundary Condition
 
 In this section the basic model is going to be adjusted with the replacement of the left river with a canal which does not fully penetrate the aquifer.  
 
@@ -560,7 +560,7 @@ $C^{-1} : \frac{k}{\Delta z}\rightarrow C=\frac{\Delta z}{k}$
 
 One can see that this formula is simply Darcy's eqation again, see also: \@ref(eq:darcy-eq) in the "Background info"  
 
-###Implementation
+### Implementation
 
 To implement this 'state dependent flux rate' the `set.BC.fluxstate(model, where, func)` function can be used from the FVFE1D-package. See the help of this package for details  
 This function requires a `func` : a function in stead of a `value` here.  
@@ -652,7 +652,7 @@ The specific outfluxes are clearly different. Most of the water: `r bc_flux[2,4]
 </div>
 
 
-##A non-uniform kD field
+## A non-uniform kD field
 
 Up till now the transmissivity of the aquifer has been constant. Now we are going to investigate the effect of a gradually increasing transmissivity from left to right in the model.  
 For this, a kD-function is created with `approxfun` in R, as shown in the chunk below. Type `help(approxfun)` at the console prompt to have some insight in the workings of this function.  
@@ -731,7 +731,7 @@ print(paste('fraction of total to right river :',db[2,4]/sum(db[,4])))
 ```
 </div>
 
-##Type 2 internal flow
+## Type 2 internal flow
 Until now the model was of a type 1 flow: it assumed a constant saturated thickness $D$ over which groundwater flow occurred. In reality groundwater flow is limited to the saturated thickness $H(x)$. Such a change makes the model non-linear in the state (head).  
 
 <div class="exercise">
