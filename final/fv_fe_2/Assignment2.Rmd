@@ -2,14 +2,14 @@
 title: "FVFE Practical 2 - Transient flow in 1D"
 output:
   html_document:
-#    df_print: paged
+    css: gbwant.css
     toc: yes
     toc_depth: '4'
   html_notebook:
     css: gbwant.css
     toc: yes
     toc_depth: 4
-date: "November 2019"
+date: "December 2019"
 subtitle: Finite Volumes, transient 1D
 ---
 
@@ -316,7 +316,7 @@ In the upper figure we see the situation at time t=0, the initial time before th
 The lower picture shows the situation when the system has progressed one time step after the surface started cooling. In this case, there is again a balance in the volume. However, in contrast to the initial stationary situation, besides the external fluxes that act on the system at $t=t+\Delta t$ and the internal fluxes within the system at $t=t+\Delta t$, there is an additional flux here that results from the change of storage within the system, if the internal and external fluxes do not add up to zero.
 
 <button class="collapsible">Physical interpretation of storage change</button>
-<div class="content">
+<div class="content">  
 The potential temperature is defined as: $\theta=T\frac{P_0}{P}^{R/c_p}$ .  
 
 Where $P_0, P, R$ are the reference and local pressures and the gas constant.  
@@ -1456,7 +1456,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-```{r animation3, echo=FALSE, fig.show='animate', aniopts='controls', interval=0.1,eval=TRUE}
+```{r animation3,fig.show='animate', interval=0.1}
 # New model initialization.
 trans3model = copy.model(trans2model)
 set.name(trans3model, newname="trans3model")
