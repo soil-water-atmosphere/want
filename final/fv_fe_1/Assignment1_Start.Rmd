@@ -1,21 +1,15 @@
 ---
 title: "FVFE Practical 1 - Stationary Flow in 1D"
-subtitle: "Groundwater flow towards rivers and Heat transfer in the atmospheric boundary layer"
-date: "March 2019"
 output:
+  html_notebook:
+    css: want_n.css
+    toc: yes
   bookdown::html_document2:
-    css: gbwant.css
-    toc: yes  
-#  html_document:
-#    css: gbwant.css
-#    toc: yes
-#    number_sections: true
-#    fig_catption: yes
-#  html_notebook:
-#    css: gbwant.css
-#    toc: yes
-#    number_sections: true
-#    fig_catption: yes
+    css: want_n.css
+    toc: yes
+date: "March 2019"
+subtitle: Groundwater flow towards rivers and Heat transfer in the atmospheric boundary
+  layer
 ---
 
 ```{r, echo=FALSE}
@@ -97,13 +91,16 @@ This document is a so called r-markdown document, which generates a html documen
 4.  answers and worked out assignments  
 
 The different chapters and sections cover different aspects of the material in this document  
-In the code chunks a specific piece of code can be run  
+In the code chunks a specific piece of code can be run.  
 Questions and assignments are colored red and the answers and worked out assigments are in blue.  
 The 'answer' version will be available on Brightspace when suitable.  
 
 This docouments is meant to be self contained, meaning that all aspects required to work with it, are included.  
 
-Simply load this *.Rmd document into R-studio and "knit" of "preview" this document and have a look at the created html (in the previewer of R-studio or in a browser)
+Simply load this *.Rmd document into R-studio and "knit" or "preview" this document and have a look at the created html (in the previewer of R-studio or in a browser).  
+with "knit" the document will run all chunks and create a html document with the output of the chunks and the text in the markdown.  
+With "preview" the document will be created based on the text in the Rmd and the chunk which already have run.  
+When working on the R-chunks one can run the individual chunks seperately and see the results.  However, in preview mode some cross-referencing and numbering could not work correctly. Knitting the whole document should return proper cross-referencing and numbering.
 
 Questions on the answers can be typed dirctly into this document. The assignments, most of the time finishing code chunks, also need to be worked out in this document. With this you will have a completed set of _your_ answers and _your_ worked out assignments in this document.  
 At the end of the time slot of this assignment a completely filled out document (including answers and worked out assignments)  will be available on Brightspace.  
@@ -314,8 +311,8 @@ Hydro_1Dmodel_type1 = newFLOW1D(domain=domain,systemfluxfunction = type1.flux)
 Define the required boundary conditions here. These are the prescribed heads (water levels) of both rivers.
 
 <div class="hint">
-<button type="button" onclick="showHint(1)">Show Hint</button>
-<p id="Q1"> </p>
+<button type="button" onclick="showHint(1001)">Show Hint</button>
+<p id="Q1001"> </p>
 </div>
 
 <div class="student_answer">
@@ -452,8 +449,8 @@ This formula is based on one of the solutions for the calculation of drain spaci
 </div>
 
 <div class="hint">
-<button type="button" onclick="showHint(2)">Show Hint</button>
-<p id="Q2"> </p>
+<button type="button" onclick="showHint(1002)">Show Hint</button>
+<p id="Q1002"> </p>
 </div>
 
 <div class="student_answer">
@@ -1230,4 +1227,4 @@ Comments:
 </div>
 
 <!-- include the hint.js -->  
-<script src="hints_B.js"></script>
+<script src="hints_n.js"></script>
