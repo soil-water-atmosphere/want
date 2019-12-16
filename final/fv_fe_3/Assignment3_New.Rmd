@@ -4,11 +4,12 @@ subtitle: "Finite Elements, Finite Volumes, 1D stationary and transient simulati
 date: "December 2019"
 output:
   html_document:
-    css: gbwant.css
+    code_folding : show
+    css: want_n.css
     toc: yes
     toc_depth: 4
   html_notebook:
-    css: gbwant.css
+    css: want_n.css
     toc: yes
     toc_depth: 4
 ---
@@ -253,7 +254,7 @@ In these assignments we therefor will choose $\psi(z)$ as state variable, which 
 
 <div class="exercise"> 
 The Darcy formula for the internal flux in the unsaturated zone can now be expressed in terms of the pressure head ($\psi$) and the hydraulic conductivity.  
-1.What is the most important difference between the 'saturated' and 'unsaturated' Darcy flux?
+1. What is the most important difference between the 'saturated' and 'unsaturated' Darcy flux?
 </div>
 
 <div class="student_answer">
@@ -270,7 +271,7 @@ The "$[..+1]$, between the brackets simply comes from the transformation from $H
 Before constructing models for flow in the unsaturated zone, it is useful to make an overview of the units.
 
 <div class="exercise">
-2.Fill out the table.
+2. Fill out the table.
 </div>
 
 <div class="student_answer">
@@ -389,7 +390,7 @@ Sandy peat | | | |
 <br>
 
 <div class="answer">
-3. saturated conductivties of these soils can be inspected through the graphs above or with some code like below:  
+3. Saturated conductivties of these soils can be inspected through the graphs above or with some code like below:  
 
 ```{r}
 list.soilcode=c("B5","B13","B11","B16")
@@ -417,14 +418,14 @@ For inspecting the data it is practical and convention that distributions of pre
 The code chunk below is mostly preprogrammed. It illustrates the pressure and moisture content profile at equilibrium with the groundwater for a certain soil. The surface level is set to 0.0 cm. Assume that the groundwater table is at 1 m (100 cm) depth. The internal flow is defined to be positive upwards.
 
 <div class="exercise">
-4.What are the boundary conditions at the lower (left) and upper (right) end of the domain? Fill out AA and BB in the chunk.  
-5.Derive for the internal flux the differential equation for $\psi$ for the equilibrium situation. Use this to fill out XX and YY in the chunk.  
+4. What are the boundary conditions at the lower (left) and upper (right) end of the domain? Fill out AA and BB in the chunk.  
+5. Derive for the internal flux the differential equation for $\psi$ for the equilibrium situation. Use this to fill out XX and YY in the chunk.  
 </div>
 
 The variable **all.soil.codes** contains all available soil codes. You can also open the `soil.set` list in the environment to see the available information for the different soil types.
 
 <div class="exercise">
-6.Select one of the soils to plot the pressure and moisture content profile for the equilibrium situation.  
+6. Select one of the soils to plot the pressure and moisture content profile for the equilibrium situation.  
 You need to remove **eval=FALSE** before the chunk can be run!
 </div>
 
@@ -463,8 +464,8 @@ par(old.par)
 </div>
 
 <div class="answer">
-4.The domain runs from -100 cm (the groundwater table) to 0 cm (the ground surface).   
-5.Because we have a no-flow situation with q=0 cm/d (soil moisture in equilibrium with the groundwater table), we can write $q(z)=-k(\psi) \left ( \frac{d\psi}{dz}+1 \right )=0$     
+4. The domain runs from -100 cm (the groundwater table) to 0 cm (the ground surface).   
+5. Because we have a no-flow situation with q=0 cm/d (soil moisture in equilibrium with the groundwater table), we can write $q(z)=-k(\psi) \left ( \frac{d\psi}{dz}+1 \right )=0$     
 That means $\frac{d\psi}{dz}+1=0$       
 and $\frac{d\psi}{dz}=-1$   
 To describe the equilibrium profile for the pressure head $\psi$, we still need one boundary condition. This is given by the groundwater table: at x=-100 cm, $\psi$ is 0 cm.
@@ -503,7 +504,7 @@ par(old.par)
 </div>  
 
 <div class="exercise"> 
-7.The pressure profile is the same for all soils. Can you explain why? 
+7. The pressure profile is the same for all soils. Can you explain why? 
 </div> 
 
 <div class="student_answer"> 
@@ -515,7 +516,7 @@ Fill in your answer here...
 </div>
 
 <div class="exercise">
-8.What is the difference between an equilibrium situation and a stationary flow situation, for the unsaturated zone case?
+8. What is the difference between an equilibrium situation and a stationary flow situation, for the unsaturated zone case?
 </div>
 
 <div class="answer">
@@ -926,7 +927,7 @@ max. recharge and water table at 2 m | 52.92 | 12.98 | 4.53 | 6.79 |
 </div>
 
 <div class="answer">
-14. $\frac{\partial \psi}{\partial z}$ is now constant, thus the state distribution is linear because the internal flux is now switched to a linear type of equation since the $k_{sat}$ has become a constant. 
+14. $\frac{\partial \psi}{\partial z}$ is now constant, thus the state distribution is linear because the internal flux is now switched to a linear type of equation since the  $k=k_{sat}$ has become a constant. 
 </div>
 
 
@@ -1051,7 +1052,7 @@ cap. rise in cm/d with FE approach | | |
 </div>
 
 <div class="answer">
-16.Since this is an integral technique, using a redistribution technique between the nodes, results could be smoother. This could be important in situations with strong linearity, like $k(\psi)$ for most soils.  
+16. Since this is an integral technique, using a redistribution technique between the nodes, results could be smoother. This could be important in situations with strong linearity, like $k(\psi)$ for most soils.  
 
 ```{r echo=TRUE}
 ################### Soil type ###################
@@ -1131,7 +1132,7 @@ cap. rise in cm/d with FV approach | 0.095 | 1.8 | 0.052 | 0.225 |
 cap. rise in cm/d with FE approach | 0.099 | 1.84 |0.0522 | 0.228 |  
 
 Results do not differ that much but with the FE technique the amount of cap.rise could be increased a bit.  
-One of the reasons is the extreme low pressure for which the hydraulic conductivity is calculated.  The most changes of k as a function of $\psi$ is most of the time in the range of pF 2-2.5 (coarse estimate) so in the $\psi$ scale between `r -10^2` and `r -10^2.5`, which is much less than range at the top of the models which is in the order of `r -10^4.7` and `r -10^4.9`.
+One of the reasons is the extreme low pressure for which the hydraulic conductivity is calculated.  The most changes of k as a function of $\psi$ is most of the time in the range of pF 2-2.5 (coarse estimate) so in the $\psi$ scale between `r -10^2` and `r -10^2.5`, which is much less negative than the range at the top of the models which is in the order of `r -10^4.7` and `r -10^4.9`.
 
 </div>
 
@@ -1482,13 +1483,13 @@ if (Soil$soiltype == "B11")
 </div>
 
 <div class= "exercise">    
-18.Change the soil type. How does the soil moisture behaviour change?    
+18. Change the soil type. How does the soil moisture behaviour change?    
 Make sure that when you make a new chunk that should do an animation, also copy `fig.show='animate', aniopts='controls'` into the upper line of the chunk.    
-19.Change the method into Finite Elements. What changes do you observe? 
+19. Change the method into Finite Elements. What changes do you observe? 
 </div>
 
 <div class="answer">
-18.This chunk runs the model with soil B11, heavy clay.
+18. This chunk runs the model with soil B11, heavy clay.
 ```{r animation2, echo=FALSE, fig.show='animate', aniopts='controls'}
 ###Running with another soil type: B11 heavy clay
 UnsatTrans_Clay=copy.model(UnsatTrans)
@@ -1569,7 +1570,7 @@ With the same top forcing, the clay soil (B11) takes more time to reach equilibr
 ![](Ex6Answer.png)
 
 
-19.If you run the model using Finite Elements (not shown in the chunks), the dynamics of the soil moisture profile change very little. However, if you look at the fluxes or storage changes that happen in each timestep (using one of the dataframes that are saved during the while loop), small differences are visible.
+19. If you run the model using Finite Elements (not shown in the chunks), the dynamics of the soil moisture profile change very little. However, if you look at the fluxes or storage changes that happen in each timestep (using one of the dataframes that are saved during the while loop), small differences are visible.
 </div>
 
 *There is also a challenging exercise available, that looks some further into the differences between Finite Volumes and Finite Elements. If you are interested, go to **Exercise 2** of the `Assingment3_challenge.Rmd`.*
@@ -1994,4 +1995,4 @@ When another Feddes function is implemented for a more wet-loving vegetation, th
 </div>
 
 <!-- include the hint.js -->
-<script src="hints_B.js"></script>
+<script src="hints_n.js"></script>
