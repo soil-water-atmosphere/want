@@ -1,0 +1,396 @@
+---
+title: "Sensitivity Assignment 3 - 1D systems"
+subtitle: "Global sensitivity analysis in a 1D groundwater model"
+author: "EB/LM"
+date: "11/12/2019"
+output:
+   html_document:
+    css: want.css
+    toc: yes
+---
+
+# Learning goals
+*  Performing global sensitivity analysis on a simple model *(Exercise 1-3)*
+*  Understanding the importance of the size of the parameter sample for the results of the sensitivity analysis *(Exercise 6,7)*
+
+# Introduction
+In this assignment you will apply a global sensitivity analysis to the same 1D groundwater model that we used for the local sensitivity analysis. The model simulates a groundwater extraction well that is located next to a nature reserve (depicted by the reed vegetation), as shown in the figure below, with a river on the left side of the nature reserve.  
+
+![1D saturated stationary groundwater model](1Dsensmodel.png)   
+
+```{r}
+rm(list=ls())
+library(FVFE1D)
+source("samplehelpers.R")
+```
+
+<div class="exercise">
+First of all, install the following packages from CRAN:   
+*  `LHS` 
+*  `truncnorm`   
+*  `matrixStats`   
+</div>
+
+# 1. The model
+The same model is used as for the Local Sensitivity Analysis 1D assignment. The definition of the model is already provided below:
+```{r}
+# Domain
+domain = c(0,500) 
+
+# Internal flux
+kDl = 55
+kDr = 35
+kD.fun = approxfun(domain,c(kDl,kDr)) #gives a (linear) function for the transmissivity
+# caution: every time you change kDl or kDr you have to reconstruct this function
+internal.flux = function(x,state,gradstate) 
+  {
+  return(-kD.fun(x)*gradstate)
+  }
+
+# Define the model
+GWmodel = newFLOW1D(domain,internal.flux) 
+set.name(GWmodel,"base run")
+
+# External fluxes
+P = 0.001
+add.spatialflux(GWmodel,"P","recharge")
+Qwell = -0.35
+add.pointflux(GWmodel,at = 275, value= 'Qwell',name = 'well')
+
+# Set boundary conditions
+hl = 1
+set.BC.fixedstate(GWmodel,"left","hl") 
+
+# Numerical setup
+nodes = seq(from=domain[1],to=domain[2],length=50) 
+set.discretisation(GWmodel,nodes,"FV")
+
+# Run the model
+control = solve.steps(GWmodel)
+plot(GWmodel,fluxplot=TRUE) 
+```
+
+We focus on the same variable of interest for our sensitivity analysis: groundwater level in the nature reserve.
+
+```{r}
+MRESULT = function()
+{
+  XS = dataframe.states(GWmodel)
+  MH = mean(XS[(XS$x>125)&(XS$x<200),"state"])
+  return(MH)
+}
+```
+
+We store the results of the base run. Formally, a base run is not part of a global sensitivity analysis, but it will be interesting for comparison later on. 
+```{r}
+M_base = MRESULT()
+print(M_base)
+state_base = dataframe.states(GWmodel)$state
+```
+
+# 2. Sampling the parameters
+The first step in global sensitivity analysis (GSA) is to create a parameter sample. As discussed during the lectures, Latin Hypercube Sampling (LHS) is the most efficient sampling technique. The `GaussianLHS` function provided by `samplehelpers` can be used to create such a sample. The function generates random samples from the given parameter distributions.    
+
+This function requires as arguments:
+
+1. the size of the sample
+2. a __vector__ of parameter means; for this the base values defined above are used
+3. a __vector__ of standard deviations of the parameters; for this the scales defined above are used
+4. a vector of names for the parameters
+5. a vector of lower values for the parameters, no values lower than this wil be sampled
+6. a vector of upper values for the parameters, no values higher than this will be sampled.
+
+
+<div class="exercise">
+Create a parameter sample of 15. Use the same base values and standard deviations for the parameters as in the previous exercise with this model (Hint: note that standard deviation cannot be negative).  
+</div>
+
+```{r}
+# add your code here:
+
+# parmeans    = c()
+# parsd       = c() 
+# parlower    = c(1, 1, 0, -1, 0.5)
+# parupper    = c(1000, 1000, 2, 0, 1.5)
+# samplesize  =  
+# set.seed(237)
+# parsample   = GaussianLHS()
+```
+
+<div class="answer">
+```{r}
+base  = list(kDl=kDl,kDr=kDr,P=P,Qwell=Qwell,hl=hl)
+scale = list(kDl = 1*kDl, kDr = 7.5*kDr, P = 0.25*P,Qwell = -0.4*Qwell, hl = 0.05)
+
+parnames = names(base)
+parmeans = unlist(base)
+parsd    = unlist(scale)
+
+parlower = c(1, 1, 0, -1, 0.5)
+parupper = c(1000, 1000, 2, 0, 1.5)
+samplesize = 100
+set.seed(237)
+parsample = GaussianLHS(samplesize,parmeans,parsd,parnames,parlower,parupper) 
+```
+</div>
+
+The following code shows the first lines of the sample, the statistical summary and a plot (don't forget to remove the EVAL=false argument):
+```{r, eval=FALSE}
+head(parsample)
+summary(parsample)
+plot(parsample,cex=0.4)
+```
+
+More interesting are probably the histograms of the sampled parameter values. Here, we combine the five histograms of the sampled parameters in one plot:
+
+```{r}
+old.par = par(no.readonly=TRUE)
+par(mfrow=c(2,3))
+par(mar=c(5,5,1,1))
+hist(parsample[,"kDl"],main="",col="lightblue",prob=TRUE)
+rug(parsample[,"kDl"],col="red")
+lines(density(parsample[,"kDl"]),col="red",lwd=2)
+hist(parsample[,"kDr"],main="",col="lightblue",prob=TRUE)
+rug(parsample[,"kDr"],col="red")
+lines(density(parsample[,"kDr"]),col="red",lwd=2)
+hist(parsample[,"P"],main="",col="lightblue",prob=TRUE)
+rug(parsample[,"P"],col="red")
+lines(density(parsample[,"P"]),col="red",lwd=2)
+hist(parsample[,"Qwell"],main="",col="lightblue",prob=TRUE)
+rug(parsample[,"Qwell"],col="red")
+lines(density(parsample[,"Qwell"]),col="red",lwd=2)
+hist(parsample[,"hl"],main="",col="lightblue",prob=TRUE)
+rug(parsample[,"hl"],col="red")
+lines(density(parsample[,"hl"]),col="red",lwd=2)
+par(old.par)
+```
+
+
+<div class="exercise">
+Evaluate the histograms, are the parameters well sampled? 
+</div>
+
+<div class="student_answer">
+Write your answer here...
+</div>
+
+<div class="answer">
+A sample size of 15 is rather small, and this is visible in the histograms. Using a Gaussian Latin Hypercube Sample, we would expect to see normal distributions, the normal distribution is recognizable for all parameters but not very smooth. When comparing the parameter means in the sample with summary(parsample) to the parameter means that we defined in parmeans, we see that the mean deviates quite a bit for some parameters. This is probably all the result of a too small parameter sample. 
+</div>
+
+<div class="exercise">
+What is the set.seed? Change the seed-number and evaluate the effect on the parameter sample. Also change the sample size and evaluate how this influences the effect of the seed. 
+</div>
+
+<div class="student_answer">
+Write your answer here...
+</div>
+
+<div class="answer">
+As all random number generators, the results depend on a so called "seed". With the same seed the same numbers will be generated; changing the seed generates different random numbers. If the sample size is large enough, changing the seed should not lead to major changes in the parameter distributions. However, in the case of 15 samples (which is too small), a different seed might lead to rather different parameter distributions in the sample, and eventually lead to different sensitivity analysis results.  
+</div>
+
+# 3. Performing the calculations
+
+Now the most time consuming part of GSA starts: for each row of the parameter sample, a model run is performed. 
+In each model run, we store:
+1. __All__ the states of each run (this may in some applications be too large)
+2. The MRESULT-values.
+
+<div class="exercise">
+Check one last time the sample size of your parameter sample, and set it to a value that is computationally feasible. You could start with the small sample of 15, but computationally, 100 is also still feasible (the size of your sample might influence the results of your sensitivity analysis). 
+</div>
+
+```{r}
+# create empty matrices to store the results 
+statesSample = matrix(0,ncol=length(nodes),nrow=0)
+Msample = c()
+
+# start the for-loop through the parameter sample 
+for(i in 1:nrow(parsample))
+  {
+    kDl = parsample[i,"kDl"] 
+    kDr = parsample[i,"kDr"]
+    P  = parsample[i,"P"]
+    Qwell = parsample[i,"Qwell"]
+    hl = parsample[i,"hl"]
+    kD.fun = approxfun(domain,c(kDl,kDr),rule=2)
+    control = solve.steps(GWmodel)
+    statesSample = rbind(statesSample,dataframe.states(GWmodel)$state)
+    Msample = c(Msample,MRESULT())
+  }
+```
+
+```{r}
+library(matrixStats)
+```
+
+To get a first idea of the results, we first plot all model results of the different parameter sets in one plot:
+```{r}
+matplot(nodes,t(statesSample),type="l",main="States for all parameter sets",ylab="groundwater level")
+```
+
+<div class="exercise">
+It is also interesting to evaluate some randomly selected model outcomes indivually, to get an idea of how the parameters can influence the model results. Replace the XX below with a vector of sample numbers, and check the different model results obtained using different parameter samples.  
+</div>
+
+```{r, eval=FALSE}
+matplot(nodes,t(statesSample[c(XX,XX),]),type="l",main="States for selected parameter sets",ylab="level")
+```
+
+The following plot contains:
+
+1. The mean of the calculated states from all parameter sets (as a blue line)
+2. Standard deviation intervals (in blue) above and under the mean.
+The standard deviation interval for the state for each x contains about 2/3 of all calculated values.  
+3. The model result calculated with the mean (base) parameters (as red points)
+
+```{r}
+StatesSampleMeans = colMeans(statesSample) #mean of the calculated states at each node
+allSDs = colSds(statesSample) #standard deviation of the states at each node
+plot(nodes,StatesSampleMeans,col="blue",type="l",lwd=4,ylim=c(-1,3),
+     ylab="groundwater level",main="Mean states of GSA (blue) & LSA base run (red)")
+lines(nodes,StatesSampleMeans-allSDs,col="blue")
+lines(nodes,StatesSampleMeans+allSDs,col="blue")
+points(nodes,state_base,pch=10, col="red")
+```
+
+
+<div class="exercise">
+Describe what can be seen in the plot.  
+</div>
+
+<div class="student_answer">
+Write your answer here...
+</div>
+
+<div class="answer">
+It can be seen that the mean model result of all the parameter sets is close to the model results calculated with the mean parameters, but does deviate from it. The standard deviation still increases from left to right. There are no changes due to the adapted seed. 
+</div>
+
+
+# 4. GSA variation analysis
+The GSA variation analysis for the state at all nodes is time consuming. For that reason we will limit the GSA variation analysis to the data calculated by MRESULT - the groundwater level in the nature reserve.
+
+## 4.1 Analysis of the M-sample
+
+First we determine the basic statistics of the M-sample:
+```{r}
+VARM = var(Msample)
+SDM = sd(Msample)
+print(paste("variance of sample M",round(VARM,4)))
+print(paste("standard deviation of M",round(SDM,4)))
+```
+
+Plotting the histogram:
+```{r}
+smoothdensM = density(Msample)
+histdataM = hist(Msample,plot=FALSE)$density
+yrange = range(smoothdensM$y,histdataM)
+hist(Msample,col="lightblue",prob=TRUE,ylim=yrange)
+rug(Msample,col="red")
+lines(smoothdensM,col="red",lwd=3)
+```
+
+<div class="exercise">
+You can repeat the whole analysis up to here to investigate the effect of changing the seed. The effect of changing the seed depends on the size of your parameter sample. 
+</div>
+
+## 4.2 Conditional expectation of M with respect to parameters
+
+The next step is to investigate to what extent variation in a parameter can explain variation in model result. Therefore, it is handy to combine the M-sample and the parameter-sample into one big matrix:
+
+```{r}
+MPsample = cbind(M=Msample,parsample)
+head(MPsample)
+```
+
+Next we will approximate the conditional expectation of M given each of the parameters. We do this with the `linloess` function that is provided in the `samplehelpers` code. This function is based on the R-function `loess`, see Help>loess. 
+
+```{r}
+McondkDl = linloess(M~kDl,data=MPsample)
+McondkDr = linloess(M~kDr,data=MPsample)
+McondP = linloess(M~P,data=MPsample)
+McondQwell = linloess(M~Qwell,data=MPsample)
+Mcondhl = linloess(M~hl,data=MPsample)
+```
+
+The following code provides a plot of the parameter value versus model results, with conditional expectation included, for parameter kDl:
+
+```{r}
+plot(MPsample[,"kDl"],MPsample[,"M"])
+McondkL = linloess(M~kDl,data=MPsample)
+points(MPsample[,"kDl"],McondkL,pch=20,col="red")
+```
+
+<div class="exercise">
+Create the same plot for the other model parameters
+</div>
+
+<div class="answer">
+All plots in one overview:
+
+```{r}
+old.par = par(no.readonly=TRUE)
+par(mfrow=c(2,3))
+par(mar=c(5,5,1,1))
+plot(MPsample[,"kDl"],MPsample[,"M"])
+points(MPsample[,"kDl"],McondkDl,pch=20,col="red")
+plot(MPsample[,"kDr"],MPsample[,"M"])
+points(MPsample[,"kDr"],McondkDr,pch=20,col="red")
+plot(MPsample[,"P"],MPsample[,"M"])
+points(MPsample[,"P"],McondP,pch=20,col="red")
+plot(MPsample[,"Qwell"],MPsample[,"M"])
+points(MPsample[,"Qwell"],McondQwell,pch=20,col="red")
+plot(MPsample[,"hl"],MPsample[,"M"])
+points(MPsample[,"hl"],Mcondhl,pch=20,col="red")
+par(old.par)
+```
+</div>
+
+
+<div class="exercise">
+Describe each plot, and estimate based on the plots which parameter you think has highest sensitivity. 
+</div>
+
+<div class="student_answer">
+Write your answer here...
+</div>
+
+<div class="answer">
+A horizontal line implies that the parameter value does not explain the variation in model results at all. Those parameters where the conditional expectation shows a clear signal (either linear or non-linear) are the most sensitive ones. Based on these plots, P and Qwell can be expected to be highly sensitive, as a clear increase in M is observed with an increase in P and Qwell. 
+</div>
+
+
+## 4.3 Contribution of the parameters to the variance of M
+
+With the help of the `sample.vardecomp` function from the `samplehelpers` code, the analysis can now be completed:
+
+```{r}
+ANOVA1 = sample.vardecomp(MPsample)
+pie(ANOVA1,
+    main=paste("Standard deviation of M =",round(SDM,4),"m"),
+    col = rainbow(5),
+    radius=1)
+print(ANOVA1) # the variance in M caused by each parameter
+print(sqrt(ANOVA1)) # the standard deviation of M caused by each parameter
+```
+
+
+<div class="exercise">
+Describe the results. Does it align with your expectation based on the conditional probabilities? 
+</div>
+
+<div class="student_answer">
+Write your answer here...
+</div>
+
+<div class="answer">
+Yes, clearly the parameters that showed most signal in the conditional probability are the ones with the highest contribution to the total model variance. Conceptually, the results also make sense; more rainfall means a higher groundwater level, also in the nature area. A higher extraction rate means a lower groundwater level in the nature area. In many model applications, however, the parameters do not have such a clear direct physical meaning. That makes it harder to estimate whether the sensitivity analysis results make sense or not. 
+</div>
+
+
+# 5. Decisions made during the sensitivity analysis
+In performing this sensitivity analysis, many decisions are made. Two were already discussed; the sample size and the seed. In principle, the effect of the seed should diminish when a sufficient sample size is chosen. Other decisions, however, are for instance the parameter boundaries, the normal distribution that is sampled (why not uniform?), and the variable of interest. Feel free to play around with any of these choices, and investigate how they lead to different results. It is important to keep in mind that sensitivity analysis is always only valid for the specific instance for which it was conducted: sensitive parameters for one variable of interest (e.g. groundwater level in nature area) does for example not mean that this parameter is also sensitive for another variable of interest (e.g. when one is interested in the max groundwater level). 
+
+
