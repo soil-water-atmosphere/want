@@ -1,15 +1,19 @@
 ---
 title: "FVFE Practical 1 - Stationary Flow in 1D"
 output:
-  html_notebook:
-    css: want_n.css
+  html_document:
+    df_print: paged
     toc: yes
   bookdown::html_document2:
     css: want_n.css
     toc: yes
+  html_notebook:
+    css: want_n.css
+    toc: yes
+  pdf_document:
+    toc: yes
 date: "March 2019"
-subtitle: Groundwater flow towards rivers and Heat transfer in the atmospheric boundary
-  layer
+subtitle: Groundwater flow near rivers and heat transfer in the near-surface atmosphere
 ---
 
 ```{r, echo=FALSE}
@@ -83,32 +87,24 @@ CheckInstallPackages(c("bookdown","knitr","FVFE1D"))
 
 <button class="collapsible">Info on this document</button>
 <div class="content">
-This document is a so called r-markdown document, which generates a html document and contains:  
+This document is a R-markdown document. It contains:  
 
-1.  different chapters and sections 
+1.  explanatory text in chapters and sections 
 2.  code chunks
 3.  questions and assignments
-4.  answers and worked out assignments  
+4.  answers and worked-out assignments  
 
-The different chapters and sections cover different aspects of the material in this document  
-In the code chunks a specific piece of code can be run.  
-Questions and assignments are colored red and the answers and worked out assigments are in blue.  
-The 'answer' version will be available on Brightspace when suitable.  
+The different chapters and sections cover different aspects of the material in this document. In the code chunks a specific piece of code can be run.  
+Questions and assignments are colored red and the answers and worked out assigments are in blue. The 'answer' version will be available on Brightspace when suitable.  
 
-This docouments is meant to be self contained, meaning that all aspects required to work with it, are included.  
+This document is meant to be self-contained, meaning that all aspects required to work with it, are included.  
 
-Simply load this *.Rmd document into R-studio and "knit" or "preview" this document and have a look at the created html (in the previewer of R-studio or in a browser).  
-with "knit" the document will run all chunks and create a html document with the output of the chunks and the text in the markdown.  
-With "preview" the document will be created based on the text in the Rmd and the chunk which already have run.  
-When working on the R-chunks one can run the individual chunks seperately and see the results.  However, in preview mode some cross-referencing and numbering could not work correctly. Knitting the whole document should return proper cross-referencing and numbering.
+Simply load this `*.Rmd` document into R-studio and "knit" or "preview" this document and have a look at the created html (in the previewer of R-studio or in a browser). With "knit" the document will run all chunks and create an html document with the output of the chunks and the text in the markdown. With "preview" the document will be created based on the text in the Rmd and the chunk which have already run. While working on the R-chunks, one can run the individual chunks seperately in order to see the results. However, in preview mode some cross-referencing and numbering could not work correctly. Knitting the whole document should return proper cross-referencing and numbering.
 
-Questions on the answers can be typed dirctly into this document. The assignments, most of the time finishing code chunks, also need to be worked out in this document. With this you will have a completed set of _your_ answers and _your_ worked out assignments in this document.  
-At the end of the time slot of this assignment a completely filled out document (including answers and worked out assignments)  will be available on Brightspace.  
+Answers to the questions can be typed directly into this document. The assignments, most of the time finishing code chunks, also need to be worked out in this document. With this you will have a completed set of _your_ answers and _your_ worked out assignments in this document. At the end of the time slot of this assignment a completely filled out document (including answers and worked out assignments) will be available on Brightspace.  
 
-First of all, make sure you have the package FVFE1D installed (available on Brightspace > Week 2: FV/FE > Assignment packages). You can find the Help-pages of this package in the bottom right part of your screen, under Packages > FVFE1D. If you click on FVFE1D here, all functions in the package are displayed. When you click on one of the functions, it shows a description of what the function does, and the required input. Consult the Help-pages if you want to know if a certain function exists, and what the required inputs are. 
-
+First of all, make sure you have the package FVFE1D installed (available on Brightspace > Week 2: FV/FE > Assignment packages). You can find the Help-pages of this package in the bottom right part of your screen, under Packages > FVFE1D. If you click on FVFE1D here, all functions in the package are displayed. When you click on one of the functions, it shows a description of what the function does, and the required input. Consult the Help-pages if you want to know if a certain function exists, and what the required inputs are.
 </div>
-
 
 ## Learning goals
 *  Learning the steps to set up a numerical model (stationary, spatial 1D) (sections [Mathematical model setup], [Solving and checking convergence] _exercise 3-11,3_ and section [Model setup] _exercise 3,4_ ).
@@ -596,7 +592,7 @@ H_canal = 5 #m water level in the canal
 bed_resist = 10 #d the entrance resistance of the canal bed
 Cauchy_BC = function(state)
 {
-  flux = (H_canal - state)/bed_resist
+  flux = (H_canal - state) / bed_resist
   return(flux)
 }
 #create a copy of the base model and adjust the name (visible in the plots)
@@ -620,22 +616,22 @@ bc_flux = dataframe.boundaries(Hydro_1Dmodel_cauchy)
 
 ```
 
-The water balance of this model:  
+The water balance of this model is:  
 
 ```{r}
-knitr::kable(head(w_bal),booktabs=TRUE,caption='water balance')
+knitr::kable(head(w_bal), booktabs=TRUE, caption='water balance')
 ```
 
 The outflow at the boundaries of this model:  
 
 ```{r}
-knitr::kable(head(bc_flux),booktabs=TRUE,caption='boundary fluxes')
+knitr::kable(head(bc_flux), booktabs=TRUE, caption='boundary fluxes')
 ```
 
 </div>
 
 <div class="question">
-19. Compare the results (head distribution, water balance and boundary outflow) with the basic model and explain the differences.  
+19. Compare the results (head distribution, water balance, and boundary outflow) with the basic model and explain the differences.  
 </div>  
 
 <div class="answer">
@@ -803,7 +799,7 @@ For $D=5$ m, the linear and nonlinear method give about the same result. When yo
 # Part II: Turbulent heat transfer in the stable atmospheric boundary layer
 
 ## Introduction
-Because the emissivity of the Earth's surface is usually higher than the emissivity of the air layers aloft, the Earth's surface emits more longwave radiation than it receives from the overlying atmosphere. As a result, after sunset, the Earth's surface starts to cool, and this cooling is faster than the cooling of the overlying atmospheric air layers. The enhanced cooling of the surface as compared to the adjacent air layers leads to downward transport of heat from the atmosphere to the surface. This downward heat flux extracts energy from the atmosphere, implying that subsequently air layers close to ground start to cool as well. The successive cooling of the atmospheric layers lead to profiles of (potential) temperature in the so-called stable boundary layer (SBL) as illustrated below.    
+During the night, the surface of the Earth loses more energy through outgoing thermal radiation than it receives from the atmosphere, and therefore it is cooling. Air that comes in contact with the surface cools, hence the atmosphere is cooling as well. Turbulent whirls driven by the wind replace the cool air at the surface with warm air from aloft, and therefore transport relatively warmer air downwards and cold air upwards. Therefore, the entire layer that is under the influence of turbulence is cooling (see figure below). This layer is the **stable boundary layer (SBL)**.
 
 ```{r potentialH, fig.align='center', fig.cap='profile of potential temperature in the Atmospheric Boundary Layer.',echo=FALSE}
 knitr::include_graphics('potentialT_height.png')
@@ -811,21 +807,20 @@ knitr::include_graphics('potentialT_height.png')
 
 <button class="collapsible">Background info</button>
 <div class="content">
-**CHiel hier graag uitleg over dit stromingsprobleem 'for dummies'**  
-_internal flux_  
+In the atmosphere, we often quantify the temperature in terms of the potential temperature $\theta$, which is the temperature a parcel of air has if it is brought down to the surface. This is very convenient, because it therefore does not change under adiabatic expansion, for instance if one mores to greater altitudes, and it only changes if energy is added or removed from the system. In the assignment below, potential temperature $\theta$ is the state variable, expressed in units of Kelvin, K. 
 
-aanvullend; in assignment 1 "this flux is a flux of energy" met de eenheid is Km/s.  
+_internal flux_ 
+The transport of energy in this problem is described by the internal flux that is explained below. Internal fluxes have units of K m s$^{-1}$, and can be related to energy fluxes in W m$^{-2}$) by multiplication with the density of air $\rho$ and its heat capacity at constant pressure $c_p$. The density is the weight in kg of one cubic meter of air, whereas the heat capacity is the amount of energy it takes to warm one kg of air with one K.
 
-Is het niet aardig om deze 'energy' in de eenheid terug te 'zien'. M.a.w. hoe kom je van Km/s naar J? Je zal vast constanten moeten gebruiken van vocht en lucht om te berekenen hoeveel energie het kost om zeg 1 $m^3$ lucht 1 graad te verwarmen maar de details mis ik hier een beetje.  
-_external flux_  
+_external flux_
+It is possible to consider external fluxes as well in this problem in the form of radiative cooling through thermal radiation. This is energy that directly escapes from the system and is therefore considered an external flux. Under clear skies, radiation can escape very efficiently and therefore the coldest nights have clear skies.
 
 _boundary conditions_
-
+* A Dirichtlet boundary condition is a fixed temperature at the surface.
+* A Neumann boundary condition is boundary condition in which energy is removed from the atmosphere at a constant rate.
 </div>
 
-
-The transport of heat through the atmosphere towards the surface can be modelled in a similar way as the groundwater system from the previous assignment. You will build a 1D, stationary model to simulate vertical heat flow. Here, the potential temperature $\theta$ [K] is the state variable. The *potential temperature* of a parcel of air is the temperature it would have at a standard (surface) pressure (see also http://glossary.ametsoc.org/wiki/Potential_temperature). 
-
+The transport of heat through the atmosphere towards the surface can be modelled in a similar way as the groundwater system from the previous assignment. You will build a 1D, stationary model to simulate transfer of energy in the vertical direction. Here, the potential temperature $\theta$ [K] is the state variable. The *potential temperature* of a parcel of air is the temperature it would have at a standard (surface) pressure (see also http://glossary.ametsoc.org/wiki/Potential_temperature).
 
 ## Model setup
 
@@ -838,6 +833,7 @@ Q=-K_{eddy} \frac{\partial\theta}{\partial x}
 \end{equation}
 
 where $Q$ is the internal flux (defined positive upwards), $K_{eddy}$ is the eddy diffusivity and $\frac{\partial\theta}{\partial x}$ is the gradient of the potential temperature.
+
 The eddy diffusivity can be calculated as: 
 $$ K_{eddy}=ku_* x$$
 where $k$ is the Von Karman constant [-], $u_*$ is the friction velocity [m/s] at the surface and $x$ is the location (height above the surface). The Von Karman constant $k$ is 0.4 [-] and $u_*$ will be 0.25 [m/s]. 
@@ -903,16 +899,16 @@ Note that upwards flow is defined positive, so **'left' now refers to the lower 
 <div class="answer">
 ```{r}
 #create domain
-domain = c(0.5,100.) 
+domain = c(0.5, 100.) 
 #create internal flux function
 k = 0.4 # von Karman constant
 ust = 0.25 # friction velocity, m/s
-tempflux = function(x,state,gradstate)  
+tempflux = function(x, state, gradstate)  
 {
   return(-k*ust*x*gradstate)
 }
 #create the model
-Meteo_1Dmodel = newFLOW1D(domain=domain,systemfluxfunction=tempflux,name="Heat flow, no radiative cooling")
+Meteo_1Dmodel = newFLOW1D(domain=domain, systemfluxfunction=tempflux, name="Heat flow, no radiative cooling")
 #set boundary conditions
 set.BC.fixedstate(Meteo_1Dmodel,'left',291.7) #left=lower boundary condition [K]
 set.BC.fixedstate(Meteo_1Dmodel,'right',295.) # right=upper boundary condition [K]
@@ -988,26 +984,25 @@ Clearly, a nodal distance of 20 m is too coarse for this case. If you try out di
 ## Stratification-dependent diffusivity
 In reality, the eddy diffusivity $K_{eddy}$ depends on the stratification of the atmosphere:
 \begin{equation}
-K_{eddy}=\frac{ku_*x}{1+5 x/MOL}
+K_{eddy}=\frac{ku_*x}{1+5 x/L}
 (\#eq:K-eddy)
 \end{equation}
 
-where MOL is the Monin-Obukhov length in m. The Monin-Obukhov length reflects the temperature stratification of the atmospheric boundary layer, which depends on the surface heat flux (sensible heat from the earth surface).     
+where L is the Monin-Obukhov length in m. The Monin-Obukhov length reflects the stability of the near-surface atmosphere, which depends on the surface heat flux (sensible heat from the earth surface).     
 
-The MOL for the surface layer is often calculated as: 
+The L for the surface layer is often calculated as: 
 \begin{equation}
-MOL=-\frac{u_*^3}{k(g/\theta_{ref})(w'\theta')_0}
-(\#eq:MOL-eq)
+L=-\frac{u_*^3}{k(g/\theta_{ref})(w'\theta')_0}
+(\#eq:L-eq)
 \end{equation}
 
-
-where $g$ is the gravitational constant (=9.81 $kg m^2 s^{-1}$), $\theta_{ref}$ is the reference temperature (~ 288 K) and $(w'\theta')_0$ is the energy flux at the surface [Km/s]. 
+where $g$ is the gravitational constant (= 9.81 $kg m^2 s^{-1}$), $\theta_{ref}$ is the reference temperature (~288 K) and $(w'\theta')_0$ is the energy flux at the surface [K m/s]. 
 
 For more information on the Obukhov length, you can have a look at:
 http://glossary.ametsoc.org/wiki/Obukhov_length   
 
 <div class="exercise"> 
-6. Create a new model object, implement the new eddy diffusivity $K_{eddy}$ that depends on the surface heat flux. Use a surface heat flux of -0.025 $K m s^{-1}$ (downwards heat flux). Define the parameters surface heat flux, MOL and $K_{eddy}$ separate from the functions so you can adapt them easily. Thereafter, solve and plot the model.
+6. Create a new model object, implement the new eddy diffusivity $K_{eddy}$ that depends on the surface heat flux. Use a surface heat flux of -0.025 $K m s^{-1}$ (downwards heat flux). Define the parameters surface heat flux, L and $K_{eddy}$ separate from the functions so you can adapt them easily. Thereafter, solve and plot the model.
 </div>
 
 <div class="student_answer">
@@ -1021,8 +1016,8 @@ http://glossary.ametsoc.org/wiki/Obukhov_length
 k = 0.4  # Von Karman constant, same as before
 ust = 0.25 # friction velocity [m/s], same as before
 SurfFlux = -0.025 #surface heat flux in K m/s
-MOL=-ust^3/(k*(9.81/288.)*SurfFlux) #Monin-Obukhov length
-Keddy=function (x){return (k*ust*x/(1.+5*x/MOL))} #the eddy diffusivity depends on height and MOL
+L=-ust^3/(k*(9.81/288.)*SurfFlux) #Monin-Obukhov length
+Keddy=function (x){return (k*ust*x/(1.+5*x/L))} #the eddy diffusivity depends on height and L
 #create a new internal flux function
 tempflux = function(x,state,gradstate)  
 {
@@ -1077,21 +1072,20 @@ dataframe.boundaries(Meteo_1Dmodel_strat)
 </div>
 
 <div class="exercise">
-9.Now reset the lower boundary to a fixed value of 291.7 K. Also set the MOL to a fixed value of 50 m. With that, the eddy diffusivity $K_{eddy}$ becomes constant again.
+9.Now reset the lower boundary to a fixed value of 291.7 K. Also set the L to a fixed value of 50 m. With that, the eddy diffusivity $K_{eddy}$ becomes constant again.
 </div>
 
 <div class="answer">
 ```{r}
-set.BC.fixedstate(Meteo_1Dmodel_strat,'left',291.7) 
-MOL =50.
+set.BC.fixedstate(Meteo_1Dmodel_strat,'left', 291.7) 
+L = 50.
 # check if everything is ok
 summary(Meteo_1Dmodel_strat)
 ```
 </div>
 
 ## **Extra Assignment**: Including a radiative cooling sink
-Until now we have considered a situation where the external fluxes are zero (first external flux option, see section 2.1). In many conditions however, there are processes that act as sources and sinks to the state variables (detailed modelling of these processes is beyond the scope of this assignment). Therefore they should be handled as external fluxes to the system, that may depend on the location and the state. 
-Here we will apply radiative cooling as a sink over the entire domain (second external flux option).
+Until now we have considered a situation where the external fluxes are zero (first external flux option, see section 2.1). In many conditions however, there are processes that act as sources and sinks to the state variables (detailed modelling of these processes is beyond the scope of this assignment). Therefore they should be handled as external fluxes to the system, that may depend on the location and the state. Here we will apply radiative cooling as a sink over the entire domain (second external flux option).
 
 <div class="exercise"> 
 10.Make a new model which is similar to the model defined above. You can use the function `copy.model(model)`. Then, create an external flux of the second type: a constant radiative cooling of -1.0E-4 K/s within the entire domain (see introduction). 
@@ -1155,7 +1149,7 @@ The `dataframe.balance` function can calculate the balance (of water, heat, or a
 
 <div class="answer">
 ```{r}
-dataframe.balance(Meteo_1Dmodel_sink,c(14,15,16))
+dataframe.balance(Meteo_1Dmodel_sink, c(14,15,16))
 ```
 </div>
 
@@ -1166,7 +1160,6 @@ Until now, we have prescribed the BCs as either fixed states or fixed fluxes (ex
 F_S=C_H (T_S-\theta_1 )
 (\#eq:Robin)
 \end{equation}
-
 
 where $F_S$ is the heat flux between the surface and the lowest model level [K m/s]; $C_H$ is the drag coefficient for heat [m/s], $T_S$ is the surface temperature, and $\theta_1$ is the temperature at the lowest model level. This boundary condition is a Cauchy or Robin BC, where the flux is directly coupled to the state of the variable at the boundary. These BCs can be applied using the function `set.BC.fluxstate()`. 
 
@@ -1218,12 +1211,7 @@ plot(Meteo_1Dmodel_robin,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 ```{r}
 dataframe.balance(Meteo_1Dmodel_robin)
 ```
-The external fluxes are still equal the boundary fluxes, while the net internal fluxes are zero, as they should be in this steady-state model.
-</div>
-
-<div class="comment">
-Comments:     
-* The meteo part can use a bit more elaborate introduction for the non-meteo students --> Chiel      
+The sum of the external fluxes is equal to the boundary fluxes, while the net internal fluxes are zero, as they should be in this steady-state model.
 </div>
 
 <!-- include the hint.js -->  
