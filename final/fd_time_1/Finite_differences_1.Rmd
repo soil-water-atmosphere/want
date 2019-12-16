@@ -778,8 +778,6 @@ lines(result.time,result.state,type='o',col='blue')
 faster
 </span>
 
-This can be proven mathematically. If you are up for the challenge, open **Exercise 4** of `Finite_differences_1_extended.Rmd`.
-
 ## Section 4.3 - Runge-Kutta method
 For many applications, the best compromise between calculation time and numerical accuracy is the Runge-Kutta 4 (RK4) numerical approximation. RK4 is an explicit method. As seen before explicit methods are much easier to define because the formula(s) don't need reworking before implementation. RK4 uses four intermediate function evaluations, compared to the two evaluations that we used in the midpoint method.
 
