@@ -1,16 +1,14 @@
 ---
 title: "FVFE Practical 1 - Stationary Flow in 1D"
 output:
-  html_document:
-    df_print: paged
+  html_notebook:
+    css: want_n.css
     toc: yes
   bookdown::html_document2:
     css: want_n.css
     toc: yes
-  html_notebook:
+  html_document:
     css: want_n.css
-    toc: yes
-  pdf_document:
     toc: yes
 date: "March 2019"
 subtitle: Groundwater flow near rivers and heat transfer in the near-surface atmosphere
@@ -99,7 +97,7 @@ Questions and assignments are colored red and the answers and worked out assigme
 
 This document is meant to be self-contained, meaning that all aspects required to work with it, are included.  
 
-Simply load this `*.Rmd` document into R-studio and "knit" or "preview" this document and have a look at the created html (in the previewer of R-studio or in a browser). With "knit" the document will run all chunks and create an html document with the output of the chunks and the text in the markdown. With "preview" the document will be created based on the text in the Rmd and the chunk which have already run. While working on the R-chunks, one can run the individual chunks seperately in order to see the results. However, in preview mode some cross-referencing and numbering could not work correctly. Knitting the whole document should return proper cross-referencing and numbering.
+Simply load this `*.Rmd` document into R-studio and "knit" or "preview" this document and have a look at the created html (in the previewer of R-studio or in a browser). With "knit" the document will run all chunks and create an html document with the output of the chunks and the text in the markdown. With "preview" the document will be created based on the text in the Rmd and the chunk which have already run. While working on the R-chunks, one can run the individual chunks seperately in order to see the results. However, in preview mode some cross-referencing and numbering could not work correctly. Knitting the whole document (with knit option: "Knit to html_document2" should return proper cross-referencing and numbering.
 
 Answers to the questions can be typed directly into this document. The assignments, most of the time finishing code chunks, also need to be worked out in this document. With this you will have a completed set of _your_ answers and _your_ worked out assignments in this document. At the end of the time slot of this assignment a completely filled out document (including answers and worked out assignments) will be available on Brightspace.  
 
@@ -412,11 +410,11 @@ Fill in your answer...
 </div>
 
 <div class="answer">
-The RMSM and MAM are measures of the misfit of the model. The misfit of each node shows how much its mass balance currently differs from zero. RMSM=root mean squared misfit; MAM=maximum absolute misfit. When these are low, the model has converged.
+12. The RMSM and MAM are measures of the misfit of the model. The misfit of each node shows how much its mass balance currently differs from zero. RMSM=root mean squared misfit; MAM=maximum absolute misfit. When these are low, the model has converged.
 </div>
 
 <div class="exercise">
-13.Plot the solution here. Tip: if you add the argument `FVstyle=T`, the 'real' Finite Volume results will be plotted: one state per calculation volume. Otherwise, the plot interpolates between the obtained states for each node.
+13. Plot the solution here. Tip: if you add the argument `FVstyle=T`, the 'real' Finite Volume results will be plotted: one state per calculation volume. Otherwise, the plot interpolates between the obtained states for each node.
 </div>
 
 <div class="student_answer">
@@ -470,7 +468,7 @@ print(c('difference :',H_anal-H_num))
 A very important tool for a hydrologist is the water balance, to assess the flows into and out of the system.  
 
 <div class="exercise">
-15.Use the appropriate function in the FVFE1D package to print the model water balance.
+15. Use the appropriate function in the FVFE1D package to print the model water balance.
 </div>
 
 <div class="student_answer">
@@ -486,7 +484,7 @@ print(dataframe.balance(Hydro_1Dmodel_type1))
 </div>
 
 <div class="exercise"> 
-16.Do the values of the balance 'add up'?
+16. Do the values of the balance 'add up'?
 </div>  
 
 <div class="student_answer">
@@ -494,11 +492,11 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-Yes, the total recharge is $200m * 0.001m/d=0.2 m^2/d$. This is equal to the total discharge.
+16. Yes, the total recharge is $200m * 0.001m/d=0.2 m^2/d$. This is equal to the total discharge.
 </div>
 
 <div class="exercise"> 
-17.Another function is added to the FVFE1D package to determine the fluxes over specific boundaries. Use this to find the fluxes to each of the two rivers. 
+17. Another function is added to the FVFE1D package to determine the fluxes over specific boundaries. Use this to find the fluxes to each of the two rivers. 
 </div>
 
 <div class="student_answer">
@@ -512,7 +510,7 @@ Yes, the total recharge is $200m * 0.001m/d=0.2 m^2/d$. This is equal to the tot
 print(dataframe.boundaries(Hydro_1Dmodel_type1))
 ```
 
-So $0.1 m^2/d$ leaves the system through the left boundary and $0.1 m^2/d$ through the right boundary.
+17. So $0.1 m^2/d$ leaves the system through the left boundary and $0.1 m^2/d$ through the right boundary.
 </div>
 
 ## Adding a Cauchy Boundary Condition
@@ -571,7 +569,7 @@ Cauchy_BC = function(state)
 ```
 
 <div class="question">
-18.Finish the state dependent flux function in the example chunk above. Use the following chunk to create a copy of the base model.
+18. Finish the state dependent flux function in the example chunk above. Use the following chunk to create a copy of the base model.
 Add the new BC to the new model replacing the previous Dirichlet BC on the right hand side and run this model.  Create plot(use the FVFE package and set `fluxplot=TRUE`), a water balance of the whole model and a dataframe of the boundary fluxes.
 
 
@@ -585,7 +583,7 @@ Add the new BC to the new model replacing the previous Dirichlet BC on the right
 
 
 <div class="answer">
-For the Cauchy_BC one can simply implement the abovementioned equation: \@ref(eq:cauchy-eq).
+18. For the Cauchy_BC one can simply implement the abovementioned equation: \@ref(eq:cauchy-eq).
 Next the model is copied and this BC will override the previous Dirichlet BC on the right hand side.
 ```{r}
 H_canal = 5 #m water level in the canal
@@ -634,7 +632,8 @@ knitr::kable(head(bc_flux), booktabs=TRUE, caption='boundary fluxes')
 19. Compare the results (head distribution, water balance, and boundary outflow) with the basic model and explain the differences.  
 </div>  
 
-<div class="answer">
+<div class="answer">  
+19:  
 _head_  
 The water divide is shifted towards the right indicating that more water is flowing towards the right.  
 _water balance_  
@@ -656,7 +655,7 @@ plot(kD.func(0:200),type="o",main="Transmissivity values over the domain",xlab="
 ```
 
 <div class="exercise">
-20.Create a new model which is based on the newly defined kD-values (which are a function of x). This requires the internal flux function to be redefined for this model. All other items of the model (domain, nodes, boundary conditions etc.) are identical to the previous model. For clarity you can give this model a new name.
+20. Create a new model which is based on the newly defined kD-values (which are a function of x). This requires the internal flux function to be redefined for this model. All other items of the model (domain, nodes, boundary conditions etc.) are identical to the previous model. For clarity you can give this model a new name.
 </div>
 
 <div class= "student_answer">
@@ -699,7 +698,7 @@ plot(Hydro_1Dmodel_kDvar,fluxplot=TRUE,FVstyle=TRUE)
 </div>
 
 <div class="exercise"> 
-21.Solve the model with a varying kD-value, make a plot of the fluxes and states and consider the following questions.  
+21. Solve the model with a varying kD-value, make a plot of the fluxes and states and consider the following questions.  
 
 *    What can you conclude about the water divide?  
 *    What is the fraction of water draining to the left and the right river?  
@@ -710,7 +709,8 @@ plot(Hydro_1Dmodel_kDvar,fluxplot=TRUE,FVstyle=TRUE)
 Fill in your answer here...  
 </div>
 
-<div class="answer">
+<div class="answer">  
+21:  
 *    The water divide has moved from the middle about 20m to the left.    
 *    The outflow to the right river is larger than to the left river, as shown below.  
 *    The water divide is shifted to the left since it is easier for water to flow to the right where transmissivities are larger.
@@ -728,7 +728,7 @@ print(paste('fraction of total to right river :',db[2,4]/sum(db[,4])))
 Until now the model was of a type 1 flow: it assumed a constant saturated thickness $D$ over which groundwater flow occurred. In reality groundwater flow is limited to the saturated thickness $H(x)$. Such a change makes the model non-linear in the state (head).  
 
 <div class="exercise">
-22.Make a model with a type 2 flow (see [Question 1: Internal flux] ) where the k-value varies linearly between 3 and 12 from left to right. As the model is non-linear, the solution of the model will take more than one step. Add a verbose argument to the `solve.steps` call (see help) to count the number of iterations needed and plot the solution.
+22. Make a model with a type 2 flow (see [Question 1: Internal flux] ) where the k-value varies linearly between 3 and 12 from left to right. As the model is non-linear, the solution of the model will take more than one step. Add a verbose argument to the `solve.steps` call (see help) to count the number of iterations needed and plot the solution.
 </div>
 
 <div class="student_answer">
@@ -769,7 +769,7 @@ solve.steps(Hydro_1Dmodel_type2,verbose=TRUE)
 </div>
 
 <div class="exercise">
-22.The chunk below compares the results of the linear and nonlinear model. At `XLINEARMODELX` and `XNONLINEARMODELX`, fill in the name of your linear model and your nonlinear model respectively, both with varying k-values. Do you see differences?
+22. The chunk below compares the results of the linear and nonlinear model. At `XLINEARMODELX` and `XNONLINEARMODELX`, fill in the name of your linear model and your nonlinear model respectively, both with varying k-values. Do you see differences?
 </div>
 
 <div class="student_answer">
@@ -782,7 +782,7 @@ lines(dataframe.states(XNONLINEARMODELX),col="red")
 Now look at the effect of the aquifer depth $D$. Our reference level for the head is 0 m (this is the bottom of the system, bedrock or an aquitard, as displayed in Figure 1), so $D$ is simply equal to the river level at the boundaries (see Figure 1). In the current situation, $D=5$ m. The linear varying-kD model, with kD between 15 and 60, therefore has the same conductivities over the domain (from 15/5=3 m/d to 60/5=12 m/d) as the nonlinear model. Using this logic, depth $D$ can be varied by adapting the boundary conditions and kD values of the linear varying-kD model; and adapting the boundary conditions in the nonlinear model.
 
 <div class="exercise">
-23.Vary the $D$ for the two models. What effect does $D$ have on the differences between the linear and nonlinear model?
+23. Vary the $D$ for the two models. What effect does $D$ have on the differences between the linear and nonlinear model?
 </div>
 
 <div class="answer">
@@ -791,7 +791,7 @@ plot(dataframe.states(Hydro_1Dmodel_kDvar),col="black",main=paste("Linear (dots)
 lines(dataframe.states(Hydro_1Dmodel_type2),col="red")
 ```
 
-For $D=5$ m, the linear and nonlinear method give about the same result. When you change $D$, for example to 1 m (see figure below), the linear and nonlinear models start to diverge. When $D$ is small relative to the variation in hydraulic head in the domain, the assumption that groundwater level differences are negligible in determining the flow thickness is no longer valid. A nonlinear internal flux function will then be more appropriate.
+23. For $D=5$ m, the linear and nonlinear method give about the same result. When you change $D$, for example to 1 m (see figure below), the linear and nonlinear models start to diverge. When $D$ is small relative to the variation in hydraulic head in the domain, the assumption that groundwater level differences are negligible in determining the flow thickness is no longer valid. A nonlinear internal flux function will then be more appropriate.
 
 ![](Answer1.8.png)
 </div>
@@ -807,15 +807,16 @@ knitr::include_graphics('potentialT_height.png')
 
 <button class="collapsible">Background info</button>
 <div class="content">
-In the atmosphere, we often quantify the temperature in terms of the potential temperature $\theta$, which is the temperature a parcel of air has if it is brought down to the surface. This is very convenient, because it therefore does not change under adiabatic expansion, for instance if one mores to greater altitudes, and it only changes if energy is added or removed from the system. In the assignment below, potential temperature $\theta$ is the state variable, expressed in units of Kelvin, K. 
+In the atmosphere, we often quantify the temperature in terms of the potential temperature $\theta$, which is the temperature a parcel of air has if it is brought down to the surface. This is very convenient, because it therefore does not change under adiabatic expansion, for instance if one moves to greater altitudes, and it only changes if energy is added or removed from the system. In the assignment below, potential temperature $\theta$ is the state variable, expressed in units of Kelvin, K. 
 
-_internal flux_ 
+_internal flux_  
 The transport of energy in this problem is described by the internal flux that is explained below. Internal fluxes have units of K m s$^{-1}$, and can be related to energy fluxes in W m$^{-2}$) by multiplication with the density of air $\rho$ and its heat capacity at constant pressure $c_p$. The density is the weight in kg of one cubic meter of air, whereas the heat capacity is the amount of energy it takes to warm one kg of air with one K.
 
-_external flux_
+_external flux_  
 It is possible to consider external fluxes as well in this problem in the form of radiative cooling through thermal radiation. This is energy that directly escapes from the system and is therefore considered an external flux. Under clear skies, radiation can escape very efficiently and therefore the coldest nights have clear skies.
 
-_boundary conditions_
+_boundary conditions_  
+
 * A Dirichtlet boundary condition is a fixed temperature at the surface.
 * A Neumann boundary condition is boundary condition in which energy is removed from the atmosphere at a constant rate.
 </div>
@@ -839,7 +840,7 @@ $$ K_{eddy}=ku_* x$$
 where $k$ is the Von Karman constant [-], $u_*$ is the friction velocity [m/s] at the surface and $x$ is the location (height above the surface). The Von Karman constant $k$ is 0.4 [-] and $u_*$ will be 0.25 [m/s]. 
 
 <div class="exercise"> 
-1.On which quantities does the internal flux depend? 
+1. On which quantities does the internal flux depend? 
 </div>
 
 <div class="student_answer">
@@ -847,7 +848,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-As seen from the formulas, the internal heat flow at a specific location depends on the vertical gradient in potential temperature, the height above the surface, the friction velocity and the Von Karman constant.
+1. As seen from the formulas, the internal heat flow at a specific location depends on the vertical gradient in potential temperature, the height above the surface, the friction velocity and the Von Karman constant.
 </div>
 
 In these exercises we will apply two kinds of **external fluxes**:   
@@ -858,7 +859,7 @@ It is also possible to apply a variable radiative cooling, which is defined as a
 The **boundary conditions** are Dirichlet boundaries. At the bottom a potential temperature of 291.73 K is prescribed; at the upper boundary we use 295 K.
 
 <div class="exercise"> 
-2.What are the units of the model? 
+2. What are the units of the model? 
 </div>
 
 <div class="student_answer">
@@ -885,7 +886,7 @@ The unit of the internal flux can be derived from the formulas: as $u_*$ is a 'v
 ## Building the model
 
 <div class="exercise">
-3.In the chunk below, set up the mathematical part of the stationary heat flow model. Specify the domain, the system flux function and the boundary conditions as given above. 
+3. In the chunk below, set up the mathematical part of the stationary heat flow model. Specify the domain, the system flux function and the boundary conditions as given above. 
 </div>
 
 Note that upwards flow is defined positive, so **'left' now refers to the lower BC and 'right' refers to the upper BC**. Use the first external flux option (external flux=0).
@@ -916,7 +917,7 @@ set.BC.fixedstate(Meteo_1Dmodel,'right',295.) # right=upper boundary condition [
 </div>
 
 <div class="exercise">
-4.Now set up the numerical part of the model.    
+4. Now set up the numerical part of the model.    
 * Use a nodal distance of 2 m.      
 * Solve the model by running the current and the previous chunk.    
 * Plot the resulting states and fluxes. The argument `vertical=TRUE` in the `plot` function allows you to plot the profiles vertically.  
@@ -978,7 +979,7 @@ lines(thanalyt,xanalyt,col='red')
 points(oneDstatescoarse$state,oneDstatescoarse$x, pch=16, col="blue")
 ```
 
-Clearly, a nodal distance of 20 m is too coarse for this case. If you try out different resolutions, you will find that a resolution of at most 5 m is necessary to get reasonable results. 
+5. Clearly, a nodal distance of 20 m is too coarse for this case. If you try out different resolutions, you will find that a resolution of at most 5 m is necessary to get reasonable results. 
 </div>
 
 ## Stratification-dependent diffusivity
@@ -1037,7 +1038,7 @@ plot(Meteo_1Dmodel_strat,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 </div>
 
 <div class="exercise">	
-7.Check whether the flux over the lower boundary equals the prescribed heat flux. You can use the function `dataframe.boundaries(model)`. 
+7. Check whether the flux over the lower boundary equals the prescribed heat flux. You can use the function `dataframe.boundaries(model)`. 
 </div>
 
 <div class="student_answer">
@@ -1050,7 +1051,7 @@ plot(Meteo_1Dmodel_strat,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 ```{r}
 dataframe.boundaries(Meteo_1Dmodel_strat)
 ```
-The heat flux at the lower boundary is close to -0.025 Km/s, but not exactly. Note that the internal fluxes both at the surface and at the top of the SBL are negative, whereas according to `dataframe.boundaries(Meteo_1Dmodel_strat)` the flux at the top of the SBL is positive. Negative internal fluxes arise as fluxes are directed downwards, whereas the fluxes in `dataframe.boundaries(Meteo_1Dmodel_strat)` are positive when there is a flux over the boundary into the domain and negative when the flux is going out of the domain. 
+7. The heat flux at the lower boundary is close to -0.025 Km/s, but not exactly. Note that the internal fluxes both at the surface and at the top of the SBL are negative, whereas according to `dataframe.boundaries(Meteo_1Dmodel_strat)` the flux at the top of the SBL is positive. Negative internal fluxes arise as fluxes are directed downwards, whereas the fluxes in `dataframe.boundaries(Meteo_1Dmodel_strat)` are positive when there is a flux over the boundary into the domain and negative when the flux is going out of the domain. 
 </div>
 
 <div class="exercise">	
@@ -1072,7 +1073,7 @@ dataframe.boundaries(Meteo_1Dmodel_strat)
 </div>
 
 <div class="exercise">
-9.Now reset the lower boundary to a fixed value of 291.7 K. Also set the L to a fixed value of 50 m. With that, the eddy diffusivity $K_{eddy}$ becomes constant again.
+9. Now reset the lower boundary to a fixed value of 291.7 K. Also set the L to a fixed value of 50 m. With that, the eddy diffusivity $K_{eddy}$ becomes constant again.
 </div>
 
 <div class="answer">
@@ -1088,7 +1089,7 @@ summary(Meteo_1Dmodel_strat)
 Until now we have considered a situation where the external fluxes are zero (first external flux option, see section 2.1). In many conditions however, there are processes that act as sources and sinks to the state variables (detailed modelling of these processes is beyond the scope of this assignment). Therefore they should be handled as external fluxes to the system, that may depend on the location and the state. Here we will apply radiative cooling as a sink over the entire domain (second external flux option).
 
 <div class="exercise"> 
-10.Make a new model which is similar to the model defined above. You can use the function `copy.model(model)`. Then, create an external flux of the second type: a constant radiative cooling of -1.0E-4 K/s within the entire domain (see introduction). 
+10. Make a new model which is similar to the model defined above. You can use the function `copy.model(model)`. Then, create an external flux of the second type: a constant radiative cooling of -1.0E-4 K/s within the entire domain (see introduction). 
 </div>
 
 <div class="student_answer">
@@ -1107,7 +1108,7 @@ summary(Meteo_1Dmodel_sink)
 </div>
 
 <div class="exercise">
-11.Solve the new model and plot the profiles of the potential temperature and internal fluxes. Compare these profiles with the profiles obtained in the situation where no external flux is applied. Can you explain the differences? 
+11. Solve the new model and plot the profiles of the potential temperature and internal fluxes. Compare these profiles with the profiles obtained in the situation where no external flux is applied. Can you explain the differences? 
 </div>
 
 <div class="student_answer">
@@ -1131,14 +1132,14 @@ plot(fluxesSink$intflux,fluxesSink$x,xlab='internal flux [K m/s]',ylab='height [
 lines (fluxesNoSink$intflux,fluxesNoSink$x, col='red')
 ```
 
-The model with a sink predicts lower temperatures, as it has an additional loss of heat over the domain. These differences remain small due to the top boundary condition which forces the potential temperature to be the same for both models. 
+11. The model with a sink predicts lower temperatures, as it has an additional loss of heat over the domain. These differences remain small due to the top boundary condition which forces the potential temperature to be the same for both models. 
 The internal fluxes are constant for the zero external flux model because it has two Dirichlet boundary conditions. For the radiative sink model, in every control volume the incoming and outgoing fluxes have to balance; F$_{top}$ comes into the control volume, and F$_{bottom}$ and R (the radiative sink) leave the control volume. Therefore, F$_{bottom}$+R have to balance F$_{top}$. F$_{bottom}$ of volume 1 is the input F$_{top}$ for the next volume, volume 2, and therefore leads to a decrease in heat transport downwards. 
 </div>
 
 The `dataframe.balance` function can calculate the balance (of water, heat, or anything else) over the model domain as a whole. It can also calculate the balance over specific parts of the domain. 
 
 <div class="exercise">
-12.Use `dataframe.balance` to calculate the energy balance for the region defined by the volumes (nodes) 14, 15 and 16. Check whether the net inflow to this region equals its total external flux.
+12. Use `dataframe.balance` to calculate the energy balance for the region defined by the volumes (nodes) 14, 15 and 16. Check whether the net inflow to this region equals its total external flux.
 </div>
 
 <div class="student_answer">
@@ -1164,7 +1165,7 @@ F_S=C_H (T_S-\theta_1 )
 where $F_S$ is the heat flux between the surface and the lowest model level [K m/s]; $C_H$ is the drag coefficient for heat [m/s], $T_S$ is the surface temperature, and $\theta_1$ is the temperature at the lowest model level. This boundary condition is a Cauchy or Robin BC, where the flux is directly coupled to the state of the variable at the boundary. These BCs can be applied using the function `set.BC.fluxstate()`. 
 
 <div class="exercise"> 
-13.Make an R-function that takes the state as an argument and returns the surface heat flux. Use a value for $C_H$ of 1.2E-3 m/s and a value of 289 K for the surface temperature. Adapt your previous model such that this Robin BC is applied as the lower boundary. Then solve and plot the new model, the states as well as the fluxes. To see if the new boundary condition is implemented have a look at the `summary(yourmodel)` after the Robin BC is assigned to the model and just before it is solved.  
+13. Make an R-function that takes the state as an argument and returns the surface heat flux. Use a value for $C_H$ of 1.2E-3 m/s and a value of 289 K for the surface temperature. Adapt your previous model such that this Robin BC is applied as the lower boundary. Then solve and plot the new model, the states as well as the fluxes. To see if the new boundary condition is implemented have a look at the `summary(yourmodel)` after the Robin BC is assigned to the model and just before it is solved.  
 </div>
 
 <div class="student_answer">
@@ -1211,7 +1212,7 @@ plot(Meteo_1Dmodel_robin,fluxplot=TRUE,vertical=TRUE,FVstyle=T)
 ```{r}
 dataframe.balance(Meteo_1Dmodel_robin)
 ```
-The sum of the external fluxes is equal to the boundary fluxes, while the net internal fluxes are zero, as they should be in this steady-state model.
+14. The sum of the external fluxes is equal to the boundary fluxes, while the net internal fluxes are zero, as they should be in this steady-state model.
 </div>
 
 <!-- include the hint.js -->  
