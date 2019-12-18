@@ -16,17 +16,14 @@ subtitle: Finite Volumes, transient 1D
 
 ```{r, echo=FALSE}
 rm(list=ls())
-
 #Check to see if package(s) are installed, install if not and then load
 
 #pkgs is a vector of strings with length >= 1
-
 CheckInstallPackages <- function(pkgs){
 
 #For each pkg in pkgs (attempt to load each package one at a time):
-
- x <- lapply(pkgs, function(pkg){
-
+x <- lapply(pkgs, function(pkg)
+{
   #Load the package if available,
 
   if(!do.call("require", list(pkg))) {
@@ -88,7 +85,7 @@ CheckInstallPackages(c("knitr","FVFE1D"))
 * Learn how to use a loop for a repetitive task and how to store results in a dataframe.
 
 # Part 1: Transient potential temperature in the stable boundary layer (SBL)
-In this assignment, we will start working with transient systems: systems that change over time. The assignment consists of two different parts: The first part (this part) is based on a meteorological application, and the second part is an hydrological application. TIP: Having difficulties grasping the concepts introduced in Part 1? The same concepts are introduced in Part 2 for a hydrological application, have a look over there if that aligns better with your background. 
+In this assignment, we will start working with transient systems: systems that change over time. The assignment consists of two different parts: The first part (this part) is based on a meteorological application, and the second part is an hydrological application. TIP: Having difficulties grasping the concepts introduced in Part 1? The same concepts are introduced in Part 2 for a hydrological application.
 
 ## Introduction 
 We will continue with the situation of the stable boundary layer above a cooling Earth surface after sunset, when downward transport of heat occurs - see Part 2 of Assignment 1. The figure below shows a potential temperature profile that is typical for the stable boundary layer. We will produce a comparable graph in this assignment, but now accounting for evolution in time that is the effect of progressive cooling of the surface throughout the night.
@@ -99,15 +96,14 @@ The state variable and the **flow domain** of the model will be the same as in A
 ![](potentialT_height.png)
 
 Figure 1: Potential temperature distribution over height
-
 </div>
 
 ## 1.1 The model set-up
 ### 1.1.1 Internal flux
 Flux of energy in the x-direction (height) is calculated using Fick's law with a so-called eddy-diffusivity, which accounts for the mixing caused by overturning turbulent whirls (eddies).
 
-$$Q=-K_{eddy}\frac{\partial \theta}{\partial x}$$,
-with $K_{eddy}$ being the eddy diffusivity and $\frac{\partial \theta}{\partial x}$ being the gradient of the potential temperature. In the atmospheric boundary layer (ABL), the eddy diffusivity is nonlinear. Close to the surface, mixing in the vertical is hard, because overturning eddies quickly hit the surface, whereas further away from the surface, it goes easier. Therefore, the diffusivity $K_{eddy}$is proportional with height and formulated as:
+$$Q=-K_{eddy}\frac{\partial \theta}{\partial x}$$
+with $K_{eddy}$ being the eddy diffusivity and $\frac{\partial \theta}{\partial x}$ being the gradient of the potential temperature. In the atmospheric boundary layer (ABL), the eddy diffusivity is nonlinear. Close to the surface, mixing in the vertical is hard, because overturning eddies quickly hit the surface, whereas further away from the surface, it goes easier. Therefore, the diffusivity $K_{eddy}$ is proportional with height and formulated as:
 
 $$K_{eddy}=ku_{*}x$$
 where the Von Karman constant $k$ equals 0.4, friction velocity $u_{*} = 0.25$ m/s  at the surface, which is a measure of the intensity of turbulence, and $x$ is the height above the surface (also often referred to as $z$, since we are working in the vertical direction).
@@ -159,10 +155,10 @@ The boundary conditions describing the potential temperature at both the lower a
 </div>
 
 ## 1.2 Analyzing the situation before the surface starts to cool
-Before we start studying the transient behaviour of the model, we will first create the stationary model. The solution of this stationary model describes the situation right before the surface starts to cool: we use it as initial condition for our transient model. The states resulting from the stationary model will be used as input for our transient model. Note that, although the model is stationary, there is loss of energy from the model due to the external flux (radiative cooling). 
+Before we start studying the transient behaviour of the model, we will first create the stationary model. The solution of this stationary model describes the situation right before the surface starts to cool: we use it as initial condition for our transient model. The states resulting from the stationary model will be used as the initial conditions for our transient model. Note that, because the model is stationary, there is balance between the internal and external fluxes (radiative cooling). 
 
 <div class="question">
-2. Set up the mathematical part of the model for the initial situation, i.e. for the situation before the surface starts to cool. For the lower boundary condition the fixed state value (as in Assignment 1) should be used, and we use the third option of the external fluxes as discussed in Section 1.1.2 above. Call this model oneDinitmodel. Do not forget to clear your environment and to import the `FVFE1D` package at the beginning. TIP: Check the model template which was provided with Assignment 1 (``ModelTemplate1D.Rmd``).
+2. Set up the mathematical part of the model for the initial situation, i.e. for the situation before the surface starts to cool. For the lower boundary condition the fixed state value (as in Assignment 1) should be used, and we use the third option of the external fluxes as discussed in Section 1.1.2 above. Call this model `oneDinitmodel`. Do not forget to clear your environment and to import the `FVFE1D` package at the beginning. TIP: Check the model template which was provided with Assignment 1 (``ModelTemplate1D.Rmd``).
 </div>
 
 <button type="button" onclick="showHint(212)">Show Hint</button>
@@ -181,7 +177,6 @@ Before we start studying the transient behaviour of the model, we will first cre
 </div>
 
 <div class="answer">
-
 2. The mathematical setup of the first model  
 
 ```{r}
@@ -191,12 +186,12 @@ rm(list=ls())
 library(FVFE1D)
 
 # Defining the flow domain of the model.
-domain = c(0.5,100.)
+domain = c(0.5, 100.)
 
 # The internal flux: 
 k = 0.4
 ust = 0.25
-tempflux = function(x,state,gradstate)  
+tempflux = function(x, state, gradstate)  
 {
   return(-k*ust*x*gradstate)
 }
@@ -246,10 +241,10 @@ nodes = seq(domain[1], domain[2], by=2)
 set.discretisation(oneDinitmodel, nodes, 'FV')
 
 # Solve the model:
-solve.steps(oneDinitmodel,MAMcrit = 1e-8)
+solve.steps(oneDinitmodel, MAMcrit=1e-8)
 
 # Plotting the states and the internal fluxes as a function of height.
-plot(oneDinitmodel, fluxplot = TRUE, vertical=TRUE, FVstyle=TRUE)
+plot(oneDinitmodel, fluxplot=TRUE, vertical=TRUE, FVstyle=TRUE)
 
 summary(oneDinitmodel)
 ```
@@ -269,11 +264,11 @@ Fill in your answers here...
 </div>
 
 <div class="answer">
-4. The dataframe.balance-function returns a table from which one can read that the balance for control volume 30 is indeed closed, although the net change is not exactly zero. The larger the misfit one permits in the solve.steps() function, the larger this net change in the balance can become (note, however, that this is generally not what you want!).
+4. The `dataframe.balance`-function returns a table from which one can read that the balance for control volume 30 is indeed closed, although the net change is not exactly zero. The larger the misfit one permits in the `solve.steps()` function, the larger this net change in the balance can become (note, however, that this is generally not what you want!).
 
 ```{r}
 # Model output: 
-dataframe.balance(oneDinitmodel, region = c(30))
+dataframe.balance(oneDinitmodel, region=c(30))
 
 # Manual balance calculation of control volume at node 30:
 
@@ -304,7 +299,7 @@ print(paste("Net balance calculated by built-in function:", dataframe.balance(on
 ```
 </div>
 
-## 1.3 Incorporating transient behaviour into the model simulation
+## 1.3 Incorporating transient behavior into the model simulation
 For stationary systems the state variables are fully constrained by the BCs and the formulation of the internal and the external fluxes. By checking the balance of a particular volume, as we did in question 4, we noticed that at this location there is a balance between the net internal flux between adjacent volumes and the external fluxes provided to the volumes. The external fluxes summed over the entire flow domain equal the net flux over the boundaries of the system; in and outflow are in equilibrium and the system is in steady-state.
 
 However, many hydrological and meteorological systems are not in steady state. As a result, the sum of internal and external fluxes for a control volume do not add up to zero, and hence the balance is not closed. As a result, the control volume experiences what we call _storage change_. In other words, the value of the state variable in a control volume is increasing or decreasing in time. As long as storage change occurs, the system is not in equilibrium. For instance, the atmospheric temperature measured above the land surface, is almost never in equilibrium, due to the ceaseless influences of day and night, weather systems and seasons.
@@ -317,21 +312,19 @@ Figure 2: storage change for a stationary (top) and a transient (bottom) situati
 </div>
 
 A picture of the situation for transient systems is given in Figure 2.
-In the upper figure we see the situation at time t=0, the initial time before the surface starts to cool. In this situation, there is a balance between the external fluxes and the internal fluxes for a particular volume and its adjacent volumes.
+In the upper figure we see the situation at time `t`, the initial time before the surface starts to cool. In this situation, there is a balance between the external fluxes and the internal fluxes for a particular volume and its adjacent volumes.
 
 The lower picture shows the situation when the system has progressed one time step after the surface started cooling. In this case, there is again a balance in the volume. However, in contrast to the initial stationary situation, besides the external fluxes that act on the system at $t=t+\Delta t$ and the internal fluxes within the system at $t=t+\Delta t$, there is an additional flux here that results from the change of storage within the system, if the internal and external fluxes do not add up to zero.
 
 <button class="collapsible">Physical interpretation of storage change</button>
 <div class="content">  
-The potential temperature is defined as: $\theta=T\frac{P_0}{P}^{R/c_p}$ .  
+The potential temperature is defined as: $\theta=T\frac{p_0}{p}^{R_d/c_p}$ .  
 
-Where $P_0, P, R$ are the reference and local pressures and the gas constant.  
-$C_p$ is the specific heat capacity which is a property of an air parcel for storing or releasing heat (energy).  
+Where $p_0, p, R_d$ are the reference and local pressures and the gas constant for dry air.  
+$c_p$ is the specific heat capacity which is a property of an air parcel for storing or releasing heat (energy). Storage of energy leads to an increase in temperature.
 
 Source: https://en.wikipedia.org/wiki/Potential_temperature
-
 </div>
-
 
 The storage change $Q_{st}$ is directly related to the increase or decrease in the value of the state variable stored within the system. For heat storage in the atmosphere, it is given as:
 
@@ -393,24 +386,15 @@ add.spatialflux(oneDtransientmodel, rate=storage_change, name="storage")
 
 Now that you know how the storage change can be added to the model, the function itself should be defined. We need to provide a function that calculates the storage change for a specific location (the nodes). The definition of the storage change should be a function that takes as arguments the location and the value of the state variable at this location. The return-value is the storage change.
 
-To develop such a function, we first need to discretize the formulation of the storage change. Discretization of this function looks as follows: 
+To develop such a function, we first need to rewrite the storage change in the form of an external flux:
 
-$$Q_{st}=-\int_{V}\frac{\theta_{t+\Delta t}-\theta_{t}}{\Delta t}dx$$
+$$Q_{st}=-\int_{V}\frac{\theta_{new}-\theta_{old}}{\Delta t}dx$$,
 
-where $Q_{st}$ is the value of the storage change at the next time step (which we want to calculate), $\theta_{t}$ is the potential temperature at the current time step (which is generally known), $\theta_{t+\Delta t}$ is the potential temperature at the next time step and $\Delta t$ is the time step itself.
+where $Q_{st}$ is the negative value of the storage change, $\theta_{old}$ is the potential temperature at the time step for which we have solved before (or the initial condition at the very first time step), whereas $\theta_{new}$ is the potential temperature at the time step for which we are solving. Parameter $\Delta t$ is the time step itself.
 
 <div class="question">
-8. Define the storage change function below, call it 'storage_change' and add the storage_change function to your transient model. Use a function called 'oldstate(x)' that retrieves the state values of the current time step which takes position as an argument.
+8. Define the storage external flux function below, call it `storage_flux` and introduce it to your transient model. Use a function called `oldstate(x)` that retrieves the state values of the current time step which takes position as an argument.
 </div>
-
-<span class="comment">**[LM]** Chiel; Gegeven dat je gebruikt maakt van oldstate voor huidige state, is het dan niet logischer om in de vergelijking hierboven t en t-dt te gebruiken, in plaats van t en t+dt?
-
-**[CvH]** Wellicht! Ik laat 'm even open...**[/CvH]**
-
-**[GB]** ik zou het vermijden door : $$Q_{st}=-\int_{V}\frac{\theta_{new}-\theta_{old}}{\Delta t}dx$$ te gebruiken
-overigens laat ik in dezelfde vergelijking bij het hydrovoorbeeld zien that de state een functie van plaats en tijd is...
-
-</span>
 
 <button type="button" onclick="showHint(218)">Show Hint</button>
 <p id="Q218"> </p>
@@ -422,24 +406,25 @@ overigens laat ik in dezelfde vergelijking bij het hydrovoorbeeld zien that de s
 </div>
 
 <div class="answer">
-8. The storage change depends on position and state. Even though oldstate(x) is not defined yet, we can already define the storage change function (but we are not able to run it yet, without defining the oldstate function). The oldstate-function returns the state of the system at a specific location, x, at the current time step. This information is needed in order to calculate the gradient of the state in time. dt still needs to be defined too. 
+8. The storage change depends on position and state. Even though `oldstate(x)` is not defined yet, we can already define the storage change function (but we are not able to run it yet, without defining the oldstate function). The `oldstate`-function returns the state of the system at a specific location, `x`, at the current time step. This information is needed in order to calculate the gradient of the state in time. `dt` still needs to be defined too.
+
 ```{r}
-storage_change = function(x, state)
+storage_flux = function(x, state)
 {
-   storage_change = - (state - oldstate(x)) / dt
-   return(storage_change)
+  storage_change = (state - oldstate(x)) / dt
+  storage_flux = - storage_change
+  return(storage_change)
 }
 
 # Add the storage change to your transient model.
-add.spatialflux(oneDtransientmodel, storage_change, name="storage")
+add.spatialflux(oneDtransientmodel, storage_flux, name="storage")
 ```
 </div>
-
 In order for the storage change function to work we still do need to define:
 
-1)	a value for dt (the code equivalent of $\Delta t$): use 300 seconds as a starting value 
+1)	a value for `dt` (the code equivalent of $\Delta t$): use 300 seconds as a starting value 
 
-2)	a function that is called oldstate and that returns the value of the state at the current time step at location x
+2)	a function that is called `oldstate` and that returns the value of the state at the current time step at location `x`
 
 ## 1.4. Setup of the transient simulation
 In the previous exercises we developed a model that incorporated an additional flux, the storage change, which is needed in transient systems because of the storage changes within the system. This model can now be used to analyse the effect of the progressive cooling of the surface in time. In our model, the surface starts to cool at $t=0$. 
@@ -510,14 +495,14 @@ set.BC.fixedstate(oneDtransientmodel, 'left', 291.7-time*0.5/3600.)
 ```
 </div>
 
-In the previous questions we have defined an object of the class FLOW1D called oneDtransientmodel. We have defined the following properties in this object:
+In the previous questions we have defined an object of the class `FLOW1D` called `oneDtransientmodel`. We have defined the following properties in this object:
 
 1.  A definition of the domain.
 2.  A function that describes internal transport within the system as a function of location, state and the gradient of the state.
 3.  The external fluxes for each volume as a function of location and state of the system.  
 4.  A formulation of the flux due to the change in storage as a function of location and state of the system.
 
-To complete the mathematical formulation of the transient model, we still need to specify the oldstate(x) function that is called within the storage change function. This oldstate(x) function returns the state of the system at the previous time step at a specific location. At $t=\Delta t$, so after the first step in time, the profile of the potential temperature is given by the profile of the states as generated by the oneDinitmodel. The function oldstate(x) can thus be calculated as:
+To complete the mathematical formulation of the transient model, we still need to specify the `oldstate(x)` function that is called within the storage change function. This `oldstate(x)` function returns the state of the system at the previous time step at a specific location. At $t=\Delta t$, so after the first step in time, the profile of the potential temperature is given by the profile of the states as generated by the `oneDinitmodel`. The function `oldstate(x)` can thus be calculated as:
 
 ```{r eval=FALSE}
 # Store the states of the stationary model in a variable. This variable now refers to a dataframe with two columns  containing the positions and its corresponding states.
@@ -653,11 +638,9 @@ You can see the change of the internal flux at the lower boundary as a consequen
 ```{r}
 wbal_1_dt = dataframe.balance(oneDtransientmodel)
 print(wbal_1_dt)
-
 ```
 The storage change is about 10% of the external flux 
 </div>
-
 
 <div class="comment">
 **[GB]**zou hier niet een plot gemaakt moeten worden met de verdeling van de storage en externe flux?
@@ -669,10 +652,8 @@ To cycle through the time steps $\Delta t$ of 300 $\mathsf{sec}$ starting at **b
 
 <div align="center">
 ![](time_loop.png)  
-  
-  
-Figure 3: Pseudo code for the time loop
 
+Figure 3: Pseudo code for the time loop
 </div>
 
 <div class="question">
@@ -701,7 +682,7 @@ time = 0
 startprof = dataframe.states(oneDinitmodel)
 oldstate = approxfun(startprof$x, startprof$state, rule=2)
 time = time + dt
-set.BC.fixedstate(oneDtransientmodel,'left', 291.7-time*0.5/3600.)
+set.BC.fixedstate(oneDtransientmodel, 'left', 291.7-time*0.5/3600.)
 
 # End time should be at least 4 hours.
 end.time = 4*3600.
@@ -709,19 +690,19 @@ end.time = 4*3600.
 # Enter the loop construct until the equation between brackets returns FALSE.
 while (time < end.time)
 {
-  time  = time + dt
+  time = time + dt
   
   # calculate the new BC at the surface (cooling of surface).
-  set.BC.fixedstate(oneDtransientmodel,'left',291.7-time*0.5/3600.)
+  set.BC.fixedstate(oneDtransientmodel, 'left', 291.7-time*0.5/3600.)
   
   # calculate the states for the new time step.
-  solve.steps(oneDtransientmodel,MAMcrit = 1e-8)
+  solve.steps(oneDtransientmodel,MAMcrit=1e-8)
   
   # Wait a little for the window to update.
   Sys.sleep(0.1)
   
   # plot the potential temperature in the x-axis and the height on the y-axis.
-  plot(dataframe.states(oneDtransientmodel)$state, dataframe.states(oneDtransientmodel)$x, xlab='pot. temp [K]',ylab='height [m]', xlim=c(289,295.5), main=as.character(time))
+  plot(dataframe.states(oneDtransientmodel)$state, dataframe.states(oneDtransientmodel)$x, xlab='pot. temp [K]', ylab='height [m]', xlim=c(289,295.5), main=as.character(time))
   
   # Save the new states and define the oldstate function for the next time step.
   modelresults = dataframe.states(oneDtransientmodel)
@@ -778,7 +759,7 @@ Results.store = data.frame()
 # continue until condition returns FALSE
 while (time < end.time)
 {
-  time  = time + dt
+  time= time + dt
   
   # calculate the new BC at the surface (cooling of surface)
   set.BC.fixedstate(oneDtransientmodel,'left',291.7-time*0.5/3600.)
@@ -797,15 +778,14 @@ while (time < end.time)
 
 ```{r}
 # Plot the state value at the lower boundary. This follows the formula that describes the cooling rate.
-plot(Results.store$t,Results.store$lvalue,xlab='Time [s]',ylab=' pot temp. [K]', ylim=c(288, 295), col="black",
+plot(Results.store$t,Results.store$lvalue, xlab='Time [s]', ylab=' pot temp. [K]', ylim=c(288, 295), col="black",
      main="State lower boundary (black) & 50 meters above surface (red)")
 
 # Add points that plot the state value at 50 meters above the surface as a function of time.
-points(Results.store$t,Results.store$midstate, col='red')
+points(Results.store$t, Results.store$midstate, col='red')
 
 # Plot the flux of the energy flowing out of the system.
-plot(Results.store$t,Results.store$outflow,xlab='Time [s]',ylab=' flux [m/s K]', 
-     main="Energy flowing out of system")
+plot(Results.store$t, Results.store$outflow, xlab='Time [s]', ylab=' flux [m/s K]', main="Energy flowing out of system")
 ```
 </div>
 
