@@ -685,7 +685,7 @@ while (time < end.time)
 </div>
 
 <div class="answer">
-```{r fig.show='animate'}
+```{r, fig.show='animate', interval=0.1}
 # Set the time to zero
 time = 0
 
@@ -1128,18 +1128,14 @@ What can you conclude?
 </div>
 
 #### 2.3.2. Implementing the time loop
-
-To cycle through the time steps $\Delta t$ of 0.5 $d$ starting at **begin.time** and finalizing at **end.time**, a time loop needs to be implemented. A small chunk of pseudo code that describes how to do this, was given in figure 3 above of the meteorological part. 
+To cycle through the time steps $\Delta t$ of 0.5 $d$ starting at **begin.time** and finalizing at **end.time**, a time loop needs to be implemented. Use the code of the meteorological exercise in Section 1.4.2 as a reference.
 
 <div class="question">
-12. Use the pseudo code and convert it to actual R-code. Take the following actions and simulate the model for 30 days and reset dt ($\Delta t$)
-0.5 $\left[\mathsf{d}\right]$
+12. Adapt the code for the specific case here. Take the following actions and simulate the model for 30 days and set `dt` ($\Delta t$) to 0.5 $\left[\mathsf{d}\right]$
 
-* Replace the lines starting with a at sign (@) with proper R-code. 
-* For the @do..some..processing..here just plot the transient model and add a waiting code-line 'Sys.sleep(0.1)' to control the updating of the window. Also, plot the states of the stationary stat_no_well and stat_well model.
-* Set the proper time constraints.
-* Note that the starting states of the transient model should be initiated explicitly, otherwise the starting states are set to zero. Initialize the transient model with the resulting states from stat_no_well. By this initialization the spin-up time of the model is minimized.
-* add 'animation1,  fig.show='animate', aniopts=c('controls','loop'), interval=0.1' between the curly brackets at the first line of your R-code block to create an animation.
+* Add code to replace the comments with capital letters. Note that the starting states of the transient model is set explicitly, otherwise the starting states are set to zero.
+* Note that the starting states of the transient model should be initiated explicitly, otherwise the starting states are set to zero. Initialize the transient model with the resulting states from `stat_no_well`. By this initialization the spin-up time of the model is minimized.
+* add `animation1,  fig.show='animate', aniopts=c('controls','loop'), interval=0.1` between the curly brackets at the first line of your R-code block to create an animation.
 
 You should see a "movie" of the state transitions during the execution of the transient model. A real movie can be included when one Knits the document. ffmpeg.exe is a program, that should be in the same directory as your markdown file already, which creates this movie within the html document. If the animation does not work, try opening the html in Google Chrome.
 </div>
