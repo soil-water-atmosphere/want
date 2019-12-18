@@ -314,7 +314,7 @@ Figure 2: storage change for a stationary (top) and a transient (bottom) situati
 A picture of the situation for transient systems is given in Figure 2.
 In the upper figure we see the situation at time `t`, the initial time before the surface starts to cool. In this situation, there is a balance between the external fluxes and the internal fluxes for a particular volume and its adjacent volumes.
 
-The lower picture shows the situation when the system has progressed one time step after the surface started cooling. In this case, there is again a balance in the volume. However, in contrast to the initial stationary situation, besides the external fluxes that act on the system at $t=t+\Delta t$ and the internal fluxes within the system at $t=t+\Delta t$, there is an additional flux here that results from the change of storage within the system, if the internal and external fluxes do not add up to zero.
+The lower picture shows the situation when the system has progressed one time step after the surface started cooling. In this case, there is again a balance in the volume. However, in contrast to the initial stationary situation, besides the external fluxes that act on the system at $t+\Delta t$ and the internal fluxes within the system at $t+\Delta t$, there is an additional flux here that results from the change of storage within the system, if the internal and external fluxes do not add up to zero.
 
 <button class="collapsible">Physical interpretation of storage change</button>
 <div class="content">  
@@ -326,14 +326,16 @@ $c_p$ is the specific heat capacity which is a property of an air parcel for sto
 Source: https://en.wikipedia.org/wiki/Potential_temperature
 </div>
 
-The storage change $Q_{st}$ is directly related to the increase or decrease in the value of the state variable stored within the system. For heat storage in the atmosphere, it is given as:
+The storage change $S$ is directly related to the increase or decrease in the value of the state variable stored within the system. For heat storage in the atmosphere, $S$ is given as:
 
-$$Q_{st} = -\int_{V}\frac{\partial \theta}{\partial t}dV$$
+$$S = \int_{V}\frac{\partial \theta}{\partial t}dV$$
 
-where $Q_{st}$ is the storage change. In this 1-dimensional example, the volume step `dV` equals `dx`.
+In this 1-dimensional example, the volume step `dV` equals `dx`. In the model, the storage change is added as an external flux $Q_{st}$, which we call the storage flux, defined as:
+
+$$Q_{st} = - \int_{V}\frac{\partial \theta}{\partial t}dV$$
 
 <div class="question">
-5. What is the dimension of this flux and why is the storage change negatively related to the rate of change in the state variable (note the minus in the equation above)?
+5. What is the dimension of this external flux and why is the storage flux negatively related to the rate of change in the state variable?
 </div>
 
 <div class="student_answer">
@@ -341,8 +343,8 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-5. The storage change has the same units as the internal and external flux and is prescribed in change in the state variable per time unit, multiplied with the length (as this is a 1D problem) over which it is integrated.
-The storage change is negatively related to the rate of change in the state variable, as this is the convention. While in the advection-diffusion equation the $\partial s/\partial t$ is on the left-hand side, in the solution of the water balance, we move it to the right hand side. The storage change then acts as a negative flux. It can be interpreted as the flux that needs to be added in order to compensate for the non-closure of the water balance.
+5. The storage flux has the same units as other external fluxes and is prescribed as a change in the state variable per time unit, multiplied with the length (as this is a 1D problem) over which it is integrated.
+The storage flux is negatively related to the rate of change in the state variable, as we are solving a balance that is required to add up to zero. While in the advection-diffusion equation the $\partial s/\partial t$ is on the left-hand side, in the solution of the water balance, we move it to the right hand side. The storage change then acts as a negative flux. It can be interpreted as the flux that needs to be added in order to compensate for the non-closure of the balance.
 </div>
 
 In the previous question we have identified the storage change in a way that is similar to how we defined external fluxes: it is given as the integral of a function that defines the storage at one point in space. Therefore, the storage change in a transient system can be implemented in the same way as the external fluxes are implemented. 
@@ -378,22 +380,23 @@ Fill in your answer here...
 
 <div class="answer">
 7. Add the storage change to your transient model with the function below. As long as you do not evaluate this code block in the knitting procedure, it is allowed to refer to arguments that are not defined yet, such as the storage change argument.
+
 ```{r, eval=FALSE}
-#add.spatialflux(oneDtransientmodel, storage_change, name="storage")
-add.spatialflux(oneDtransientmodel, rate=storage_change, name="storage")
+#add.spatialflux(oneDtransientmodel, storage_flux, name="storage")
+add.spatialflux(oneDtransientmodel, rate=storage_flux, name="storage")
 ```
 </div>
 
-Now that you know how the storage change can be added to the model, the function itself should be defined. We need to provide a function that calculates the storage change for a specific location (the nodes). The definition of the storage change should be a function that takes as arguments the location and the value of the state variable at this location. The return-value is the storage change.
+Now that you know that the storage change can be added to the model as an external flux, the flux function should be defined. We need to provide a function that calculates the storage flux for a specific location (the nodes). This should be a function that takes as arguments the location and the value of the state variable at this location. The return value is the storage flux.
 
-To develop such a function, we first need to rewrite the storage change in the form of an external flux:
+To develop such a function, we first need to write down the discretized version of the storage flux $$Q_{st} (thus with the minus in front).
 
 $$Q_{st}=-\int_{V}\frac{\theta_{new}-\theta_{old}}{\Delta t}dx$$,
 
-where $Q_{st}$ is the negative value of the storage change, $\theta_{old}$ is the potential temperature at the time step for which we have solved before (or the initial condition at the very first time step), whereas $\theta_{new}$ is the potential temperature at the time step for which we are solving. Parameter $\Delta t$ is the time step itself.
+where $\theta_{old}$ is the potential temperature at the time step for which we have solved before (or the initial condition at the very first time step), and $\theta_{new}$ is the potential temperature at the time step for which we are solving. Parameter $\Delta t$ is the time step itself.
 
 <div class="question">
-8. Define the storage external flux function below, call it `storage_flux` and introduce it to your transient model. Use a function called `oldstate(x)` that retrieves the state values of the current time step which takes position as an argument.
+8. Define the storage flux function below, call it `storage_flux` and introduce it to your transient model. Use a function called `oldstate(x)` that retrieves the state values of the current time step which takes position as an argument.
 </div>
 
 <button type="button" onclick="showHint(218)">Show Hint</button>
@@ -406,7 +409,7 @@ where $Q_{st}$ is the negative value of the storage change, $\theta_{old}$ is th
 </div>
 
 <div class="answer">
-8. The storage change depends on position and state. Even though `oldstate(x)` is not defined yet, we can already define the storage change function (but we are not able to run it yet, without defining the oldstate function). The `oldstate`-function returns the state of the system at a specific location, `x`, at the current time step. This information is needed in order to calculate the gradient of the state in time. `dt` still needs to be defined too.
+8. The storage change depends on position and state. Even though `oldstate(x)` is not defined yet, we can already define the storage flux function (but we are not able to run it yet, without defining the oldstate function). The `oldstate`-function returns the state of the system at a specific location, `x`, at the current time step. This information is needed in order to calculate the gradient of the state in time. `dt` still needs to be defined too.
 
 ```{r}
 storage_flux = function(x, state)
@@ -1187,7 +1190,7 @@ while(time < end.time)
 During the transient simulation it is very interesting to have a look at some intermediate results, for example the states and fluxes at the different time steps. The following lines of R-code will help you to save these results.  
 
 <div class="question">
-13. Adapt your transient model calculations using the tips below and create some plots of the intermediate results. At least make a plot of the flow over both boundaries, state at the extraction well and storage change change. Examine the plots critically, can you explain the intermediate plotting results?
+13. Adapt your transient model calculations using the tips below and create some plots of the intermediate results. At least make a plot of the flow over both boundaries, state at the extraction well and storage change. Examine the plots critically, can you explain the intermediate plotting results?
 
 1. Use **result.store = data.frame()** to have a container for the required data.
 2. Use **curresult = dataframe.states(transientmodel)** to store the heads.
