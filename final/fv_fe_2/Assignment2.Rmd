@@ -1,15 +1,15 @@
 ---
 title: "FVFE Practical 2 - Transient flow in 1D"
 output:
-  html_notebook:
-    css: want_n.css
-    toc: yes
-    toc_depth: 4
   html_document:
     code_folding: show
     css: want_n.css
     toc: yes
     toc_depth: '4'
+  html_notebook:
+    css: want_n.css
+    toc: yes
+    toc_depth: 4
 date: "December 2019"
 subtitle: Finite Volumes, transient 1D
 ---
@@ -82,16 +82,16 @@ CheckInstallPackages(c("knitr","FVFE1D"))
 ```
 
 ## Learning Goals
-* Understand why the storage flux is introduced for transient systems.
-* Understand how the storage flux is implemented.
+* Understand why the storage change is introduced for transient systems.
+* Understand how the storage change is implemented.
 * Understand the relation between time steps in transient systems.
 * Learn how to use a loop for a repetitive task and how to store results in a dataframe.
 
-# Part 1: Transient diffusion in the surface boundary layer (SBL)
+# Part 1: Transient potential temperature in the stable boundary layer (SBL)
 In this assignment, we will start working with transient systems: systems that change over time. The assignment consists of two different parts: The first part (this part) is based on a meteorological application, and the second part is an hydrological application. TIP: Having difficulties grasping the concepts introduced in Part 1? The same concepts are introduced in Part 2 for a hydrological application, have a look over there if that aligns better with your background. 
 
 ## Introduction 
-We will continue with the situation of the atmospheric boundary layer (ABL) above a cooling Earth surface after sunset, when downward transport of heat occurs - see Part 2 of Assignment 1. The figure below shows a potential temperature profile with height for specific conditions. We will produce a comparable graph in this assignment, but now accounting for evolution in time that is the effect of the cooling of the surface through longwave radiation that happens during the night.
+We will continue with the situation of the stable boundary layer above a cooling Earth surface after sunset, when downward transport of heat occurs - see Part 2 of Assignment 1. The figure below shows a potential temperature profile that is typical for the stable boundary layer. We will produce a comparable graph in this assignment, but now accounting for evolution in time that is the effect of progressive cooling of the surface throughout the night.
 
 The state variable and the **flow domain** of the model will be the same as in Assignment 1: potential temperature $\theta$ [K] is our state variable, and the flow domain has a length of 99.5 m, starting at a height of 0.5 m above the surface and ending at the top of the SBL, which is fixed at 100 m. 
 
@@ -106,8 +106,8 @@ Figure 1: Potential temperature distribution over height
 ### 1.1.1 Internal flux
 Flux of energy in the x-direction (height) is calculated using Fick's law with a so-called eddy-diffusivity, which accounts for the mixing caused by overturning turbulent whirls (eddies).
 
-$$Q=-K_{eddy}\frac{\partial \theta}{\partial x}$$
-With $K_{eddy}$ being the eddy diffusivity and $\frac{\partial \theta}{\partial x}$ being the gradient of the potential temperature. In the atmospheric boundary layer (ABL), the eddy diffusivity is nonlinear. Close to the surface, mixing in the vertical is hard, because overturning eddies quickly hit the surface, whereas further away from the surface, it goes easier. Therefore, the diffusivity $K_{eddy}$is proportional with height and formulated as:
+$$Q=-K_{eddy}\frac{\partial \theta}{\partial x}$$,
+with $K_{eddy}$ being the eddy diffusivity and $\frac{\partial \theta}{\partial x}$ being the gradient of the potential temperature. In the atmospheric boundary layer (ABL), the eddy diffusivity is nonlinear. Close to the surface, mixing in the vertical is hard, because overturning eddies quickly hit the surface, whereas further away from the surface, it goes easier. Therefore, the diffusivity $K_{eddy}$is proportional with height and formulated as:
 
 $$K_{eddy}=ku_{*}x$$
 where the Von Karman constant $k$ equals 0.4, friction velocity $u_{*} = 0.25$ m/s  at the surface, which is a measure of the intensity of turbulence, and $x$ is the height above the surface (also often referred to as $z$, since we are working in the vertical direction).
@@ -127,8 +127,8 @@ In this assignment, a variable radiative cooling as function of height will be u
 The boundary conditions describing the potential temperature at both the lower and upper boundary of the SBL will be of the Dirichlet-type. For the potential temperature at the lower boundary, an initial value of 291.73 K is adopted, which will decrease with 0.5 K/h as time evolves. The potential temperature of the upper boundary is fixed at 295.0 K. The model setup as described above largely resembles the setup of Assignment 1 Part 2. However, a big difference is that this time, the lower boundary condition is not constant in time, but progressively decreases according to a prescribed cooling rate.
 
 ### 1.1.4 Discretization
-* space:  $\Delta x = 2m$,    i.e. the nodal distance (spatial resolution).
-* time:   $\Delta t = 300s$,    i.e. the temporal resolution for which the model will be solved.
+* space:  $\Delta x = 2 m$,    i.e. the nodal distance (spatial resolution).
+* time:   $\Delta t = 300 s$,    i.e. the temporal resolution for which the model will be solved.
 
 ### 1.1.5 State variables
 <div class="question">
@@ -152,7 +152,7 @@ The boundary conditions describing the potential temperature at both the lower a
 | System variable | Unit (answer) | 
 | ----------------|---------------| 
 | State ($\theta$)| K             |
-| Internal flux   | K*m/s         |
+| Internal flux   | K m/s         |
 | External flux   | K/s           |
 | Space (scale)   | m             |
 | Time  (scale)   | sec           |
@@ -162,7 +162,7 @@ The boundary conditions describing the potential temperature at both the lower a
 Before we start studying the transient behaviour of the model, we will first create the stationary model. The solution of this stationary model describes the situation right before the surface starts to cool: we use it as initial condition for our transient model. The states resulting from the stationary model will be used as input for our transient model. Note that, although the model is stationary, there is loss of energy from the model due to the external flux (radiative cooling). 
 
 <div class="question">
-2. Set up the mathematical part of the model for the initial situation, i.e. for the situation before the surface starts to cool. For the lower boundary condition the fixed state value (as in Assignment 1) should be used, and we use the third option of the external fluxes as discussed in Section 1.1.2 above. Call this model oneDinitmodel. Do not forget to clear your environment and to import the FVFE1D package at the beginning. TIP: Check the model template which was provided with Assignment 1 (``ModelTemplate1D.Rmd``).
+2. Set up the mathematical part of the model for the initial situation, i.e. for the situation before the surface starts to cool. For the lower boundary condition the fixed state value (as in Assignment 1) should be used, and we use the third option of the external fluxes as discussed in Section 1.1.2 above. Call this model oneDinitmodel. Do not forget to clear your environment and to import the `FVFE1D` package at the beginning. TIP: Check the model template which was provided with Assignment 1 (``ModelTemplate1D.Rmd``).
 </div>
 
 <button type="button" onclick="showHint(212)">Show Hint</button>
@@ -202,19 +202,19 @@ tempflux = function(x,state,gradstate)
 }
 
 # Define the flow model, which requires a domain, systemflux function, and (optional) a name
-oneDinitmodel = newFLOW1D(domain=domain, systemfluxfunction = tempflux, name = "oneDinitmodel") 
+oneDinitmodel = newFLOW1D(domain=domain, systemfluxfunction=tempflux, name="oneDinitmodel") 
 
 # Define the boundary conditions
 set.BC.fixedstate(oneDinitmodel, 'left', 291.7) 
 set.BC.fixedstate(oneDinitmodel, 'right', 295.)
 
 # Define the external flux (which is different from Assignment 1, Part 2, because now a function of height)
-RD.func = approxfun(c(0,0.5,100),c(-1.74E-4,-1.74E-4,-5.55E-5))
-extfunc = function(x,state)
+RD.func = approxfun(c(0,0.5,100), c(-1.74E-4,-1.74E-4,-5.55E-5))
+extfunc = function(x, state)
 {return(RD.func(x))}
 
 # Add the external flux the model
-add.spatialflux(oneDinitmodel,extfunc,'RD_height_dependent')
+add.spatialflux(oneDinitmodel, extfunc, 'RD_height_dependent')
 ```
 </div>
 
@@ -313,7 +313,7 @@ However, many hydrological and meteorological systems are not in steady state. A
 ![](storageflux0.png)
 ![](storageflux_dt.png)
 
-Figure 2: Storage flux for a stationary (top) and a transient (bottom) situation.
+Figure 2: storage change for a stationary (top) and a transient (bottom) situation.
 </div>
 
 A picture of the situation for transient systems is given in Figure 2.
@@ -337,10 +337,10 @@ The storage change $Q_{st}$ is directly related to the increase or decrease in t
 
 $$Q_{st} = -\int_{V}\frac{\partial \theta}{\partial t}dV$$
 
-where $Q_{st}$ is the storage flux. In this 1-dimensional example, the volume step `dV` equals `dx`.
+where $Q_{st}$ is the storage change. In this 1-dimensional example, the volume step `dV` equals `dx`.
 
 <div class="question">
-5. What is the dimension of this flux and why is the storage flux negatively related to the rate of change in the state variable (note the minus in the equation above)?
+5. What is the dimension of this flux and why is the storage change negatively related to the rate of change in the state variable (note the minus in the equation above)?
 </div>
 
 <div class="student_answer">
@@ -349,13 +349,13 @@ Fill in your answer here...
 
 <div class="answer">
 5. The storage change has the same units as the internal and external flux and is prescribed in change in the state variable per time unit, multiplied with the length (as this is a 1D problem) over which it is integrated.
-The storage flux is negatively related to the rate of change in the state variable, as this is the convention. While in the advection-diffusion equation the $\partial s/\partial t$ is on the left-hand side, in the solution of the water balance, we move it to the right hand side. The storage change then acts as a negative flux. It can be interpreted as the flux that needs to be added in order to compensate for the non-closure of the water balance.
+The storage change is negatively related to the rate of change in the state variable, as this is the convention. While in the advection-diffusion equation the $\partial s/\partial t$ is on the left-hand side, in the solution of the water balance, we move it to the right hand side. The storage change then acts as a negative flux. It can be interpreted as the flux that needs to be added in order to compensate for the non-closure of the water balance.
 </div>
 
-In the previous question we have identified the storage flux in a way that is similar to how we defined external fluxes: it is given as the integral of a function that defines the storage at one point in space. Therefore, the storage flux in a transient system can be implemented in the same way as the external fluxes are implemented. 
+In the previous question we have identified the storage change in a way that is similar to how we defined external fluxes: it is given as the integral of a function that defines the storage at one point in space. Therefore, the storage change in a transient system can be implemented in the same way as the external fluxes are implemented. 
 
 <div class="question">
-6. Make a new model which is an exact copy of your oneDinit-model. Call this copy oneDtransientmodel.
+6. Make a new model which is an exact copy of your `oneDinit`-model. Call this copy `oneDtransientmodel`.
 </div>
 
 <button type="button" onclick="showHint(216)">Show Hint</button>
@@ -376,7 +376,7 @@ set.name(oneDtransientmodel, newname = "oneDtransientmodel")
 </div>
 
 <div class="question">
-7. Check the documentation and try to find the function which should be used to add the storage flux function to your transient model.
+7. Check the documentation and try to find the function which should be used to add the storage change function to your transient model.
 </div>
 
 <div class="student_answer">
@@ -384,23 +384,23 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-7. Add the storage flux to your transient model with the function below. As long as you do not evaluate this code block in the knitting procedure, it is allowed to refer to arguments that are not defined yet, such as the storage flux argument.
+7. Add the storage change to your transient model with the function below. As long as you do not evaluate this code block in the knitting procedure, it is allowed to refer to arguments that are not defined yet, such as the storage change argument.
 ```{r, eval=FALSE}
-#add.spatialflux(oneDtransientmodel, storageflux, name="storage")
-add.spatialflux(oneDtransientmodel,rate=storageflux,name = "storage")
+#add.spatialflux(oneDtransientmodel, storage_change, name="storage")
+add.spatialflux(oneDtransientmodel, rate=storage_change, name="storage")
 ```
 </div>
 
-Now that you know how the storage flux can be added to the model, the function itself should be defined. We need to provide a function that calculates the storage flux for a specific location (the nodes). The definition of the storage flux should be a function that takes as arguments the location and the value of the state variable at this location. The return-value is the storage flux.
+Now that you know how the storage change can be added to the model, the function itself should be defined. We need to provide a function that calculates the storage change for a specific location (the nodes). The definition of the storage change should be a function that takes as arguments the location and the value of the state variable at this location. The return-value is the storage change.
 
-To develop such a function, we first need to discretize the formulation of the storage flux. Discretization of this function looks as follows: 
+To develop such a function, we first need to discretize the formulation of the storage change. Discretization of this function looks as follows: 
 
 $$Q_{st}=-\int_{V}\frac{\theta_{t+\Delta t}-\theta_{t}}{\Delta t}dx$$
 
-where $Q_{st}$ is the value of the storage flux at the next time step (which we want to calculate), $\theta_{t}$ is the potential temperature at the current time step (which is generally known), $\theta_{t+\Delta t}$ is the potential temperature at the next time step and $\Delta t$ is the time step itself.
+where $Q_{st}$ is the value of the storage change at the next time step (which we want to calculate), $\theta_{t}$ is the potential temperature at the current time step (which is generally known), $\theta_{t+\Delta t}$ is the potential temperature at the next time step and $\Delta t$ is the time step itself.
 
 <div class="question">
-8. Define the storage flux function below, call it 'storageflux' and add the storageflux function to your transient model. Use a function called 'oldstate(x)' that retrieves the state values of the current time step which takes position as an argument.
+8. Define the storage change function below, call it 'storage_change' and add the storage_change function to your transient model. Use a function called 'oldstate(x)' that retrieves the state values of the current time step which takes position as an argument.
 </div>
 
 <span class="comment">**[LM]** Chiel; Gegeven dat je gebruikt maakt van oldstate voor huidige state, is het dan niet logischer om in de vergelijking hierboven t en t-dt te gebruiken, in plaats van t en t+dt?
@@ -417,32 +417,32 @@ overigens laat ik in dezelfde vergelijking bij het hydrovoorbeeld zien that de s
 
 <div class="student_answer">
 ```{r}
-# Define your storage flux here
+# Define your storage change here
 ```
 </div>
 
 <div class="answer">
-8. The storage flux depends on position and state. Even though oldstate(x) is not defined yet, we can already define the storage flux function (but we are not able to run it yet, without defining the oldstate function). The oldstate-function returns the state of the system at a specific location, x, at the current time step. This information is needed in order to calculate the gradient of the state in time. dt still needs to be defined too. 
+8. The storage change depends on position and state. Even though oldstate(x) is not defined yet, we can already define the storage change function (but we are not able to run it yet, without defining the oldstate function). The oldstate-function returns the state of the system at a specific location, x, at the current time step. This information is needed in order to calculate the gradient of the state in time. dt still needs to be defined too. 
 ```{r}
-storageflux = function(x, state)
+storage_change = function(x, state)
 {
-   storageflux = - (state - oldstate(x)) / dt
-   return(storageflux)
+   storage_change = - (state - oldstate(x)) / dt
+   return(storage_change)
 }
 
-# Add the storage flux to your transient model.
-add.spatialflux(oneDtransientmodel, storageflux, name="storage")
+# Add the storage change to your transient model.
+add.spatialflux(oneDtransientmodel, storage_change, name="storage")
 ```
 </div>
 
-In order for the storage flux function to work we still do need to define:
+In order for the storage change function to work we still do need to define:
 
 1)	a value for dt (the code equivalent of $\Delta t$): use 300 seconds as a starting value 
 
 2)	a function that is called oldstate and that returns the value of the state at the current time step at location x
 
 ## 1.4. Setup of the transient simulation
-In the previous exercises we developed a model that incorporated an additional flux, the storage flux, which is needed in transient systems because of the storage changes within the system. This model can now be used to analyse the effect of the progressive cooling of the surface in time. In our model, the surface starts to cool at $t=0$. 
+In the previous exercises we developed a model that incorporated an additional flux, the storage change, which is needed in transient systems because of the storage changes within the system. This model can now be used to analyse the effect of the progressive cooling of the surface in time. In our model, the surface starts to cool at $t=0$. 
 
 <div class="question">
 9. Include a line of code that tells the script that the starting time is zero (use the variable name ``time`` for time in your code).
@@ -461,7 +461,7 @@ time = 0
 ```
 </div>
 
-At the starting time, there is, for each volume, a balance between the external fluxes and the net internal flux. The states of the transient model at t=0 are given by our steady-state oneDinitmodel. The state variable profile of this model is used as the initial profile for our transient system.
+At the starting time, there is, for each volume, a balance between the external fluxes and the net internal flux. The states of the transient model at t=0 are given by our steady-state `oneDinitmodel`. The state variable profile of this model is used as the initial profile for our transient system.
 
 Now, we increase the time by a time step $\Delta t$.
 
@@ -517,7 +517,7 @@ In the previous questions we have defined an object of the class FLOW1D called o
 3.  The external fluxes for each volume as a function of location and state of the system.  
 4.  A formulation of the flux due to the change in storage as a function of location and state of the system.
 
-To complete the mathematical formulation of the transient model, we still need to specify the oldstate(x) function that is called within the storage flux function. This oldstate(x) function returns the state of the system at the previous time step at a specific location. At $t=\Delta t$, so after the first step in time, the profile of the potential temperature is given by the profile of the states as generated by the oneDinitmodel. The function oldstate(x) can thus be calculated as:
+To complete the mathematical formulation of the transient model, we still need to specify the oldstate(x) function that is called within the storage change function. This oldstate(x) function returns the state of the system at the previous time step at a specific location. At $t=\Delta t$, so after the first step in time, the profile of the potential temperature is given by the profile of the states as generated by the oneDinitmodel. The function oldstate(x) can thus be calculated as:
 
 ```{r eval=FALSE}
 # Store the states of the stationary model in a variable. This variable now refers to a dataframe with two columns  containing the positions and its corresponding states.
@@ -566,7 +566,7 @@ Now that the mathematical formulation of the model is completed, the numerical p
 
 * Creation of the nodes at which the system is solved for its states.
 * Set the discretization of the system by defining the method that is used to solve the system.
-* Calling the solve function on the transient model. Solving of the model requires finding the values of the state variables in all volumes such that the balances of all volumes are zero (the sum of the external fluxes and the storage flux equals the net internal flux of a specific volume). As in the stationary model, this requires the solving of (N-2) state variable balances (for all volumes) to get (N-2) values of the state variables, where N is the number of volumes that we have specified. As before, we simply use a function called ``solve.steps`` which takes the instance of the class FLOW1D as an argument and solves the values of the state variables at the specified volumes that lead to a minimal misfit between net internal flux and the external fluxes.
+* Calling the solve function on the transient model. Solving of the model requires finding the values of the state variables in all volumes such that the balances of all volumes are zero (the sum of the external fluxes and the storage change equals the net internal flux of a specific volume). As in the stationary model, this requires the solving of (N-2) state variable balances (for all volumes) to get (N-2) values of the state variables, where N is the number of volumes that we have specified. As before, we simply use a function called ``solve.steps`` which takes the instance of the class FLOW1D as an argument and solves the values of the state variables at the specified volumes that lead to a minimal misfit between net internal flux and the external fluxes.
 
 **Extra assignment** Interested in knowing how the ``solve.steps``-function works? Check the extra assignment on Brightspace called ``Newton-Raphson``. 
 
@@ -578,7 +578,7 @@ set.discretisation(...)
 ```
 
 <div class="question">
-13. Add a piece of code that defines the numerical formulation (nodes, and discretization type) of your model. The nodal distance should be two meters. Thereafter, print a summary of your model to check whether the storage flux was implemented correctly.
+13. Add a piece of code that defines the numerical formulation (nodes, and discretization type) of your model. The nodal distance should be two meters. Thereafter, print a summary of your model to check whether the storage change was implemented correctly.
 </div>
 
 <div class="student_answer">
@@ -655,7 +655,7 @@ wbal_1_dt = dataframe.balance(oneDtransientmodel)
 print(wbal_1_dt)
 
 ```
-The storage flux is about 10% of the external flux 
+The storage change is about 10% of the external flux 
 </div>
 
 
@@ -665,8 +665,6 @@ The storage flux is about 10% of the external flux
 
 
 #### 1.4.2. Implementing the time loop
-
-
 To cycle through the time steps $\Delta t$ of 300 $\mathsf{sec}$ starting at **begin.time** and finalizing at **end.time**, a time loop needs to be implemented. A small chunk of pseudo code that describes how to do this is given in figure 3.  
 
 <div align="center">
@@ -676,10 +674,6 @@ To cycle through the time steps $\Delta t$ of 300 $\mathsf{sec}$ starting at **b
 Figure 3: Pseudo code for the time loop
 
 </div>
-
-
-
-
 
 <div class="question">
 17. Use the pseudo-code and convert it to actual R-code. Take the following actions and simulate the model for 4 hours.
@@ -707,7 +701,7 @@ time = 0
 startprof = dataframe.states(oneDinitmodel)
 oldstate = approxfun(startprof$x, startprof$state, rule=2)
 time = time + dt
-set.BC.fixedstate(oneDtransientmodel,'left',291.7-time*0.5/3600.)
+set.BC.fixedstate(oneDtransientmodel,'left', 291.7-time*0.5/3600.)
 
 # End time should be at least 4 hours.
 end.time = 4*3600.
@@ -727,11 +721,11 @@ while (time < end.time)
   Sys.sleep(0.1)
   
   # plot the potential temperature in the x-axis and the height on the y-axis.
-  plot(dataframe.states(oneDtransientmodel)$state,dataframe.states(oneDtransientmodel)$x,xlab='pot. temp [K]',ylab='height [m]',xlim=c(289,295.5), main=as.character(time))
+  plot(dataframe.states(oneDtransientmodel)$state, dataframe.states(oneDtransientmodel)$x, xlab='pot. temp [K]',ylab='height [m]', xlim=c(289,295.5), main=as.character(time))
   
   # Save the new states and define the oldstate function for the next time step.
   modelresults = dataframe.states(oneDtransientmodel)
-  oldstate = approxfun(modelresults$x,modelresults$state,rule=2)
+  oldstate = approxfun(modelresults$x, modelresults$state, rule=2)
 }
 ```
 </div>
@@ -751,7 +745,7 @@ The code snippet below shows how this can be done.
 #should be set first and outside the loop
 result.store = data.frame() 
 #should be set in the loop
-  Results.store = rbind(Results.store,data.frame('t'=time,'lvalue'=dataframe.states(oneDtransientmodel)$state[1],'outflow'=dataframe.boundaries(oneDtransientmodel)[1,4],'midstate'=dataframe.states(oneDtransientmodel)$state[26]))
+  Results.store = rbind(Results.store, data.frame('t'=time, 'lvalue'=dataframe.states(oneDtransientmodel)$state[1], 'outflow'=dataframe.boundaries(oneDtransientmodel)[1,4], 'midstate'=dataframe.states(oneDtransientmodel)$state[26]))
 plot(result.store$t, result.store$outflow, type="o", col="red")
 ```
 
@@ -773,7 +767,7 @@ dt = 300
 startprof = dataframe.states(oneDinitmodel)
 oldstate = approxfun(startprof$x, startprof$state, rule=2)
 time = time + dt
-set.BC.fixedstate(oneDtransientmodel,'left',291.7-time*0.5/3600.)
+set.BC.fixedstate(oneDtransientmodel, 'left', 291.7-time*0.5/3600.)
 
 # End time should be at least 4 hours.
 end.time = 4*3600.
@@ -834,7 +828,6 @@ The description of this system is largely equal to that of Assignment 1 Part 1. 
 Figure 1: Transient flow including an extraction well.
 
 ## 2.1. Transient systems: The storage change  
-
 During time an amount of water can be stored into the soil or released from it. This storage change of water takes place in the pore space of the soil.  
 Figure 2 illustrates water stored in the pore space of a soil column.  
 
@@ -872,9 +865,7 @@ Finally, the effect of releasing water from storage towards the well, is in esse
 
 </div>
 
-
 To account for this storage change an additional flux term need to be added to the model's balance:
-
 $$
 q_{sto}(x,t)=-S\frac {H(x,t)_{new}- H(x,t)_{old}}{\Delta t}
 $$
@@ -895,7 +886,6 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-1.  
 The domain of the model has only one spatial dimension, (e.g. the x-direction). Therefore, the spatial flux should have the same dimensions. Here the flux density is defined as length per time, $m/d$. From this follows that the storage coefficient should be dimensionless. The dimensions in which the well is entered in the model is $m^2/d$, but internally the value is divided by the nodal distance at the specific location. Per time step a certain water height, [$\mathsf{m/d}$]
 , is subtracted in this situation.
 
@@ -1001,9 +991,9 @@ recharge = dataframe.externalfluxes(stat_well)
 print(recharge)
 
 # Since water is entering at the boundaries, the total amount of recharge is going into the well plus what is entering from the boundaries. Calculation of the origin of water in the well can be performed as follows:
-print(paste('Fraction recharge of total extraction :',wbal[2,2]/wbal[3,3]))
-print(paste('Fraction of left river :',bounds[1,4]/wbal[3,3]))
-print(paste('Fraction of right river :',bounds[2,4]/wbal[3,3]))
+print(paste('Fraction recharge of total extraction :', wbal[2,2]/wbal[3,3]))
+print(paste('Fraction of left river :', bounds[1,4]/wbal[3,3]))
+print(paste('Fraction of right river :', bounds[2,4]/wbal[3,3]))
 ```
 </div>
 
@@ -1032,7 +1022,7 @@ grid()
 One of the key aspects of creating a transient model is to define the storage change flux rate. The function **oldstate.fun(x)** representing the head $H(x,t)_{old}$ of the  storage change equation in section 2.1. In the first part of this assignment the **oldstate.fun(x)** was calculated with a linear approximation between the nodes using the **approxfun()**. A property of the Finite Volume method is that the values are not interpolated between the nodes. Therefore, it would be more correct to use **state.fun(modelobject)** to retrieve the states of a different model run. Check the documentation for its description!
 
 <div class="question">
-6. Define the storage flux and its dependencies. Use 0.15 $\left[\mathsf{-}\right]$
+6. Define the storage change and its dependencies. Use 0.15 $\left[\mathsf{-}\right]$
  and 0.5 $\left[\mathsf{d}\right]$ for the storage coefficient ${S}$ and time step $\Delta t$   , respectively. Also, use the states from stat_no_well.
 </div>
 
@@ -1046,11 +1036,11 @@ Fill in your answer here...
 S = 0.15
 dt = 0.5
 
-# Storage flux function
+# storage change function
 storage.flux = function(x, state)
 {
-  storageflux = -S * (state - oldstate.fun(x)) / dt
-  return(storageflux)
+  storage_change = -S * (state - oldstate.fun(x)) / dt
+  return(storage_change)
 }
 
 # New oldstate function
@@ -1211,12 +1201,12 @@ while(time < end.time)
 During the transient simulation it is very interesting to have a look at some intermediate results, for example the states and fluxes at the different time steps. The following lines of R-code will help you to save these results.  
 
 <div class="question">
-13. Adapt your transient model calculations using the tips below and create some plots of the intermediate results. At least make a plot of the flow over both boundaries, state at the extraction well and storage flux change. Examine the plots critically, can you explain the intermediate plotting results?
+13. Adapt your transient model calculations using the tips below and create some plots of the intermediate results. At least make a plot of the flow over both boundaries, state at the extraction well and storage change change. Examine the plots critically, can you explain the intermediate plotting results?
 
 1. Use **result.store = data.frame()** to have a container for the required data.
 2. Use **curresult = dataframe.states(transientmodel)** to store the heads.
 3. Use **curboundaries = dataframe.boundaries(transientmodel)** to store the outflow of both rivers.
-4. Use **wbal = dataframe.balance(transientmodel)** to obtain the intermediate storage flux.
+4. Use **wbal = dataframe.balance(transientmodel)** to obtain the intermediate storage change.
 5. Use **result.store = rbind(result.store, data.frame('t'=time, 'Hatwell'=curresult$state[9], 'Qoutleft'=curboundaries[1,4], Qoutright'=curboundaries[2,4], 'Qstorage'=wbal[2,2]))** to add the intermediate data to your container.
 </div>
 
@@ -1281,7 +1271,7 @@ plot(result.store$t, result.store$Hatwell, type='o',
 grid()
 # The head at the well will adapt to the equilibrium state which corresponds to the current extraction rate of the well. The equilibrium situation is approached asymptotically as long as the misfits of the model are not exactly equal to zero.
 
-# Plot the storage flux as a function of time.
+# Plot the storage change as a function of time.
 plot(result.store$t, result.store$Qstorage, type="o",
      col='green', ylab='Storage change (m2/d)', xlab='Time (d)',
      main='Storage change')
@@ -1299,7 +1289,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-14. In order to answer this question all three the plots that you created above can be used to argue that the model did not reach a steady state. The flow over both boundaries is not constant in time. There is still change in the head at the extraction well and the storage flux is not zero yet. In the model the storage flux is used as the criterium for being stationary. This will approach zero, but it will not become exactly zero. This mismatch is called the misfit of the stationary solution.
+14. In order to answer this question all three the plots that you created above can be used to argue that the model did not reach a steady state. The flow over both boundaries is not constant in time. There is still change in the head at the extraction well and the storage change is not zero yet. In the model the storage change is used as the criterium for being stationary. This will approach zero, but it will not become exactly zero. This mismatch is called the misfit of the stationary solution.
 </div>
 
 ## 2.5. Using the non-linear (type 2) internal flux
@@ -1388,7 +1378,7 @@ plot(result2.store$t, result2.store$Hatwell, type='o',
      main='Head at well')
 grid()
 
-# Plot the storage flux as a function of time.
+# Plot the storage change as a function of time.
 plot(result2.store$t, result2.store$Qstorage, type="o",
      col='green', ylab='Storage change (m2/d)', xlab = 'Time (d)',
      main='Storage change')
@@ -1433,14 +1423,14 @@ print(summary(result.store - result2.store))
 </div>
 
 ## 2.6. Adding a recharge pattern to the model  
-In this last question a non constant recharge pattern will be applied to the non linear transient model, 'trans2model'. The recharge data that we will use comes from a meteorological station located near Eijbergen in the catchment area of the brook Hupsel. The recharge data is shown in the code chunk below: 
+In this last question a non constant recharge pattern will be applied to the non linear transient model, 'trans2model'. The recharge data that we will use comes from a meteorological station located near Eibergen in the catchment area of the brook Hupsel. The recharge data is shown in the code chunk below: 
 
 ```{r}
 # Load data from file.
 hupsel = read.table(file='hupsel.dat')
 
 # Plot the precipitation.
-plot(hupsel$V1, hupsel$V2, type='l', col='red', xlab='time (d)', ylab='recharge/evap (cm/d)', ylim=c(-0.25,1.0),                main='Precipitation (red), Evapotranspiration (black), Recharge (blue)')
+plot(hupsel$V1, hupsel$V2, type='l', col='red', xlab='time (d)', ylab='recharge/evap (cm/d)', ylim=c(-0.25,1.0), main='Precipitation (red), Evapotranspiration (black), Recharge (blue)')
 
 # Add the evapotranspiration.
 lines(hupsel$V1, hupsel$V3, col='black')
@@ -1457,7 +1447,7 @@ grid()
 ```
 
 <div class="question">
-17. Add the recharge from Hupsel and call your new model 'trans3model'. Solve the model in the same way as you did for 'trans2model'. Make an animation of the model simulating half a year, open the html in Google Chrome if the animation will not display.
+17. Add the recharge from Hupsel and call your new model `trans3model`. Solve the model in the same way as you did for `trans2model`. Make an animation of the model simulating half a year, open the html in Google Chrome if the animation will not display.
 </div>  
 
 <button type="button" onclick="showHint(2213)">Show Hint</button>
@@ -1468,7 +1458,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-```{r animation3,fig.show='animate', interval=0.1}
+```{r animation3, fig.show='animate', interval=0.1}
 # New model initialization.
 trans3model = copy.model(trans2model)
 set.name(trans3model, newname="trans3model")
@@ -1492,8 +1482,9 @@ do.initialize(trans3model, oldstate.fun)
 # Advance one time step before entering the time loop.
 time = begin.time + dt
 daycount = 1
+
 while(time < end.time)
-  {
+{
   # New net recharge
   rch = net.rch[daycount, 2] #daycount for row and '2' for value
   daycount = daycount+1
@@ -1520,7 +1511,7 @@ while(time < end.time)
   # Prepare for next time step.
   time = time + dt
   oldstate.fun = state.fun(trans3model)
-  }
+}
 ```
 </div>
 
