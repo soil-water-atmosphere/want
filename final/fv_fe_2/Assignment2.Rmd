@@ -413,7 +413,7 @@ storage_flux = function(x, state)
 {
   storage_change = (state - oldstate(x)) / dt
   storage_flux = - storage_change
-  return(storage_change)
+  return(storage_flux)
 }
 
 # Add the storage change to your transient model.
@@ -585,7 +585,6 @@ summary(oneDtransientmodel)
 </div>
 
 #### 1.4.1. One step transient model simulation
-
 At this stage of transient model, we can simulate a transient situation of just one time step. With this, it becomes clear that during time the state ($\theta$) distribution changes from the stationary one towards a temperature distribution after one time step $time=\Delta t$. The effect of storage change and time increment can now be analysed on states and balance terms.  
 
 <div class="question">
@@ -596,7 +595,7 @@ At this stage of transient model, we can simulate a transient situation of just 
 14. Here the output of solving the model (number of iterations, improvements etc) is writen to the variable `solve_1_dt`  
 
 ```{r}
-solve_1_dt = solve.steps(oneDtransientmodel,MAMcrit = 1e-08)
+solve_1_dt = solve.steps(oneDtransientmodel, MAMcrit=1e-08)
 ```
 </div>
 
@@ -646,30 +645,42 @@ The storage change is about 10% of the external flux
 **[GB]**zou hier niet een plot gemaakt moeten worden met de verdeling van de storage en externe flux?
 </div>
 
-
 #### 1.4.2. Implementing the time loop
-To cycle through the time steps $\Delta t$ of 300 $\mathsf{sec}$ starting at **begin.time** and finalizing at **end.time**, a time loop needs to be implemented. A small chunk of pseudo code that describes how to do this is given in figure 3.  
-
-<div align="center">
-![](time_loop.png)  
-
-Figure 3: Pseudo code for the time loop
-</div>
+To cycle through the time steps $\Delta t$ of 300 $\mathsf{sec}$ starting at **begin.time** and finalizing at **end.time**, a time loop needs to be implemented.
 
 <div class="question">
-17. Use the pseudo-code and convert it to actual R-code. Take the following actions and simulate the model for 4 hours.
+17. Complete the code below in order to make the transient version. Take the following actions and simulate the model for 4 hours.
 
-* Replace the lines starting with a at sign (@) with proper R-code. 
-* For the @do..some..processing..here just plot the transient model and add a waiting code-line 'Sys.sleep(0.1)' to control the updating of the window. Also, plot the states of the stationary model.
-* Set the proper time constraints.
-* Note that the starting states of the transient model should be initiated explicitly, otherwise the starting states are set to zero. Initialize the transient model with the resulting states from our steady state model. 
-* add ``fig.show='animate'`` between the curly brackets of your R-code block (first line, ``{r fig.show='animate'}``) to create an animation. If the animation does not display in the markdown, open the html in Google Chrome.
+* Add code to replace the comments with capital letters. Note that the starting states of the transient model is set explicitly, otherwise the starting states are set to zero.
+* Add ``fig.show='animate'`` between the curly brackets of your R-code block (first line, ``{r fig.show='animate'}``) to create an animation. If the animation does not display in the markdown, open the html in Google Chrome.
 </div>
 
-
 <div class="student_answer">
-```{r}
+```{r, eval=FALSE}
+# Set the time to zero
+time = 0
 
+# The calculation of the first step in time.
+startprof = dataframe.states(oneDinitmodel)
+oldstate = approxfun(startprof$x, startprof$state, rule=2)
+
+# End time is 4 hours.
+end.time = 4*3600.
+
+# Enter the loop construct until the equation between brackets returns FALSE.
+while (time < end.time)
+{
+  # INCREMENT THE TIME WITH dt
+  
+  # SOLVE THE MODEL WITH AN UPDATED SURFACE BOUNDARY CONDITION
+  
+  # Wait a little for the window to update.
+  Sys.sleep(0.1)
+  
+  # PLOT THE STATE AND THE INITIAL STATE IN THE SAME FIGURE
+  
+  # UPDATE oldstate FUNCTION
+}
 ```
 </div>
 
@@ -681,28 +692,27 @@ time = 0
 # The calculation of the first step in time.
 startprof = dataframe.states(oneDinitmodel)
 oldstate = approxfun(startprof$x, startprof$state, rule=2)
-time = time + dt
-set.BC.fixedstate(oneDtransientmodel, 'left', 291.7-time*0.5/3600.)
 
-# End time should be at least 4 hours.
+# End time should be 4 hours.
 end.time = 4*3600.
 
 # Enter the loop construct until the equation between brackets returns FALSE.
 while (time < end.time)
 {
+  # increment the time.
   time = time + dt
   
   # calculate the new BC at the surface (cooling of surface).
   set.BC.fixedstate(oneDtransientmodel, 'left', 291.7-time*0.5/3600.)
   
   # calculate the states for the new time step.
-  solve.steps(oneDtransientmodel,MAMcrit=1e-8)
+  solve.steps(oneDtransientmodel, MAMcrit=1e-8)
   
   # Wait a little for the window to update.
   Sys.sleep(0.1)
   
   # plot the potential temperature in the x-axis and the height on the y-axis.
-  plot(dataframe.states(oneDtransientmodel)$state, dataframe.states(oneDtransientmodel)$x, xlab='pot. temp [K]', ylab='height [m]', xlim=c(289,295.5), main=as.character(time))
+  plot(dataframe.states(oneDtransientmodel)$state, dataframe.states(oneDtransientmodel)$x, xlab='pot. temp [K]', ylab='height [m]', xlim=c(289, 295.5), main=as.character(time))
   
   # Save the new states and define the oldstate function for the next time step.
   modelresults = dataframe.states(oneDtransientmodel)
@@ -759,20 +769,20 @@ Results.store = data.frame()
 # continue until condition returns FALSE
 while (time < end.time)
 {
-  time= time + dt
+  time = time + dt
   
   # calculate the new BC at the surface (cooling of surface)
-  set.BC.fixedstate(oneDtransientmodel,'left',291.7-time*0.5/3600.)
+  set.BC.fixedstate(oneDtransientmodel,'left', 291.7-time*0.5/3600.)
   
   # # calculate the states for the new time step.
-  solve.steps(oneDtransientmodel,MAMcrit = 1e-8)
+  solve.steps(oneDtransientmodel, MAMcrit=1e-8)
   
   # Save the new states and define the oldstate function for the next time step.
   modelresults = dataframe.states(oneDtransientmodel)
-  oldstate = approxfun(modelresults$x,modelresults$state,rule=2)
+  oldstate = approxfun(modelresults$x, modelresults$state, rule=2)
   
   # Here, the dataframe is populated with intermediate results
-  Results.store = rbind(Results.store,data.frame('t'=time,'lvalue'=dataframe.states(oneDtransientmodel)$state[1],'outflow'=dataframe.boundaries(oneDtransientmodel)[1,4],'midstate'=dataframe.states(oneDtransientmodel)$state[26]))
+  Results.store = rbind(Results.store, data.frame('t'=time, 'lvalue'=dataframe.states(oneDtransientmodel)$state[1], 'outflow'=dataframe.boundaries(oneDtransientmodel)[1,4], 'midstate'=dataframe.states(oneDtransientmodel)$state[26]))
 }
 ```
 
