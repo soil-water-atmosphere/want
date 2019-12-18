@@ -1012,7 +1012,7 @@ http://glossary.ametsoc.org/wiki/Obukhov_length
 ```
 </div>
 
-<div clas="answer">
+<div class="answer">
 ```{r}
 k = 0.4  # Von Karman constant, same as before
 ust = 0.25 # friction velocity [m/s], same as before
