@@ -677,10 +677,10 @@ while (time < end.time)
   
   # SOLVE THE MODEL WITH AN UPDATED SURFACE BOUNDARY CONDITION
   
+  # PLOT THE STATE AND THE INITIAL STATE IN THE SAME FIGURE
+  
   # Wait a little for the window to update.
   Sys.sleep(0.1)
-  
-  # PLOT THE STATE AND THE INITIAL STATE IN THE SAME FIGURE
   
   # UPDATE oldstate FUNCTION
 }
@@ -1161,12 +1161,16 @@ end.time = 30
 # Initialize the model with states of stat_no_well. Default initialization is zero.
 do.initialize(transientmodel, state.fun(stat_no_well))
 
-# Increment time manually and enter the time loop
-time = begin.time + dt
+# Enter the time loop
+time = begin.time
+
 while(time < end.time)
 { 
+  # Increment the time
+  time = time + dt
+  
   # Solve
-  control=solve.steps(transientmodel)
+  control = solve.steps(transientmodel)
   curresult = dataframe.states(transientmodel)
   
   # Plotting
@@ -1178,8 +1182,7 @@ while(time < end.time)
        main=paste("time=",time), type="o")
   Sys.sleep(0.1)
   
-  # Increment time and make the states of the current time step accessible for the next time step.
-  time = time + dt
+  # Make the states of the current time step accessible for the next time step.
   oldstate.fun = state.fun(transientmodel)
 }
 ```
@@ -1215,12 +1218,16 @@ end.time = 30
 oldstate.fun = state.fun(stat_no_well)
 do.initialize(transientmodel, oldstate.fun)
 
-# Increment the time manually before entering the time loop.
-time = begin.time + dt
+# Enter the time loop.
+time = begin.time
+
 while(time < end.time)
 {
+  # Increment the time
+  time = time + dt
+  
   # Solve
-  control=solve.steps(transientmodel)
+  control = solve.steps(transientmodel)
   
   # Store the intermediate states, boundaries and water balance.
   curresult = dataframe.states(transientmodel)
@@ -1235,8 +1242,7 @@ while(time < end.time)
                                 "Qoutright="=curboundaries[2,4],
                                 "Qstorage="=wbal[2,2]))
   
-  # Increment time and make the states of the current time step accessible for the next time step.
-  time = time + dt
+  # Make the states of the current time step accessible for the next time step.
   oldstate.fun = state.fun(transientmodel)
 }
 ```
@@ -1304,7 +1310,7 @@ Fill in your answer here...
 ```{r}
 # System flux function of type 2
 k = 10.0 
-kH.flux = function(x,state,gradstate)
+kH.flux = function(x, state, gradstate)
 {
   return(-k*state*gradstate)
 }
@@ -1323,16 +1329,20 @@ set.discretisation(trans2model, nodes, method='FV')
 result2.store = data.frame()
 
 # Time contraints
-begin.time=0
+begin.time = 0
 end.time = 30
 
 # Initialize the model with states of stat_no_well.
 oldstate.fun = state.fun(stat_no_well)
 do.initialize(trans2model,oldstate.fun)
 
-time = begin.time + dt
+time = begin.time
+
 while(time < end.time)
 {
+  # Increment the time
+  time = time + dt
+  
   # Solve
   control=solve.steps(trans2model)
   
@@ -1347,7 +1357,6 @@ while(time < end.time)
                                 "Qoutright="=curboundaries[2,4],
                                 "Qstorage="=wbal[2,2]))
   # Prepare for the next time step.
-  time = time + dt
   oldstate.fun = state.fun(trans2model)
 }
 ```
@@ -1460,22 +1469,25 @@ add.spatialflux(trans3model, rch, 'recharge')
 dt = 1.0
 
 # Time contraints
-begin.time=0
-end.time = 100#180
+begin.time = 0
+end.time = 100 #180
 
 # Initial conditions
 oldstate.fun = state.fun(stat_no_well)
 do.initialize(trans3model, oldstate.fun)
 
 # Advance one time step before entering the time loop.
-time = begin.time + dt
+time = begin.time
 daycount = 1
 
 while(time < end.time)
 {
+  # Increment the time
+  time = time + dt
+  daycount = daycount + 1
+  
   # New net recharge
-  rch = net.rch[daycount, 2] #daycount for row and '2' for value
-  daycount = daycount+1
+  rch = net.rch[daycount, 2] # daycount for row and '2' for value
   
   # Solve
   control = solve.steps(trans3model)
@@ -1487,7 +1499,7 @@ while(time < end.time)
   title = paste("time=", formatC(time, digits=3, width=6, format="f"))
   # stat_no_well
   plot(dataframe.states(stat_no_well), type="o", col="red",
-       main = title, ylim=c(4.7,5.2))
+       main=title, ylim=c(4.7,5.2))
   # stat_well
   lines(dataframe.states(stat_well), type="o", col="blue")
   # current states
@@ -1497,7 +1509,6 @@ while(time < end.time)
   Sys.sleep(0.1)
   
   # Prepare for next time step.
-  time = time + dt
   oldstate.fun = state.fun(trans3model)
 }
 ```
