@@ -394,8 +394,7 @@ terms | error
 
 </span>
 
-#Part 3 - An emptying reservoir with input.
-##Section 3.1 - Introducing input
+# Part 3 - An emptying reservoir with input.
 In this exercise, the emptying bucket model will be adapted to make it more realistic, by adding an input source that depends on time. This introduces an extra source of fluctuation and makes the output graph more complex. Therefore, it is an excellent model to investigate the accuracy of different type of integration methods. We introduce a simple input function that could, for instance, be described as time-varying precipitation $\sin(time)+1$:
 
 ```{R chunk6}
