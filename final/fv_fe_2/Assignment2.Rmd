@@ -85,7 +85,7 @@ CheckInstallPackages(c("knitr","FVFE1D"))
 * Learn how to use a loop for a repetitive task and how to store results in a dataframe.
 
 # Part 1: Transient potential temperature in the stable boundary layer (SBL)
-In this assignment, we will start working with transient systems: systems that change over time. The assignment consists of two different parts: The first part (this part) is based on a meteorological application, and the second part is an hydrological application. TIP: Having difficulties grasping the concepts introduced in Part 1? The same concepts are introduced in Part 2 for a hydrological application.
+In this assignment, we will start working with transient systems: systems that change over time. The assignment consists of two different parts: The first part (this part) is based on a meteorological application, and the second part is an hydrological application. TIP: Having difficulties grasping the concepts introduced in Part 1? Part 2 deals with the same theory but from a hydrological perspective. 
 
 ## Introduction 
 We will continue with the situation of the stable boundary layer above a cooling Earth surface after sunset, when downward transport of heat occurs - see Part 2 of Assignment 1. The figure below shows a potential temperature profile that is typical for the stable boundary layer. We will produce a comparable graph in this assignment, but now accounting for evolution in time that is the effect of progressive cooling of the surface throughout the night.
