@@ -389,7 +389,7 @@ add.spatialflux(oneDtransientmodel, rate=storage_flux, name="storage")
 
 Now that you know that the storage change can be added to the model as an external flux, the flux function should be defined. We need to provide a function that calculates the storage flux for a specific location (the nodes). This should be a function that takes as arguments the location and the value of the state variable at this location. The return value is the storage flux.
 
-To develop such a function, we first need to write down the discretized version of the storage flux $$Q_{st} (thus with the minus in front).
+To develop such a function, we first need to write down the discretized version of the storage flux $$Q_{st}$$ (thus with the minus in front).
 
 $$Q_{st}=-\int_{V}\frac{\theta_{new}-\theta_{old}}{\Delta t}dx$$,
 
