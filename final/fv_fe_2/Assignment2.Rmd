@@ -161,8 +161,8 @@ Before we start studying the transient behaviour of the model, we will first cre
 2. Set up the mathematical part of the model for the initial situation, i.e. for the situation before the surface starts to cool. For the lower boundary condition the fixed state value (as in Assignment 1) should be used, and we use the third option of the external fluxes as discussed in Section 1.1.2 above. Call this model `oneDinitmodel`. Do not forget to clear your environment and to import the `FVFE1D` package at the beginning. TIP: Check the model template which was provided with Assignment 1 (``ModelTemplate1D.Rmd``).
 </div>
 
-<button type="button" onclick="showHint(212)">Show Hint</button>
-<p id="Q212"> </p>
+<button type="button" onclick="showHint(2001)">Show Hint</button>
+<p id="Q2001"> </p>
 
 <div class="student_answer">
 ```{r}
@@ -214,13 +214,13 @@ add.spatialflux(oneDinitmodel, extfunc, 'RD_height_dependent')
 </div>
 
 <div class="question">
-3. Implement the numerical part of the model, and solve the model for the initial (here stationary) situation to obtain values of the state variables for all volumes (nodes).  Since the flux terms for these models are all relatively small (in numbers), it is wise to increase the convergence criteria.  This can simply be set as an extra argument of the ``solve.steps()`` function. Have a look at the help of this function and set e.g. ``MAMcrit = 1e-8``
+3. Implement the numerical part of the model, and solve the model for the initial (here stationary) situation to obtain values of the state variables for all volumes (nodes).  Since the flux terms for these models are all relatively small (in numbers), it is wise to increase the convergence criteria.  This can simply be set as an extra argument of the ``solve.steps()`` function. Have a look at the help of this function and set e.g. ``MAMcrit = 1e-8``. Since there are more convergence criteria to consider, it is wise to set these even more strict (i.e. smaller values) to be sure that MAMcrit is met.
 Make plots of the state variable and the internal fluxes as a function of height. Switch the axes such that height is on the vertical axis.  
 Thereafter, print a summary of the model. Take a look at the documentation of the plot function from the FVFE1D-package and consider the arguments of this function. For instance, you may use the "FVstyle" parameter to plot the actual values of the control volumes in which the states are constant (this is a consequence of the Finite Volumes method).
 </div>
 
-<button type="button" onclick="showHint(213)">Show Hint</button>
-<p id="Q213"> </p>
+<button type="button" onclick="showHint(2002)">Show Hint</button>
+<p id="Q2002"> </p>
 
 <div class="student_answer">
 ```{r}
@@ -256,8 +256,8 @@ Is the balance for this particular volume closed, do you get the same values for
 Finally, what do you think is the relation between the returned misfit by the solve.steps() function and the value of the net balance component?
 </div>
 
-<button type="button" onclick="showHint(214)">Show Hint</button>
-<p id="Q214"> </p>
+<button type="button" onclick="showHint(2003)">Show Hint</button>
+<p id="Q2003"> </p>
 
 <div class="student_answer">
 Fill in your answers here...
@@ -353,8 +353,8 @@ In the previous question we have identified the storage change in a way that is 
 6. Make a new model which is an exact copy of your `oneDinit`-model. Call this copy `oneDtransientmodel`.
 </div>
 
-<button type="button" onclick="showHint(216)">Show Hint</button>
-<p id="Q216"> </p>
+<button type="button" onclick="showHint(2004)">Show Hint</button>
+<p id="Q2004"> </p>
 
 <div class="student_answer">
 ```{r}
@@ -399,8 +399,8 @@ where $\theta_{old}$ is the potential temperature at the time step for which we 
 8. Define the storage flux function below, call it `storage_flux` and introduce it to your transient model. Use a function called `oldstate(x)` that retrieves the state values of the current time step which takes position as an argument.
 </div>
 
-<button type="button" onclick="showHint(218)">Show Hint</button>
-<p id="Q218"> </p>
+<button type="button" onclick="showHint(2005)">Show Hint</button>
+<p id="Q2005"> </p>
 
 <div class="student_answer">
 ```{r}
@@ -893,8 +893,8 @@ library(FVFE1D)
 2. Setup and run the stationary model containing the data above without the extraction well. Make use of type 1 flow. You may use a code chunk from assignment 1. Call this model 'stat_no_well' and solve it using the Finite Volumes method. Plot both the states and the fluxes of the model in an individual graph. Check the plot documentation in the FVFE1D package for more information.
 </div>
 
-<button type="button" onclick="showHint(222)">Show Hint</button>
-<p id="Q222"> </p>
+<button type="button" onclick="showHint(2008)">Show Hint</button>
+<p id="Q2008"> </p>
 
 <div class="student_answer">
 Fill in your answer here...
@@ -951,8 +951,8 @@ plot(stat_well, stateplot=TRUE, fluxplot=TRUE)
 4. Examine the origin of the water extracted by the well. In other words, where does this extracted water come from? Give your answers as a fraction of the total amount of extracted water.
 </div> 
 
-<button type="button" onclick="showHint(224)">Show Hint</button>
-<p id="Q224"> </p>
+<button type="button" onclick="showHint(2009)">Show Hint</button>
+<p id="Q2009"> </p>
 
 <div class="student_answer">
 Fill in your answer here...
@@ -983,8 +983,8 @@ print(paste('Fraction of right river :', bounds[2,4]/wbal[3,3]))
 5. Plot the head distributions of stat_no_well and stat_well in one graph by simply using 'dataframe.states()'.
 </div>
 
-<button type="button" onclick="showHint(225)">Show Hint</button>
-<p id="Q225"> </p>
+<button type="button" onclick="showHint(2010)">Show Hint</button>
+<p id="Q2010"> </p>
 
 <div class="student_answer">
 Fill in your answer here...
@@ -1132,8 +1132,8 @@ To cycle through the time steps $\Delta t$ of 0.5 $d$ starting at **begin.time**
 You should see a "movie" of the state transitions during the execution of the transient model. A real movie can be included when one Knits the document. ffmpeg.exe is a program, that should be in the same directory as your markdown file already, which creates this movie within the html document. If the animation does not work, try opening the html in Google Chrome.
 </div>
 
-<button type="button" onclick="showHint(228)">Show Hint</button>
-<p id="Q228"> </p>
+<button type="button" onclick="showHint(2011)">Show Hint</button>
+<p id="Q2011"> </p>
 
 <div class="student_answer">
 Fill in your answer here...
@@ -1289,8 +1289,8 @@ In the previous questions we have used an average transmissivity in the internal
 *   Make sure that you use unique parameter names to prevent overwriting data of other models.
 </div>
 
-<button type="button" onclick="showHint(2211)">Show Hint</button>
-<p id="Q2211"> </p>
+<button type="button" onclick="showHint(2012)">Show Hint</button>
+<p id="Q2012"> </p>
 
 <div class="student_answer">
 Fill in your answer here...

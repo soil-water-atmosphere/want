@@ -1,0 +1,19 @@
+time = delta_t
+
+while (time < end.time)
+{
+   @increment..time..with..delta_t;
+    time = time + delta_t
+
+   @solve.. the..transientmodel
+
+   current_result = dataframe.states(transientmodel)
+
+
+   @do..some..post..processing..here
+
+   @create function containing the old state, for example:
+    oldstate.fun = state.fun(transientmodel)
+
+}
+
