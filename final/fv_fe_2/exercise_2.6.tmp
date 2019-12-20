@@ -1,0 +1,92 @@
+## 2.6. Adding a recharge pattern to the model
+In this last question a non-constant recharge pattern will be applied to the non-linear transient model, 'trans2model'. The recharge data that we will use comes from a meteorological station located near Eibergen in the catchment area of the Hupsel brook. The recharge data is shown in the code chunk below:
+
+```{r}
+# Load data from file.
+hupsel = read.table(file='hupsel.dat')
+
+# Plot the precipitation.
+plot(hupsel$V1, hupsel$V2, type='l', col='red', xlab='time (d)', ylab='recharge/evap (cm/d)', ylim=c(-0.25,1.0), main='Precipitation (red), Evapotranspiration (black), Recharge (blue)')
+
+# Add the evapotranspiration.
+lines(hupsel$V1, hupsel$V3, col='black')
+
+# calculate the net recharge.
+net.rch = hupsel$V2 - hupsel$V3
+# transform the unit from cm/d to m/d
+net.rch = cbind(hupsel$V1, 0.01*net.rch)
+
+# Add the net recharge
+# to transfer the recharge back to cm/d values need to be multiplied with 100 (to have cm/d again)
+lines(net.rch[,1], 100*net.rch[,2], col='blue')
+grid()
+```
+
+<div class="question">
+17. Add the recharge from Hupsel and call your new model `trans3model`. Solve the model in the same way as you did for `trans2model`. Make an animation of the model simulating half a year, open the html in Google Chrome if the animation will not display.
+</div>
+
+<button type="button" onclick="showHint(2213)">Show Hint</button>
+<p id="Q2213"> </p>
+
+<div class="student_answer">
+Fill in your answer here...
+</div>
+
+<div class="answer">
+```{r animation3, fig.show='animate', interval=0.1}
+# New model initialization.
+trans3model = copy.model(trans2model)
+set.name(trans3model, newname="trans3model")
+
+# Remove the old recharge flux and assign a new one by variable name.
+rem.spatialflux(trans3model,'recharge')
+rch = 0.001
+add.spatialflux(trans3model, rch, 'recharge')
+
+# The time resolution of the recharge data is 1 day, without linearly interpolating between the known times, this is the smallest time step we can solve for.
+dt = 1.0
+
+# Time contraints
+begin.time=0
+end.time = 100#180
+
+# Initial conditions
+oldstate.fun = state.fun(stat_no_well)
+do.initialize(trans3model, oldstate.fun)
+
+# Advance one time step before entering the time loop.
+time = begin.time + dt
+daycount = 1
+
+while(time < end.time)
+{
+  # New net recharge
+  rch = net.rch[daycount, 2] #daycount for row and '2' for value
+  daycount = daycount+1
+
+  # Solve
+  control = solve.steps(trans3model)
+
+  # Store current results
+  curresult = dataframe.states(trans3model)
+
+  # Create the animation
+  title = paste("time=", formatC(time, digits=3, width=6, format="f"))
+  # stat_no_well
+  plot(dataframe.states(stat_no_well), type="o", col="red",
+       main = title, ylim=c(4.7,5.2))
+  # stat_well
+  lines(dataframe.states(stat_well), type="o", col="blue")
+  # current states
+  lines(curresult$x, curresult$state,
+       main=paste("time=",time), type="o")
+  grid()
+  Sys.sleep(0.1)
+
+  # Prepare for next time step.
+  time = time + dt
+  oldstate.fun = state.fun(trans3model)
+}
+```
+</div>
