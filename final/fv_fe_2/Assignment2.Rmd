@@ -799,13 +799,21 @@ plot(Results.store$t, Results.store$outflow, xlab='Time [s]', ylab=' flux [m/s K
 In this assignment, a transient groundwater system will be studied. As a first example, the development of an extraction cone is examined. An overview of this process is shown below.
 The description of this system is largely equal to that of Assignment 1 Part 1. So we take (again):  
 
-* L = 200 $m$
-* Dirichlet boundary conditions left and right river = 5.0 $m$
-* kD = 45 $m^2/d$ for type 1 flow
-* k = 10 $m/d$ for type 2 flow
-* The nodal distance $\Delta$ x = 10 m
-* Recharge R = 0.001 $m/d$
-* Extraction rate of the well is 0.25 $m^2/d$ at 90 $m$ from the left
+* L = 200 $\left[\mathsf{m}\right]$
+
+* Dirichlet boundary conditions left and right river = 5.0 $\left[\mathsf{m}\right]$
+
+* kD = 45 $\left[\mathsf{m^2/d}\right]$
+ for type 1 flow
+* k = 10 $\left[\mathsf{m/d}\right]$
+ for type 2 flow
+* The nodal distance $\Delta$ x = 10 $\left[\mathsf{m}\right]$
+
+* Recharge R = 0.001 $\left[\mathsf{m/d}\right]$
+
+* Extraction rate of the well is 0.25 $\left[\mathsf{m^2/d}\right]$
+ at 90 $\left[\mathsf{m}\right]$
+  from the left
 
 ![](assignment2_1D_trans.png)
 
@@ -860,7 +868,20 @@ With
 
 
 <div class="question">
-1. What are the units of the variables above?
+1. What are the units of of several variables this model and are the units for the different fluxes for the balance the same?
+
+
+| System variable | Unit          | 
+| ----------------|---------------| 
+| State ($H$)     | ...           |
+| Internal flux   | ...           |
+| External recharge flux   | ...           |
+| External well flux   | ...           |
+| Storage flux    | ...           |
+| Space (scale)   | ...           |
+| Time  (scale)   | ...           |
+
+
 </div>
 
 <div class="student_answer">
@@ -868,14 +889,20 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-The domain of the model has only one spatial dimension, (e.g. the x-direction). Therefore, the spatial flux should have the same dimensions. Here the flux density is defined as length per time, $m/d$. From this follows that the storage coefficient should be dimensionless. The dimensions in which the well is entered in the model is $m^2/d$, but internally the value is divided by the nodal distance at the specific location. Per time step a certain water height, [$\mathsf{m/d}$]
-, is subtracted in this situation.
 
-1.    Phreatic storage coefficient: [$\mathsf{m^3/m^3 \rightarrow (-)}$]
- 
-2.    Spatial flux [$\mathsf{m/d}$]
 
-3.    Extraction Well [$\mathsf{m^2/d}$]
+
+| System variable | Unit          | 
+| ----------------|---------------| 
+| State ($H$)     |   $\left[\mathsf{m}\right]$|
+| Internal flux   | $\left[\mathsf{m^2/d}\right]$|
+| External recharge flux   | $\left[\mathsf{m/d}\right]$|
+| External well flux   | $\left[\mathsf{m^2/d}\right]$|
+| Storage flux    | $\left[\mathsf{m/d}\right]$|
+| Space (scale)   | $\left[\mathsf{m}\right]$|
+| Time  (scale)   | $\left[\mathsf{d}\right]$|
+
+The internal flux has unit $\left[\mathsf{m^2/d}\right]$ and for that the (water) balance as well. External and Storage flux now need to be intergrated over the volume length of the nodes.  
 
 </div>
 
@@ -968,7 +995,7 @@ print(wbal)
 bounds = dataframe.boundaries(stat_well)
 print(bounds)
 
-# The recharge distribution is homogeneous. Each cell, except both volumes at the boundary of the domain because these are half the size of the other volumes, captures a equal amount of water.
+# The recharge distribution is homogeneous. Each cell, except both volumes at the boundary of the domain because these are half the size of the other volumes, captures an equal amount of water.
 recharge = dataframe.externalfluxes(stat_well)
 print(recharge)
 
@@ -1005,7 +1032,7 @@ One of the key aspects of creating a transient model is to define the storage ch
 
 <div class="question">
 6. Define the storage change and its dependencies. Use 0.15 $\left[\mathsf{-}\right]$
- and 0.5 $\left[\mathsf{d}\right]$ for the storage coefficient ${S}$ and time step $\Delta t$   , respectively. Also, use the states from stat_no_well.
+ and 0.5 $\left[\mathsf{d}\right]$ for the storage coefficient ${S}$ and time step $\Delta t$ respectively. Also, use the states from stat_no_well.
 </div>
 
 <div class="student_answer">
@@ -1033,12 +1060,13 @@ oldstate.fun = state.fun(stat_no_well)
 To have an idea how this oldstate.fun works, simply type at the console 'oldstate.fun(20)'. This will result in the head (state) at position $x=20 m$. Play around a bit with this function and check whether it is really different from the linearly interpolated oldstate function used before.
 
 <div class="question">
-7. To create a transient model the following has to be implemented. 
+7. To create a transient model the following has to be implemented: 
 
-1.    Make a copy of stat_no_well and call it transientmodel
-2.    Give this model a new name (this is not required, but it is recommended)
-3.    Add the extraction well to this model 
-4.    Add the storage change flux to the model 
+* Make a copy of stat_no_well and call it transientmodel
+* Give this model a new name (this is not required, but it is recommended)
+* Add the extraction well to this model 
+* Add the storage change flux to the model 
+
 </div>
 
 <div class="student_answer">
@@ -1060,7 +1088,7 @@ add.spatialflux(transientmodel, storage.flux, "storage change")
 
 #### 2.3.1. One step transient model simulation
 
-Here we first will simulate a transient situation on just one time step.  With this it becomes clear that over time the state distribution changes from the stationary one without an extraction well to the new situation at time = $\Delta t$.  When looking at the balance of this model it becomes clear the a certain amount of flux comes from storage.
+Here we first will simulate a transient situation on just one time step.  With this it becomes clear that over time the state distribution changes from the stationary one without an extraction well to the new situation at time = $\Delta t$.  When looking at the balance of this model it becomes clear that a certain amount of flux comes from storage.
 
 <div class="question">
 8. The time step $\Delta t$, storage coefficient $S$ and $H(x,t)_{old}$, expressed as `` oldstate``, are already defined in the previous chunks
@@ -1093,7 +1121,7 @@ The outflow at the boundaries is very close to the stationary situation.
 
 <div class="question">
 10. Adjust the time step from 0.5 day to 100 day(s) and rerun the previous chunk
-**Do not forget** to reset dt to 0.5 day.
+**Do not forget** to reset dt to 0.5 day aferwards.
 </div>
 
 <div class="answer">
@@ -1120,13 +1148,13 @@ What can you conclude?
 </div>
 
 #### 2.3.2. Implementing the time loop
-To cycle through the time steps $\Delta t$ of 0.5 $d$ starting at **begin.time** and finalizing at **end.time**, a time loop needs to be implemented. Use the pseudo-code of the meteorological exercise in Section 1.4.2 as a reference.
+To cycle through the time steps $\Delta t$ of 0.5 $\left[\mathsf{d}\right]$
+ starting at **begin.time** and finalizing at **end.time**, a time loop needs to be implemented. Use the pseudo-code of the meteorological exercise in Section 1.4.2 as a reference.
 
 <div class="question">
 12. Adapt the code for the specific case here. Take the following actions and simulate the model for 30 days and set `dt` ($\Delta t$) to 0.5 $\left[\mathsf{d}\right]$
 
-* Add code to replace the comments with capital letters. Note that the starting states of the transient model is set explicitly, otherwise the starting states are set to zero.
-* Note that the starting states of the transient model should be initiated explicitly, otherwise the starting states are set to zero. Initialize the transient model with the resulting states from `stat_no_well`. By this initialization the spin-up time of the model is minimized.
+* Note that the starting states of the transient model should be initiated explicitly, otherwise the starting states are set to zero. Initialize the transient model with the resulting states from `stat_no_well` with `do.initialize()`. By this initialization the spin-up time of the model is minimized. It should be set prior to the time loop.  
 * add `animation1,  fig.show='animate', aniopts=c('controls','loop'), interval=0.1` between the curly brackets at the first line of your R-code block to create an animation.
 
 You should see a "movie" of the state transitions during the execution of the transient model. A real movie can be included when one Knits the document. ffmpeg.exe is a program, that should be in the same directory as your markdown file already, which creates this movie within the html document. If the animation does not work, try opening the html in Google Chrome.
@@ -1277,7 +1305,8 @@ Fill in your answer here...
 </div>
 
 ## 2.5. Using the non-linear (type 2) internal flux
-In the previous questions we have used an average transmissivity in the internal flux function which is defined as flow of type 1. Now, this type 1 flow will be replaced with type 2 flow. This means that the transmissivity is based on the saturated thickness at a specific location. The hydraulic conductivity, $10 m/d$, is constant.
+In the previous questions we have used an average transmissivity in the internal flux function which is defined as flow of type 1. Now, this type 1 flow will be replaced with type 2 flow. This means that the transmissivity is based on the saturated thickness at a specific location. The hydraulic conductivity, 10 $\left[\mathsf{m/d}\right]$
+, is constant.
 
 <div class="question">
 15. Solve the new transient model and use the same approach as in the first transient model. Plot the intermediate result for comparison.
