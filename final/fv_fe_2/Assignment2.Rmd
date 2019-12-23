@@ -1184,11 +1184,11 @@ During the transient simulation it is very interesting to have a look at some in
 <div class="question">
 13. Adapt your transient model calculations using the tips below and create some plots of the intermediate results. At least make a plot of the flow over both boundaries, state at the extraction well and storage change. Examine the plots critically, can you explain the intermediate plotting results?
 
-1. Use **result.store = data.frame()** to have a container for the required data.
-2. Use **curresult = dataframe.states(transientmodel)** to store the heads.
-3. Use **curboundaries = dataframe.boundaries(transientmodel)** to store the outflow of both rivers.
-4. Use **wbal = dataframe.balance(transientmodel)** to obtain the intermediate storage change.
-5. Use **result.store = rbind(result.store, data.frame('t'=time, 'Hatwell'=curresult$state[9], 'Qoutleft'=curboundaries[1,4], Qoutright'=curboundaries[2,4], 'Qstorage'=wbal[2,2]))** to add the intermediate data to your container.
+* Use **result.store = data.frame()** to have a container for the required data.
+* Use **curresult = dataframe.states(transientmodel)** to store the heads.
+* Use **curboundaries = dataframe.boundaries(transientmodel)** to store the outflow of both rivers.
+* Use **wbal = dataframe.balance(transientmodel)** to obtain the intermediate storage change.
+* Use **result.store = rbind(result.store, data.frame('t'=time, 'Hatwell'=curresult$state[9], 'Qoutleft'=curboundaries[1,4], Qoutright'=curboundaries[2,4], 'Qstorage'=wbal[2,2]))** to add the intermediate data to your container.
 </div>
 
 <div class="student_answer">
