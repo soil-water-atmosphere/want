@@ -3,12 +3,12 @@ title: "FVFE practical 3 - Flow in the unsaturated zone"
 subtitle: "Finite Elements, Finite Volumes, 1D stationary and transient simulations"
 date: "December 2019"
 output:
-  html_document:
-    code_folding : show
+  html_notebook:
     css: want_n.css
     toc: yes
     toc_depth: 4
-  html_notebook:
+  html_document:
+    code_folding : show
     css: want_n.css
     toc: yes
     toc_depth: 4
@@ -1990,7 +1990,8 @@ grid()
 <div class="answer">
 23. As can be seen in the fluxes graph, the evapotranspiration for the original Feddes function is about 0.1 cm/d, so it is limited compared to the potential flux of 0.3 cm/d. This happens because the soil is wetter than optimal (h>-100). The evapotranspiration is first drawn from the storage (positive storage flux, so the storage *provides* water). As the soil becomes drier, the evapotranspiration increases (more negative flux) as the soil moisture comes closer to the vegetation's optimal range. Finally, evapotranspiration is balanced by capillary rise. 
 
-When another Feddes function is implemented for a more wet-loving vegetation, the evapotranspiration flux is higher (around the potential 0.3 value). However, the flux decreases over time, as the soil becomes too dry.
+When another Feddes function is implemented for a more wet-loving vegetation, the evapotranspiration flux is higher (around the potential 0.3 value). However, the flux decreases over time, as the soil becomes too dry.  
+
 ![](Ex20Answer.png)
 </div>
 
