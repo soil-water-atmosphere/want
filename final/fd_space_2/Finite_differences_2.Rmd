@@ -1040,8 +1040,7 @@ shinyApp(ui, server)
 </div>
 
 <div class="answer">
-The centered difference scheme clearly converges faster.  
-Looking at the table, the forward scheme reduces its error by about 0.5 each time the number of nodes is doubled. For the centered sheme, this is closer to 0.25. This faster convergence corresponds to the theory set out in section 1.2: the centered scheme has second-order convergence.
+The centered difference scheme converges faster. Using the forward scheme, a reduction of the grid spacing a factor of 2 results in a reduction of a factor 2 in the error. The centered scheme has a error that is proportional to the grid spacing squared (2nd-order convergence). Therefore, a factor of 2 reduction in the grid spacing results in an error that is approximately 4 times smaller. This is in line with the theory in Section 1.2.
 ```{r}
 #forward
 forward_rate=mean(c(0.47/1,0.23/0.47,0.096/0.19,0.049/0.096))
