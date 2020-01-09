@@ -1067,7 +1067,7 @@ s(x - \Delta x) & = s(x) - \dfrac{\Delta x}{1!} \dfrac{ds}{dx} \bigg\rvert_{x} +
 <div class="answer">
 $$
 s(x + \Delta x) + s(x - \Delta x)
-= 2 s(x) + (\Delta x)^2 \dfrac{d^{2}s}{dx^{2}} + \dfrac{(\Delta x)^2}{12} \dfrac{d^4 s}{dx^4}
+= 2 s(x) + (\Delta x)^2 \dfrac{d^{2}s}{dx^{2}} + \dfrac{(\Delta x)^4}{12} \dfrac{d^4 s}{dx^4}
 $$
 </div>
 
