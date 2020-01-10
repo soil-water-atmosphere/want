@@ -170,18 +170,18 @@ With the help of the identity matrix $I$ (a matrix with 1 on the diagonal and ze
 $$
 \left(I - \left( 1 - \omega \right) \Delta t\,M \right) s^{n+1} = \left( I + \omega \Delta t\,M  \right) s^{n}
 $$
+To make the notation more concise, we can define matrix $N_\textrm{lhs} = \left(I - \left( 1 - \omega \right) \Delta t\,M \right)$ and $N_\textrm{rhs} = \left( I + \omega \Delta t\,M  \right)$. This leaves us with the notation:
+$$
+N_\textrm{lhs} s^{n+1} = N_\textrm{rhs} s^n
+$$
 
 If we inspect the equation carefully, we see that everything on the righthand side is known, and we can therefore define the vector $v$ as:
 $$
-v = \left( I + \omega \Delta t\,M  \right) s^{n}
+v = N_\textrm{rhs} s^{n}
 $$
-and the matrix $N$ as:
-$$
-N = \left(I - \left( 1 - \omega \right) \Delta t\,M \right)
-$$ 
-in order to end up with an expression $M s^{n+1} = v$, which can be solved using a matrix inversion.
+in order to end up with an expression $N_\textrm{lhs} s^{n+1} = v$, which can be solved using a matrix inversion.
 
-Careful comparison shows that in this approach the matrix $N$ is not exactly identical to the one that you worked out using the $a$, $b$, and $c$ coefficients. In this method, every row that does not contain the boundary conditions is multiplied with $\Delta t$ compared to the other method. Mathematically this is the same, because vector $v$ contains a zero.
+Careful comparison shows that in this approach the matrix $N_\textrm{lhs}$ is not exactly identical to the one that you worked out using the $a$, $b$, and $c$ coefficients. In the method presented here, every row that does not contain the boundary conditions is multiplied with $\Delta t$ compared to the method with the $a$, $b$, and $c$ coefficients. Mathematically this is the same, because vector $v$ contains a zero at each row that is not a boundary condition.
 </div>
 
 ## Section 2.2 - Setting up the program
