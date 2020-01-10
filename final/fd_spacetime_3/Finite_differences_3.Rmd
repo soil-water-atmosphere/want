@@ -327,6 +327,61 @@ while(time<endtime)
 ```
 </div>
 
+<div class="answer">
+Below you can find the same code, worked out with the method of the lecture:
+
+```{R lecture_method}
+M = matrix(0, nrow=N, ncol=N)
+
+# Fill in a Dirichlet boundary conditions for the solution.
+M[1,1] = 1
+M[N,N] = 1
+
+for(i in 2:(N-1))
+{
+  M[i,i-1] =  u/(2*dx) +   D/dx^2
+  M[i,i  ] =           - 2*D/dx^2
+  M[i,i+1] = -u/(2*dx) +   D/dx^2
+}
+
+I = diag(N)
+
+# Define the matrices to avoid unnecessary computations.
+N_right = (I + omega     * dt * M)
+N_left  = (I - (1-omega) * dt * M)
+
+# Set the dirichlet BC in N_left
+# It is essential to do this AFTER the computation of N_left,
+# otherwise there will be a row with zeros left.
+N_left[1, 1] = 1
+N_left[N, N] = 1
+
+N_inv = solve(N_left)
+
+# Time stepping variable
+time      = 0
+new.state = init.state
+plotlim   = c(-0.2,1.2)
+
+while(time < endtime)
+{
+  plot(x, new.state, ylim=plotlim, type="l", xlab="x", ylab="state")
+  prev.state = new.state
+  
+  # Evaluate the righthand side
+  v = N_right %*% prev.state
+    
+  # Set the BCs
+  v[1] = bl
+  v[N] = br
+  
+  new.state = N_inv %*% v
+    
+  time = time + dt
+}
+```
+</div>
+
 ## Section 2.3 - Stability of the solution
 The advection-diffusion equation is an equation that tends to get unstable pretty fast. To examine this behaviour, two different parameters are used; the Von Neumann and Courant number. These are defined in the following way:
 
