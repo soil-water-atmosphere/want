@@ -343,16 +343,16 @@ for(i in 2:(N-1))
 I = diag(N)
 
 # Define the matrices to avoid unnecessary computations.
-N_right = (I + omega     * dt * M)
-N_left  = (I - (1-omega) * dt * M)
+N_rhs = (I + omega     * dt * M)
+N_lhs = (I - (1-omega) * dt * M)
 
 # Set the dirichlet BC in N_left
 # It is essential to do this AFTER the computation of N_left,
 # otherwise there will be a row with zeros left.
-N_left[1, 1] = 1
-N_left[N, N] = 1
+N_lhs[1, 1] = 1
+N_lhs[N, N] = 1
 
-N_inv = solve(N_left)
+N_inv = solve(N_lhs)
 
 # Time stepping variable
 time      = 0
@@ -365,7 +365,7 @@ while(time < endtime)
   prev.state = new.state
   
   # Evaluate the righthand side
-  v = N_right %*% prev.state
+  v = N_rhs %*% prev.state
     
   # Set the BCs
   v[1] = bl
