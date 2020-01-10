@@ -64,16 +64,12 @@ $$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\par
 If you are in for a **challenging** assignment, you can open **Exercise 1** from the `Finite_difference_3_extended.Rmd` markdown.
 
 ### Discretisation
-The first step in the discretisation is choosing the differencing scheme for the time and space derivatives. An often used approach is the explicit in time and central in space scheme (FTCS scheme). We will follow that scheme here.
-
-First, we apply the explicit scheme in time (first in the original notation and then in the short notation of section 1.1):
+The first step in the discretisation is choosing the differencing scheme for the time and space derivatives. First, we apply the explicit scheme in time (first in the original notation and then in the short notation of section 1.1):
 $$
 \dfrac{\partial s}{\partial t} = \dfrac{s(x, t+\Delta t) - s(x, t)}{\Delta t} = f(x,t,s(x,t))\\
 \dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = f(x,t,s(x,t))
 $$
-
-The second step is the realisation that the omega implementation (as discussed in section 1.2) will change the right-hand side of this equation to:
-
+If we then want to implement the $\omega$ implementation such that we can switch between explicit and implicit, the right-hand side of the equation changes to:
 $$
 \dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = \omega\ f(x, t, s(x, t)) + (1-\omega)\ f(x, t+\Delta t, s(x, t+\Delta t))
 $$
