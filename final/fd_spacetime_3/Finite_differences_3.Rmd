@@ -68,14 +68,14 @@ The first step in the discretisation is choosing the differencing scheme for the
 
 First, we apply the explicit scheme in time (first in the original notation and then in the short notation of section 1.1):
 $$
-\dfrac{ds}{dt} = \dfrac{s(x, t+\Delta t) - s(x, t)}{\Delta t} = f(x,t,s(x,t))\\
+\dfrac{\partial s}{\partial t} = \dfrac{s(x, t+\Delta t) - s(x, t)}{\Delta t} = f(x,t,s(x,t))\\
 \dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = f(x,t,s(x,t))
 $$
 
 The second step is the realisation that the omega implementation (as discussed in section 1.2) will change the right-hand side of this equation to:
 
 $$
-\dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = \omega\ f(t,s(t)) + (1-\omega)\ f(t+\Delta t,s(t+\Delta t))
+\dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = \omega\ f(x, t, s(x, t)) + (1-\omega)\ f(x, t+\Delta t, s(x, t+\Delta t))
 $$
 
 <div class="exercise">
@@ -91,7 +91,7 @@ $$
 </div>
 
 The final result of this discretisation is the matrix equation
-$$M s^{n+1} = v$$
+$$N s^{n+1} = v$$
 In order to achieve that, the answer of question 2.1.1 can be rewritten in the form:
 
 $$
@@ -123,7 +123,7 @@ d = \dfrac{s^{n}_{i}}{\Delta t} + \omega\ \left(-u\dfrac{s^{n}_{i+1}-s^{n}_{i-1}
 $$
 </div>
 
-The matrix equation will then look like this:
+The matrix equation will then be:
 $$
 \begin{bmatrix}
 1&.&.&.&.\\
@@ -147,6 +147,46 @@ d_4\\
 b_r
 \end{bmatrix}
 $$
+with the matrix $N$ on the left.
+
+<div class=answer>
+In the lecture, we have followed a slightly different approach, that leads eventually to the same matrix $N$. We then first defined the matrix $M$ which contains only the advection and diffusion operators, but not $\omega$ and the instances of $\Delta t$ yet:
+
+$$
+M = 
+\begin{bmatrix}
+1 & 0 & 0 & 0 & 0 \\
+\dfrac{u}{2 \Delta x} + \dfrac{D}{(\Delta x)^2} & \dfrac{-2D}{(\Delta x)^2} & \dfrac{-u}{2 \Delta x} + \dfrac{D}{(\Delta x)^2} & 0 & 0\\
+0 &\dfrac{u}{2 \Delta x} + \dfrac{D}{(\Delta x)^2}& \dfrac{-2D}{(\Delta x)^2} &\dfrac{-u}{2 \Delta x} + \dfrac{D}{(\Delta x)^2} & 0\\
+0 & 0 &\dfrac{u}{2 \Delta x} + \dfrac{D}{(\Delta x)^2}& \dfrac{-2D}{(\Delta x)^2} & \dfrac{-u}{2 \Delta x} + \dfrac{D}{(\Delta x)^2}\\
+0 & 0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+With matrix $M$, we can write the equation to solve as
+$$
+\dfrac{s^{n+1} - s^{n}}{\Delta t} = \omega M s^{n} + \left( 1 - \omega \right) M s^{n+1}
+$$
+with a bit of reshuffling, we can write this as:
+$$
+s^{n+1} - \left( 1 - \omega \right) \Delta t\,M s^{n+1} = s^{n} + \omega \Delta t\,M s^{n}
+$$
+With the help of the identity matrix $I$ (a matrix with 1 on the diagonal and zero elsewhere), we can factor out $s^n$ and $s^{n+1}$:
+$$
+\left(I - \left( 1 - \omega \right) \Delta t\,M \right) s^{n+1} = \left( I + \omega \Delta t\,M  \right) s^{n}
+$$
+
+If we inspect the equation carefully, we see that everything on the righthand side is known, and we can therefore define the vector $v$ as:
+$$
+v = \left( I + \omega \Delta t\,M  \right) s^{n}
+$$
+and the matrix $N$ as:
+$$
+N = \left(I - \left( 1 - \omega \right) \Delta t\,M \right)
+$$ 
+in order to end up with an expression $M s^{n+1} = v$, which can be solved using a matrix inversion.
+
+Careful comparison shows that in this approach the matrix $N$ is not exactly identical to the one that you worked out using the $a$, $b$, and $c$ coefficients. In this method, every row that does not contain the boundary conditions is multiplied with $\Delta t$ compared to the other method. Mathematically this is the same, because vector $v$ contains a zero.
+</div>
 
 ## Section 2.2 - Setting up the program
 In the time practical, all calculations required an initial state to calculate the future time-steps. To solve an equation in space and time, exactly the same initial state is needed. The difference is, however, that a state on all locations needs to be given. The initial state is therefore a vector. 
