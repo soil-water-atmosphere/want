@@ -515,7 +515,7 @@ print(dataframe.boundaries(Hydro_1Dmodel_type1))
 
 ## Adding a Cauchy Boundary Condition
 
-In this section the basic model is going to be adjusted with the replacement of the left river with a canal which does not fully penetrate the aquifer.  
+In this section the basic model is going to be adjusted with the replacement of the right river with a canal which does not fully penetrate the aquifer.  
 
 The new situation is illustrated in the following figure : \@ref(fig:1Drivercanal) .
 
