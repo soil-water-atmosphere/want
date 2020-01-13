@@ -1,13 +1,13 @@
 ---
 title: "FVFE Practical 1 - Stationary Flow in 1D"
 output:
-  html_notebook:
+  html_document:
     css: want_n.css
     toc: yes
   bookdown::html_document2:
     css: want_n.css
     toc: yes
-  html_document:
+  html_notebook:
     css: want_n.css
     toc: yes
 date: "March 2019"
@@ -635,11 +635,11 @@ knitr::kable(head(bc_flux), booktabs=TRUE, caption='boundary fluxes')
 <div class="answer">  
 19:  
 _head_  
-The water divide is shifted towards the right indicating that more water is flowing towards the right.  
+The water divide is shifted towards the right indicating that more water is flowing towards the left.  
 _water balance_  
 Values of the water balance are identical. That is not surprising since the internal and exterenal fluxes are not altered.  
 _boundary outflow_  
-The specific outfluxes are clearly different. Most of the water: `r bc_flux[2,4]/w_bal[5,2]` % is flowing towards the river.  Since the canal introduces an extra resistance to flow water can be transported to the river more easily.  
+The specific outfluxes are clearly different. Most of the water: `r bc_flux[2,4]/w_bal[4,2]` % is flowing towards the river.  Since the canal introduces an extra resistance to flow water can be transported to the river more easily.  
 
 </div>
 
