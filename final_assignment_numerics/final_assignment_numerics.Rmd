@@ -1,5 +1,5 @@
 ---
-title: "The Lorenz equations: why is the weather unpredictable?"
+title: "Advanced numerics: advection-diffusion with high accuracy"
 author: "Chiel van Heerwaarden"
 date: "1/22/2019"
 output: html_document
@@ -98,7 +98,7 @@ cn_2nd_state = state
 ```{R fft}
 omega = 0.5 # Crank-Nicholson
 dx = 1.
-dt = 0.01
+dt = 0.001
 
 # Calculation preparation
 n_time = round(end_time / dt)
@@ -113,18 +113,22 @@ k = seq(from=0, to=N-1)
 k[(N/2):N] = k[(N/2):N] - length(k)
 k = 2.*pi*k/L
 
+state_fft = fft(state)
+
 for (i in (1:n_time))
 {
   # Evaluate the righthand side.
-  rhs = -u * Re(fft(1i*k*fft(state), inverse=TRUE) / length(state))
+  rhs = -u*1i*k*state_fft
 
   # Compute the new state.
-  new_state = state + dt*rhs
+  new_state_fft = state_fft + dt*rhs
   
   # update the time and the state.
   time = time + dt
-  state = new_state
+  state_fft = new_state_fft
 }
+
+state = Re(fft(state_fft, inverse=TRUE) / length(state))
 
 # Store the results for this method.
 cn_fft_x = x
