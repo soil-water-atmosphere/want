@@ -14,11 +14,11 @@ library(wavethresh)
 ## Introduction
 
 ```{R begin_state}
-# Function that gives the states for the first time-step
+# Generate gaussian in middle of domain.
 calc_init_state = function(x)
 {
-  # Gaussian distribution
-  exp(-(x-L/2)^2 / 2^2)
+  sigma = 1.
+  exp(-(x-L/2)^2 / (2*sigma^2))
 }
 ```
 
@@ -36,7 +36,7 @@ init_state = calc_init_state(init_state_x)
 
 ```{R lecture_method}
 omega = 0.5
-dx = 0.2
+dx = 0.5
 dt = 0.1
 
 # Calculation preparation
@@ -91,7 +91,7 @@ cn_2nd_state = state
 
 ```{R lecture_method}
 omega = 0.5
-dx = 0.2
+dx = 0.5
 dt = 0.1
 
 # Calculation preparation
@@ -162,7 +162,7 @@ cn_4th_state = state
 
 ```{R fft}
 omega = 0.5
-dx = 0.2
+dx = 0.5
 dt = 0.1
 
 # Calculation preparation
