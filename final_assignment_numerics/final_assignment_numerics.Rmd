@@ -35,9 +35,9 @@ init_state = calc_init_state(init_state_x)
 ```
 
 ```{R lecture_method}
-omega = 0.5 # Crank-Nicholson
-dx = 0.2
-dt = 0.2
+omega = 0.5
+dx = 1.
+dt = 0.1
 
 # Calculation preparation
 n_time = round(end_time / dt)
@@ -53,7 +53,6 @@ M[1, 2] = -u/(2*dx)
 for (i in 2:(N-1))
 {
   M[i, i-1] =  u/(2*dx)
-  M[i, i  ] = 0.
   M[i, i+1] = -u/(2*dx)
 }
 
@@ -95,10 +94,88 @@ cn_2nd_x = x
 cn_2nd_state = state
 ```
 
-```{R fft}
-omega = 0.5 # Crank-Nicholson
+```{R lecture_method}
+omega = 0.5
 dx = 1.
-dt = 0.001
+dt = 0.1
+
+# Calculation preparation
+n_time = round(end_time / dt)
+N = L/dx
+x = seq(from=0, by=dx, length.out=N)
+state = calc_init_state(x)
+
+M = matrix(0., nrow=N, ncol=N)
+
+M[1, N-2] =  1./12.
+M[1, N-1] = -2./ 3.
+M[1, 2  ] =  2./ 3.
+M[1, 3  ] = -1./12.
+
+M[2, N-1] =  1./12.
+M[2, 1  ] = -2./ 3.
+M[2, 3  ] =  2./ 3.
+M[2, 4  ] = -1./12.
+
+for (i in 3:(N-2))
+{
+  M[i, i-2] =  1./12.
+  M[i, i-1] = -2./ 3.
+  M[i, i+1] =  2./ 3.
+  M[i, i-2] = -1./12.
+}
+
+M[N-1, N-3] =  1./12.
+M[N-1, N-2] = -2./ 3.
+M[N-1, N  ] =  2./ 3.
+M[N-1, 1  ] = -1./12.
+
+M[N, N-2] =  1./12.
+M[N, N-1] = -2./ 3.
+M[N, 1  ] =  2./ 3.
+M[N, 2  ] = -1./12.
+
+M = - u/dx * M
+
+I = diag(N)
+
+# Define the matrices to avoid unnecessary computations.
+N_rhs = (I + omega     * dt * M)
+N_lhs = (I - (1-omega) * dt * M)
+
+# Set the dirichlet BC in N_left.
+# It is essential to do this AFTER the computation of N_left,
+# otherwise there will be a row with zeros left.
+N_lhs[1, 1] = 1
+N_lhs[N, N] = 1
+
+N_inv = solve(N_lhs)
+
+# Time stepping variable.
+time = 0.
+
+for (i in (1:n_time))
+{
+  # Evaluate the righthand side.
+  v = N_rhs %*% state
+  
+  # Compute the new state.
+  new_state = N_inv %*% v
+  
+  # update the time and the state.
+  time = time + dt
+  state = new_state
+}
+
+# Store the results for this method.
+cn_2nd_x = x
+cn_2nd_state = state
+```
+
+```{R fft}
+omega = 0.5
+dx = 1.
+dt = 0.1
 
 # Calculation preparation
 n_time = round(end_time / dt)
@@ -117,11 +194,8 @@ state_fft = fft(state)
 
 for (i in (1:n_time))
 {
-  # Evaluate the righthand side.
-  rhs = -u*1i*k*state_fft
-
   # Compute the new state.
-  new_state_fft = state_fft + dt*rhs
+  new_state_fft = (1. - omega*dt*u*1i*k) / (1. + (1.-omega)*dt*u*1i*k) * state_fft
   
   # update the time and the state.
   time = time + dt
