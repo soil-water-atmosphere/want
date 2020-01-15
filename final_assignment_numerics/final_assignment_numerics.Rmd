@@ -12,12 +12,19 @@ library(plotly)
 
 ## Introduction
 
-```{R begin_state}
+```{R ref_functions}
 # Generate gaussian in middle of domain.
 calc_init_state = function(x)
 {
   sigma = 1.
   exp(-(x-L/2)^2 / (2*sigma^2))
+}
+
+calc_error = function(df, n=1)
+{
+  error_vec = abs(df$state - calc_init_state(df$x))^n
+  error = (sum(error_vec))^(1./n)
+  return(error)
 }
 ```
 
@@ -344,11 +351,11 @@ solve_cn_fft = function(omega, dx, dt)
 ```
 
 ```{R run_solvers}
-cn_2nd      = solve_cn_2nd      (omega=0.5, dx=0.5, dt=0.5)
-cn_4th      = solve_cn_4th      (omega=0.5, dx=0.5, dt=0.5)
-cn_pade_4th = solve_cn_pade_4th (omega=0.5, dx=0.5, dt=0.5)
-cn_pade_6th = solve_cn_pade_6th (omega=0.5, dx=0.5, dt=0.5)
-cn_fft      = solve_cn_fft      (omega=0.5, dx=0.5, dt=0.5)
+cn_2nd      = solve_cn_2nd      (omega=0.5, dx=0.5, dt=0.25)
+cn_4th      = solve_cn_4th      (omega=0.5, dx=0.5, dt=0.25)
+cn_pade_4th = solve_cn_pade_4th (omega=0.5, dx=0.5, dt=0.25)
+cn_pade_6th = solve_cn_pade_6th (omega=0.5, dx=0.5, dt=0.25)
+cn_fft      = solve_cn_fft      (omega=0.5, dx=0.5, dt=0.25)
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -363,8 +370,19 @@ p = add_trace(p, x=ref$x, y=ref$state, name='ref', mode='lines', line=init_line)
 p
 ```
 
-## The challenge
 
+```{R error}
+print(calc_error(cn_2nd))
+print(calc_error(cn_4th))
+print(calc_error(cn_pade_4th))
+print(calc_error(cn_pade_6th))
+print(calc_error(cn_fft))
+```
+
+
+
+## The challenge
+The peak needs to be between 0.99 and 1.01, and 49.8 and 50.2
 
 
 ## The tasks
