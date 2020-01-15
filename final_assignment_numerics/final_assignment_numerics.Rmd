@@ -161,7 +161,7 @@ cn_4th_x = x
 cn_4th_state = state
 ```
 
-```{R cn_pade}
+```{R cn_pade_4th}
 omega = 0.5
 dx = 0.5
 dt = 0.1
@@ -228,8 +228,8 @@ for (i in (1:n_time))
 }
 
 # Store the results for this method.
-cn_pade_x = x
-cn_pade_state = state
+cn_pade_4th_x = x
+cn_pade_4th_state = state
 ```
 
 ```{R cn_pade_6th}
@@ -363,7 +363,7 @@ init_line = list(color='black', dash='dot', width=1.5)
 p = plot_ly()
 p = add_trace(p, x=cn_2nd_x, y=cn_2nd_state, name='cn_2nd', mode='lines')
 p = add_trace(p, x=cn_4th_x, y=cn_4th_state, name='cn_4th', mode='lines')
-p = add_trace(p, x=cn_pade_x, y=cn_pade_state, name='cn_pade', mode='lines')
+p = add_trace(p, x=cn_pade_4th_x, y=cn_pade_4th_state, name='cn_pade_4th', mode='lines')
 p = add_trace(p, x=cn_pade_6th_x, y=cn_pade_6th_state, name='cn_pade_6th', mode='lines')
 p = add_trace(p, x=cn_fft_x, y=cn_fft_state, name='cn_fft', mode='lines')
 p = add_trace(p, x=init_state_x, y=init_state, name='ref', mode='lines', line=init_line)
