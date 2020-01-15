@@ -173,21 +173,36 @@ x = seq(from=0, by=dx, length.out=N)
 state = calc_init_state(x)
 
 M_a = matrix(0., nrow=N, ncol=N)
-M_b = matrix(0., nrow=N, ncol=N)
+M_alpha = matrix(0., nrow=N, ncol=N)
 
-M[1, N] = -3./4.
-M[1, 2] =  3./4.
+M_a[1, N] = -3./4.
+M_a[1, 2] =  3./4.
 
 for (i in 2:(N-1))
 {
-  M[i, i-1] = -3./4.
-  M[i, i+1] =  3./4.
+  M_a[i, i-1] = -3./4.
+  M_a[i, i+1] =  3./4.
 }
 
-M[N, N-1] = -3./4.
-M[N, 1  ] =  3./4.
+M_a[N, N-1] = -3./4.
+M_a[N, 1  ] =  3./4.
 
-M = - u/dx * M
+M_alpha[1, N] = 1./4.
+M_alpha[1, 1] = 1.
+M_alpha[1, 2] = 1./4.
+
+for (i in 2:(N-1))
+{
+  M_alpha[i, i-1] = 1./4.
+  M_alpha[i, i  ] = 1.
+  M_alpha[i, i+1] = 1./4.
+}
+
+M_alpha[N, N-1] = 1./4.
+M_alpha[N, N  ] = 1.
+M_alpha[N, 1  ] = 1./4.
+
+M = - u * solve(M_alpha) %*% (M_a/dx)
 
 I = diag(N)
 
@@ -215,6 +230,93 @@ for (i in (1:n_time))
 # Store the results for this method.
 cn_pade_x = x
 cn_pade_state = state
+```
+
+```{R cn_pade_6th}
+omega = 0.5
+dx = 0.5
+dt = 0.1
+
+# Calculation preparation
+n_time = round(end_time / dt)
+N = L/dx
+x = seq(from=0, by=dx, length.out=N)
+state = calc_init_state(x)
+
+M_a = matrix(0., nrow=N, ncol=N)
+M_alpha = matrix(0., nrow=N, ncol=N)
+
+M_a[1, N-1] =  -1./36.
+M_a[1, N  ] = -14./18.
+M_a[1, 2  ] =  14./18
+M_a[1, 3  ] =   1./36.
+
+M_a[2, N] =  -1./36.
+M_a[2, 1] = -14./18
+M_a[2, 3] =  14./18
+M_a[2, 4] =   1./36.
+
+for (i in 3:(N-2))
+{
+  M_a[i, i-2] =  -1./36.
+  M_a[i, i-1] = -14./18
+  M_a[i, i+1] =  14./18
+  M_a[i, i+2] =   1./36.
+}
+
+M_a[N-1, N-3] =  -1./36.
+M_a[N-1, N-2] = -14./18
+M_a[N-1, N  ] =  14./18
+M_a[N-1, 1  ] =   1./36.
+
+M_a[N, N-2] =  -1./36.
+M_a[N, N-1] = -14./18
+M_a[N, 1  ] =  14./18
+M_a[N, 2  ] =   1./36.
+
+M_alpha[1, N] = 1./3.
+M_alpha[1, 1] = 1.
+M_alpha[1, 2] = 1./3.
+
+for (i in 2:(N-1))
+{
+  M_alpha[i, i-1] = 1./3.
+  M_alpha[i, i  ] = 1.
+  M_alpha[i, i+1] = 1./3.
+}
+
+M_alpha[N, N-1] = 1./3.
+M_alpha[N, N  ] = 1.
+M_alpha[N, 1  ] = 1./3.
+
+M = - u * solve(M_alpha) %*% (M_a/dx)
+
+I = diag(N)
+
+# Define the matrices to avoid unnecessary computations.
+N_rhs = (I + omega     * dt * M)
+N_lhs = (I - (1-omega) * dt * M)
+N_inv = solve(N_lhs)
+
+# Time stepping variable.
+time = 0.
+
+for (i in (1:n_time))
+{
+  # Evaluate the righthand side.
+  v = N_rhs %*% state
+  
+  # Compute the new state.
+  new_state = N_inv %*% v
+  
+  # update the time and the state.
+  time = time + dt
+  state = new_state
+}
+
+# Store the results for this method.
+cn_pade_6th_x = x
+cn_pade_6th_state = state
 ```
 
 ```{R cn_fft}
@@ -261,6 +363,8 @@ init_line = list(color='black', dash='dot', width=1.5)
 p = plot_ly()
 p = add_trace(p, x=cn_2nd_x, y=cn_2nd_state, name='cn_2nd', mode='lines')
 p = add_trace(p, x=cn_4th_x, y=cn_4th_state, name='cn_4th', mode='lines')
+p = add_trace(p, x=cn_pade_x, y=cn_pade_state, name='cn_pade', mode='lines')
+p = add_trace(p, x=cn_pade_6th_x, y=cn_pade_6th_state, name='cn_pade_6th', mode='lines')
 p = add_trace(p, x=cn_fft_x, y=cn_fft_state, name='cn_fft', mode='lines')
 p = add_trace(p, x=init_state_x, y=init_state, name='ref', mode='lines', line=init_line)
 p
