@@ -209,12 +209,8 @@ doplot(soiltype,13) #coarse sand
 The equation describing the internal flux in the unsaturated zone strongly resembles the basic Darcy equation used in the previous assignments to simulate flow in the saturated zone. Most important differences are the hydraulic conductivity and the state;
 
 $$
-q=-k(\psi)\left [\frac{\partial \psi}{\partial z}+1 \right]
+q=-k(\psi)\left [\frac{\partial \psi}{\partial z} + 1 \right]
 $$
-
-For historical and practical reasons we generally work with units of cm and days.  
-In this assignment, we will set $z=0 cm$ at the bottom of our domain, which coincides with the groundwater level. We will follow the (historical) convention to choose the z-direction upwards.  
-
 
 <button class="collapsible">From Darcy's to Richards equation</button>
 <div class="content">
@@ -239,12 +235,8 @@ Sources and Sinks are e.g. the precipitation from the atmospere, evapotranspirat
 
 The transient balance equation, which is actually the Richards equation, is now:
 $$
-\frac{\partial \theta}{\partial t}=-k(\psi)\left[\frac{\partial \psi}{\partial z}+1\right]+S
+\frac{\partial \theta}{\partial t} = -\dfrac{\partial q}{\partial z} = - \dfrac{\partial}{\partial z} \left( -k(\psi)\left[\frac{\partial \psi}{\partial z}+1\right]+S \right)
 $$
-  
-  
-  
-
 </div>
   
 
