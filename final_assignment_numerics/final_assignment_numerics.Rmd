@@ -13,6 +13,7 @@ library(wavethresh)
 
 ## Introduction
 
+
 ```{R begin_state}
 # Generate gaussian in middle of domain.
 calc_init_state = function(x)
@@ -177,15 +178,17 @@ time = 0.
 k = seq(from=0, to=N-1)
 k[(N/2):N] = k[(N/2):N] - length(k)
 k = 2.*pi*k/L
+fac_rhs = omega*dt*u*1i*k
+fac_lhs = (1.-omega)*dt*u*1i*k
 
 state_fft = fft(state)
 
 for (i in (1:n_time))
 {
   # Compute the new state.
-  new_state_fft = (1. - omega*dt*u*1i*k) / (1. + (1.-omega)*dt*u*1i*k) * state_fft
+  new_state_fft = (1. - fac_rhs) / (1. + fac_lhs) * state_fft
   
-  # update the time and the state.
+  # Update the time and the state.
   time = time + dt
   state_fft = new_state_fft
 }
