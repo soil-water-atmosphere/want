@@ -209,12 +209,8 @@ doplot(soiltype,13) #coarse sand
 The equation describing the internal flux in the unsaturated zone strongly resembles the basic Darcy equation used in the previous assignments to simulate flow in the saturated zone. Most important differences are the hydraulic conductivity and the state;
 
 $$
-q=-k(\psi)\left [\frac{\partial \psi}{\partial z}+1 \right]
+q=-k(\psi)\left [\frac{\partial \psi}{\partial z} + 1 \right]
 $$
-
-For historical and practical reasons we generally work with units of cm and days.  
-In this assignment, we will set $z=0 cm$ at the bottom of our domain, which coincides with the groundwater level. We will follow the (historical) convention to choose the z-direction upwards.  
-
 
 <button class="collapsible">From Darcy's to Richards equation</button>
 <div class="content">
@@ -239,12 +235,8 @@ Sources and Sinks are e.g. the precipitation from the atmospere, evapotranspirat
 
 The transient balance equation, which is actually the Richards equation, is now:
 $$
-\frac{\partial \theta}{\partial t}=-k(\psi)\left[\frac{\partial \psi}{\partial z}+1\right]+S
+\frac{\partial \theta}{\partial t} = -\dfrac{\partial q}{\partial z} = - \dfrac{\partial}{\partial z} \left( -k(\psi)\left[\frac{\partial \psi}{\partial z}+1\right]+S \right)
 $$
-  
-  
-  
-
 </div>
   
 
@@ -612,7 +604,7 @@ plot(UnsatStat,fluxplot=T,vertical=T,FVstyle=T)
 
 <div class="answer">
 9. The missing parts should be filled in as follows:
-```
+```{r eval=FALSE}
 unsatdarcy.flux = function(z,psi,dpsidz)
 {
   return(-Soil$k.fun(psi)*(dpsidz+1))
@@ -624,8 +616,9 @@ set.BC.fixedstate(UnsatModel,"left",0.0)
 set.BC.fixedflux(UnsatModel,"right",0.1)  
 # 0.1cm/d=1mm/d. Although this flow is directed downwards, we define it positive because it goes into the domain.
 
-nodes = seq(from=domain[1],to=domain[2],by=2)
+nodes = seq(from=domain[1], to=domain[2], by=2)
 ``` 
+
 The following chunk builds the stationary unsaturated zone model:
 ```{r echo=TRUE}
 ################### soil type ###################
@@ -805,8 +798,8 @@ Inspecting the moisture content graph also indicates that the profile is complet
 </div>
 
 <div class="question">
-12. Calculate, with your pocket calclutor, the state ($\psi$) at the surface for a situation where you have recharge at the top 1.1 times the saturated hydraulic conductivity of that soil.  
-After you have finished your own calculations you can check the results with the model adjusting the recharge to 1.1*Soil\$B5\$ksat in the previous chunk.  
+12. Calculate, with your pocket calculator, the state ($\psi$) at the surface for a situation where you have recharge at the top 1.1 times the saturated hydraulic conductivity of that soil.  
+After you have finished your own calculations you can check the results with the model adjusting the recharge to `1.1*Soil$ksat` in the previous chunk.  
 </div>
 
 <div class="student_answer">
