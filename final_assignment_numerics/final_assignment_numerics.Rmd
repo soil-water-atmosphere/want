@@ -358,6 +358,14 @@ cn_pade_6th = solve_cn_pade_6th (omega=0.5, dx=0.5, dt=0.25)
 cn_fft      = solve_cn_fft      (omega=0.5, dx=0.5, dt=0.25)
 ```
 
+```{R error}
+print(calc_error(cn_2nd))
+print(calc_error(cn_4th))
+print(calc_error(cn_pade_4th))
+print(calc_error(cn_pade_6th))
+print(calc_error(cn_fft))
+```
+
 ```{r message=FALSE, warning=FALSE}
 init_line = list(color='black', dash='dot', width=1.5)
 p = plot_ly()
@@ -370,20 +378,8 @@ p = add_trace(p, x=ref$x, y=ref$state, name='ref', mode='lines', line=init_line)
 p
 ```
 
-
-```{R error}
-print(calc_error(cn_2nd))
-print(calc_error(cn_4th))
-print(calc_error(cn_pade_4th))
-print(calc_error(cn_pade_6th))
-print(calc_error(cn_fft))
-```
-
-
-
 ## The challenge
-The peak needs to be between 0.99 and 1.01, and 49.8 and 50.2
-
+The peak needs to have a location between 49.9 and 50.1 and a state magnitude between 0.99 and 1.01.
 
 ## The tasks
 1. Bla.
