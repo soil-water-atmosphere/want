@@ -1790,7 +1790,7 @@ grid()
 We can now include the effect of soil moisture on the root extraction. If we have the profile of $\psi$ available, the actual root extraction rate at a certain depth is given by:
 
 $$\text{root.extract}_{act}(z,\psi_{z})= - \text{rootdistr.fun}(z)*\text{TotExtract}_{pot}*\text{Feddes.fun}(z,\psi_{z})$$  
-Note the minus to indicate a loss of water. The $root.extract_{act}$ is in units [1/d]. To get the actual extraction rate in [cm/d] for a control volume $i$, we multiply by dz: $\text{root.extract}_{act}(z_{i},\psi_{i})*dz$.
+Note the minus to indicate a loss of water. The `root.extract_act` is in units [1/d]. To get the actual extraction rate in [cm/d] for a control volume $i$, the solver of the package will multiply this by local dz.
 
 We will apply the actual root extraction by a `spatial flux` in the unsaturated zone model. We assume a vegetation with a uniform rooting distribution over a depth of 25 cm. The total potential evapotranspiration rate is 0.3 cm/d.
 
@@ -1901,7 +1901,7 @@ grid()
 ```
 roots = function(x,state)
 {
-  return(-rootdistr.fun(x)*TotExtractPot*Feddes.fun(state)*dz)
+  return(-rootdistr.fun(x)*TotExtractPot*Feddes.fun(state))
 }
 ```
 The code chunk below implements the actual evapotranspiration function:
@@ -1909,7 +1909,6 @@ The code chunk below implements the actual evapotranspiration function:
 ##soil type
 Soil = soil.set[["B5"]]  ##B5 coarse sand
 domain = c(-50,0)
-dz=1
 
 UnsatTrans_Feddes=copy.model(UnsatTrans)
 set.name(UnsatTrans_Feddes,"Unsaturated zone, with actual ET")
@@ -1923,7 +1922,7 @@ Feddes.fun= approxfun(Feddes.psi,Feddes.red,rule=2)
 
 roots = function(x,state)
 {
-  return(-rootdistr.fun(x)*TotExtractPot*Feddes.fun(state)*dz)
+  return(-rootdistr.fun(x)*TotExtractPot*Feddes.fun(state))
 }
 add.spatialflux(UnsatTrans_Feddes,rate = roots,name = 'roots')
 
