@@ -1762,7 +1762,7 @@ Evapotranspiration is an important environmental condition for processes near th
 *   The rooting distribution of the vegetation;   
 *   The actual soil moisture content in the rooting zone.   
 
-The total *potential* evapotranspiration rate of the vegetation is determined by weather conditions and will be given; it is equal to the total potential root extraction $TotExtract_{pot}$ [unit cm/d]. The rooting distribution may be described by a function $rootdistr.fun(z)$ which gives the fraction of roots present at each depth (giving 1 when integrated with depth). Now we may distribute the total potential extraction over the rooting profile. The potential extraction rate at a certain depth is then calculated by $root.extract_{pot}(z)=rootdistr.fun(z)*TotExtract_{pot}$ [unit 1/d].
+The total *potential* evapotranspiration rate of the vegetation is determined by weather conditions and will be given; it is equal to the total potential root extraction `TotExtract_pot` [unit cm/d]. The rooting distribution may be described by a function `rootdistr.fun(z)` which gives the fraction of roots present at each depth (giving 1 when integrated with depth). Now we may distribute the total potential extraction over the rooting profile. The potential extraction rate at a certain depth is then calculated by `root.extract_pot(z)=rootdistr.fun(z)*TotExtract_pot` [unit 1/d].
 
 The vegetation can only transpire optimally when there is sufficient moisture in the soil which is 'easily' available for the vegetation. The effect of soil moisture can be simulated with the so called Feddes (retired Prof. from WUR) function.  
 
