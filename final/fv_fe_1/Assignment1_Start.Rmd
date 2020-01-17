@@ -553,9 +553,9 @@ Q_{Cauchy} = -k \frac{\Delta H}{\Delta z} l \rightarrow Q_{Cauchy}=\frac{H_{cana
 
 
 with:   
-$l : \matsf{length over which the flux rate takes place [m] } 
+$l$ : length over which the flux rate takes place \matsf{[m]} 
 $C^{-1} : \frac{k}{\Delta z}\rightarrow C=\frac{\Delta z}{k} \mathsf{[d]}$  
-$w : \mathsf{width of the canal over which the flux occurs [m]}$
+$w$ : width of the canal over which the flux occurs $\mathsf{[m]}$
 
 One can see that this formula is simply Darcy's eqation again, see also: \@ref(eq:darcy-eq) in the "Background info"  
 
