@@ -1,10 +1,10 @@
 ---
 title: "FVFE Practical 1 - Stationary Flow in 1D"
 output:
-  html_document:
+  bookdown::html_document2:
     css: want_n.css
     toc: yes
-  bookdown::html_document2:
+  html_document:
     css: want_n.css
     toc: yes
   html_notebook:
@@ -519,35 +519,43 @@ In this section the basic model is going to be adjusted with the replacement of 
 
 The new situation is illustrated in the following figure : \@ref(fig:1Drivercanal) .
 
-```{r 1Drivercanal, fig.cap="The 1 dimensional groundwater model with a Cauchy BC on the right side ; a canal replacing the fully penetrating river "}
+```{r 1Drivercanal, fig.cap="The 1-dimensional groundwater model with a Cauchy BC on the right side ; a canal replacing the fully penetrating river "}
 knitr::include_graphics("assignment1_1D_river_canal.png")
 ```
 
 The main difference between the first situation (a river on the right hand side) in figure :\@ref(fig:1D2rivers), is the flow situation at the right hand side.  
-The river was implemented as a Dirichlet boundary condition with a prescribed head of 5 m. A.M.S.L. This results in a flux at that boundary depending on the head next to that river and the level of the river itself.  When the river level is lower flow will go out of the model at that boundary otherwise it will create an inflow.  
-There is one execption; when the head(state) calculated next to this river is exactly the same as the river level itself, no flow will occur at that boundary.  
-When this river is replaced with a canal, a few differences can be noticed:  
+The river is implemented as a Dirichlet boundary condition with a prescribed head of 5 m. A.M.S.L. This results in a flux at that boundary depending on the head next to that river and the level of the river itself.  When the river level is lower flow will go out of the model at that boundary otherwise it will create an inflow.  When the head next to the river would be exactly the same as the river, there will be no head difference and no head gradient and therefor no flow.  
+Since we are calculating the states in one spatial dimension (x) and not in the depth, the river can be interpreted as fully penetrating the aquifer.  
 
-*  the (entrance) resistance of 10 days of the canal-bed is added
+When this river is replaced with a canal, be aware of the following aspects:  
+
+*  the (entrance) resistance ($C$) of 10 days of the canal-bed need to be added
 *  flow at that boundary is now forced to flow through that canal-bed
+*  the canal-width need to be considered
+
 
 The most obvious way to simulate such a situaton is by using a Cauchy/Robin boundary condition (BC).  
+
 The Cauchy BC contains aspects of both the Dirichlet and Neumann BC:  
 
 *  The prescribed head of the canal is the Dirichlet part (and is equal to the river level)
 *  An extra resistance is introduced, the canal-bed (brown hashes in figure \@ref(fig:1D2rivers)), through which flow takes place
+*  the abovementioned flow takes place over the width of the canal
 
-This means that the flux at this boundary depends on the calculated state next to the boundary and a certain _coefficient_ which regulates the flux_rate_ at that boundary. The coefficient in this case is the canal_resistance.  
+This means that the node at this boundary will have a calculated head (state) **and** a calculated flux.
+the flux at this boundary depends on the calculated state next to the boundary and a certain _coefficient_ which regulates the flux_rate_ at that boundary. The coefficient in this case is the canal_resistance.  
 To accomplish this an additional function need to be developed describing the relation between the prescribed state, the coefficient and the flux rate. In a formula:  
 
 \begin{equation}
-q = -k \frac{\Delta H}{\Delta z}\rightarrow q=\frac{H_{canal}-H_{aquifer}}{C}
+Q_{Cauchy} = -k \frac{\Delta H}{\Delta z} l \rightarrow Q_{Cauchy}=\frac{H_{canal}-H_{aquifer}}{C} w
 (\#eq:cauchy-eq)
 \end{equation}  
 
 
-with: 
-$C^{-1} : \frac{k}{\Delta z}\rightarrow C=\frac{\Delta z}{k}$  
+with:   
+$l : \matsf{length over which the flux rate takes place [m] } 
+$C^{-1} : \frac{k}{\Delta z}\rightarrow C=\frac{\Delta z}{k} \mathsf{[d]}$  
+$w : \mathsf{width of the canal over which the flux occurs [m]}$
 
 One can see that this formula is simply Darcy's eqation again, see also: \@ref(eq:darcy-eq) in the "Background info"  
 
