@@ -14,7 +14,7 @@ library(plotly)
 
 ```{R ref_functions}
 # Generate gaussian in middle of domain.
-sigma = 1
+sigma = 1.5
 
 calc_init_state = function(x)
 {
@@ -26,18 +26,18 @@ calc_init_state_derivative = function(x)
   - (x - L/2)/(sigma^2) * exp(-(x-L/2)^2 / (2*sigma^2))
 }
 
-# Generate block pulse.
-calc_init_state = function(x)
-{
-  z = abs(x - L/2)
-  1.e4 / (1.e4 + exp(1.4*z))
-}
-
-calc_init_state_derivative = function(x)
-{
-  eps = 0.0001
-  (calc_init_state(x + eps) - calc_init_state(x - eps)) / (2.*eps)
-}
+# # Generate block pulse.
+# calc_init_state = function(x)
+# {
+#   z = abs(x - L/2)
+#   1.e4 / (1.e4 + exp(1.4*z))
+# }
+# 
+# calc_init_state_derivative = function(x)
+# {
+#   eps = 0.0001
+#   (calc_init_state(x + eps) - calc_init_state(x - eps)) / (2.*eps)
+# }
 
 calc_error = function(df, n=1)
 {
@@ -388,11 +388,11 @@ solve_cn_fft = function(omega, dx, dt)
 ```
 
 ```{R run_solvers}
-cn_2nd      = solve_cn_2nd      (omega=0.5, dx=1., dt=0.1)
-cn_4th      = solve_cn_4th      (omega=0.5, dx=1., dt=0.1)
-cn_pade_4th = solve_cn_pade_4th (omega=0.5, dx=1., dt=0.1)
-cn_pade_6th = solve_cn_pade_6th (omega=0.5, dx=1., dt=0.1)
-cn_fft      = solve_cn_fft      (omega=0.5, dx=1., dt=0.1)
+cn_2nd      = solve_cn_2nd      (omega=0.5, dx=1., dt=0.5)
+cn_4th      = solve_cn_4th      (omega=0.5, dx=1., dt=0.5)
+cn_pade_4th = solve_cn_pade_4th (omega=0.5, dx=1., dt=0.5)
+cn_pade_6th = solve_cn_pade_6th (omega=0.5, dx=1., dt=0.5)
+cn_fft      = solve_cn_fft      (omega=0.5, dx=1., dt=0.5)
 ```
 
 ```{R error}
