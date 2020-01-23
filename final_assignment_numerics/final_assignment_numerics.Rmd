@@ -148,7 +148,7 @@ The code below compares the outcome against the initial profile (note that nothi
 
 <div class="student_answer">
 ```{R error}
-print(calc_error(cn_2nd, 2.))
+print(calc_error(cn_2nd))
 ```
 </div>
 
@@ -177,7 +177,83 @@ p
 
 Clearly, the final solution does not look good, and this is where the assignment starts.
 
-## Assignment.
+## Assignment
+### The second-order scheme.
+1. Improve the accuracy of the second-order `cn_2nd` implementation by decreasing `dt` and `dx` until you find the solution good enough. Think of an objective criterion for *good enough* that allows you to compare solutions.
+
+### The fourth-order scheme. 
+As a first step, we will move to a fourth-order spatial discretization `cn_4th`. In order to do so, we need four Taylor series for $s(x - 2\Delta x)$, $s(x - \Delta x)$, $s(x + \Delta x)$, and $s(x + 2 \Delta x)$.
+
+2. Work out the four Taylor series until the fifth derivative.
+
+In order to find a derivation, we would like to have a function
+
+$$\dfrac{\partial s}{\partial x} = a\,s(x - 2\Delta x) + b\,s(x - \Delta x) + c\,s(x + \Delta x) + d\,s(x + 2 \Delta x).
+$$
+
+3. Formulate a matrix-vector equation in the form 
+$$
+\begin{bmatrix}
+. & . & . & . \\
+. & . & . & . \\
+. & . & . & . \\
+. & . & . & .
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+a \\
+b \\
+c \\
+d
+\end{bmatrix}
+=
+\begin{bmatrix}
+. \\
+. \\
+. \\
+.
+\end{bmatrix}
+$$
+Think carefully about the vector on the RHS. You need to find the first derivative, and at the same time you need to ensure that the next three error terms add up to zero in order to end up with fourth-order accuracy. 
+
+4. Solving the system by hand in order to find coefficients $(a,b,c,d)$ for the discretization. TIP: simplify the coefficients of the matrix as much as you can before starting the elimination.
+
+5. Copy the code from the `cn_2nd` solver and build a solver for the `cn_4th` scheme. Add the solution to the plots and error computation and compare the results.
+
+6. Test how much you can increase the grid spacing `dx` and time step `dt` without losing too much accuracy.
+
+### The fourth-order Padé scheme.
+The usage of four neighboring points delivers fourth-order accuracy, but also introduces inprecise approximation of fine-scale structures. Padé, a mathematician that lived at the beginning of 20th century, invented an alternative method. Rather than using the Taylor series evaluated at four points, he used only the neighboring points, but also introduced a Taylor series for the derivative at neighboring points:
+$$
+\dfrac{\partial s}{\partial x}(x + \Delta x) = \dfrac{\partial s}{\partial x}(x) + \dfrac{\Delta x}{1!} \dfrac{\partial^2 s}{\partial x^2}(x) + \dots
+$$
+In order to derive the fourth-order pade spatial discretization `cn_pade_4th`, we need four Taylor series: $s(x - \Delta x)$, $s(x + \Delta x)$, $\dfrac{\partial s}{\partial x}(x - \Delta x)$, and $\dfrac{\partial s}{\partial x}(x + \Delta x)$.
+
+7. Work out the four Taylor series until the fifth derivative.
+
+8. Again, build a linear system in the same way as for the `cn_4th` scheme and solve it.
+
+9. The solution of the Padé scheme is implicit in space, because the computed $\partial s / \partial x (x)$ is a function of its neighboring derivatives. Therefore, we have to write the numerical solution for the derivative as:
+$$
+M_{dsdx}
+\cdot
+\begin{bmatrix}
+\left. \dfrac{\partial s}{\partial x} \right|_1 \\
+\vdots \\
+\left. \dfrac{\partial s}{\partial x} \right|_n \\
+\end{bmatrix}
+=
+M_s
+\cdot
+\begin{bmatrix}
+s_1 \\
+\vdots \\
+s_n \\
+\end{bmatrix},
+$$
+with the matrix $M$ that is needed to compute the derivative from the state then acquired as $M_{dsdx}^{-1} \cdot M_s$. Keep in mind that you do not have to solve this by hand, R can do the inversion for you.
+
+10. Implement the `cn_pade_4th` scheme, and compare the required `dx` and `dt` to the previous computations and test how much `dx` and `dt` can be increased without losing accuracy.
 
 <div class="answer">
 ```{R cn_4th}
