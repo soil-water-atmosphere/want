@@ -11,35 +11,52 @@ library(plotly)
 ```
 
 ## Introduction
+Hydrological and meteorological forecasting is often done under time pressure. Therefore, modelling is often done at a coarser grid spacing than one would ideally use. In the lectures, you have learned to derive first- (forward and backward) and second-order accurate discretizations. With more advanced methods that involve more than two grid points, it is possible to derive numerical schemes that are far more accurate than the schemes you have used thus far.
+
+In this assignment, you will work with the linear advection equation
+
+$$
+\dfrac{\partial s}{\partial t} = - u \dfrac{\partial s}{\partial x}.
+$$
+
+You will work with a system in which a block is placed in the center of the domain and advected to the right. In order to avoid having to deal with boundary discretizations, everything that is advected out of the domain on the right, re-enters the domain on the left. The duration of the simulation will be chosen such that the block ends exactly at the same location as where it started. This we do with the settings below, we have a channel of 100 m, in which we advect the block around with 1 m s$^{-1}$ during 100 s.
+
+```{R problem_definition}
+u = 1.
+L = 100.
+end_time = 100.
+```
+
+In order to plot the block, we first define a set of helper functions for the entire assignment and then generate and plot the blob.
 
 ```{R ref_functions}
-# Generate gaussian in middle of domain.
-sigma = 1.5
-
+# Generate block in middle of domain.
 calc_init_state = function(x)
 {
-  exp(-(x-L/2)^2 / (2*sigma^2))
+  z = abs(x - L/2)
+  1.e4 / (1.e4 + exp(1.4*z))
 }
 
 calc_init_state_derivative = function(x)
 {
-  - (x - L/2)/(sigma^2) * exp(-(x-L/2)^2 / (2*sigma^2))
+  eps = 0.0001
+  (calc_init_state(x + eps) - calc_init_state(x - eps)) / (2.*eps)
 }
 
-# # Generate block pulse.
+# # Generate gaussian in middle of domain.
+# sigma = 1.5
+# 
 # calc_init_state = function(x)
 # {
-#   z = abs(x - L/2)
-#   1.e4 / (1.e4 + exp(1.4*z))
+#   exp(-(x-L/2)^2 / (2*sigma^2))
 # }
 # 
 # calc_init_state_derivative = function(x)
 # {
-#   eps = 0.0001
-#   (calc_init_state(x + eps) - calc_init_state(x - eps)) / (2.*eps)
+#   - (x - L/2)/(sigma^2) * exp(-(x-L/2)^2 / (2*sigma^2))
 # }
 
-calc_error = function(df, n=1)
+calc_error = function(df, n=1.)
 {
   error_vec = abs(df$state - calc_init_state(df$x))^n
   error = (sum(error_vec))^(1./n)
@@ -47,18 +64,20 @@ calc_error = function(df, n=1)
 }
 ```
 
-```{R problem_definition}
-u = 1.
-bl = 0.
-br = 0.
-L = 100.
-end_time = 100.
-
+```{R reference_computation, message=FALSE, warning=FALSE}
 # Compute reference line to compare solutions against.
 ref = data.frame(x=seq(from=0, to=L, by=0.01))
 ref$state = calc_init_state(ref$x)
 ref$init_dstatedx = calc_init_state_derivative(ref$x)
+
+init_line = list(color='black', dash='dot', width=1.5)
+p = plot_ly()
+p = layout(p, yaxis=list(range = c(-0.4, 1.4)))
+p = add_trace(p, x=ref$x, y=ref$state, name='ref', mode='lines', line=init_line)
+p
 ```
+
+Now, we will integrate the advection equation using the second-order centered discretization in space, combined with the Crank-Nicolson in time. The latter we will not touch in this assignment in order to constrain the degrees of freedom. Study the code below in detail, as this will be your starting point for implemenation of more advanced methods. Note that the code is written as a function, which enables you to call it multiple times with different settings. Also, note that the spatial derivative of the initial state is saved (here in `init_dstatedx`), which allows for evaluation of the spatial scheme alone.
 
 ```{R cn_2nd}
 solve_cn_2nd = function(omega, dx, dt)
@@ -117,6 +136,42 @@ solve_cn_2nd = function(omega, dx, dt)
 cn_2nd = solve_cn_2nd(omega=0.5, dx=0.5, dt=0.1)
 ```
 
+
+
+<div class="student_answer">
+```{R run_solvers}
+cn_2nd = solve_cn_2nd(omega=0.5, dx=1., dt=0.5)
+```
+</div>
+
+<div class="student_answer">
+```{R error}
+print(calc_error(cn_2nd, 2.))
+```
+</div>
+
+<div class="student_answer">
+```{R message=FALSE, warning=FALSE}
+init_line = list(color='black', dash='dot', width=1.5)
+p = plot_ly()
+p = add_trace(p, x=cn_2nd$x, y=cn_2nd$init_dstatedx, name='cn_2nd', mode='lines')
+p = add_trace(p, x=ref$x, y=ref$init_dstatedx, name='ref', mode='lines', line=init_line)
+p
+```
+</div>
+
+<div class="student_answer">
+```{R message=FALSE, warning=FALSE}
+init_line = list(color='black', dash='dot', width=1.5)
+p = plot_ly()
+p = layout(p, yaxis=list(range = c(-0.4, 1.4)))
+p = add_trace(p, x=cn_2nd$x, y=cn_2nd$state, name='cn_2nd', mode='lines')
+p = add_trace(p, x=ref$x, y=ref$state, name='ref', mode='lines', line=init_line)
+p
+```
+</div>
+
+<div class="answer">
 ```{R cn_4th}
 solve_cn_4th = function(omega, dx, dt)
 {
@@ -187,7 +242,9 @@ solve_cn_4th = function(omega, dx, dt)
   return(data.frame(x=x, init_dstatedx=init_dstatedx, state=state))
 }
 ```
+</div>
 
+<div class="answer">
 ```{R cn_pade_4th}
 solve_cn_pade_4th = function(omega, dx, dt)
 {
@@ -258,7 +315,9 @@ solve_cn_pade_4th = function(omega, dx, dt)
   return(data.frame(x=x, init_dstatedx=init_dstatedx, state=state))
 }
 ```
+</div>
 
+<div class="answer">
 ```{R cn_pade_6th}
 solve_cn_pade_6th = function(omega, dx, dt)
 {
@@ -345,7 +404,9 @@ solve_cn_pade_6th = function(omega, dx, dt)
   return(data.frame(x=x, init_dstatedx=init_dstatedx, state=state))
 }
 ```
+</div>
 
+<div class="answer">
 ```{R cn_fft}
 solve_cn_fft = function(omega, dx, dt)
 {
@@ -386,24 +447,30 @@ solve_cn_fft = function(omega, dx, dt)
   return(data.frame(x=x, init_dstatedx=init_dstatedx, state=state))
 }
 ```
+</div>
 
-```{R run_solvers}
+<div class="answer">
+```{R run_solvers_answer}
 cn_2nd      = solve_cn_2nd      (omega=0.5, dx=1., dt=0.5)
 cn_4th      = solve_cn_4th      (omega=0.5, dx=1., dt=0.5)
 cn_pade_4th = solve_cn_pade_4th (omega=0.5, dx=1., dt=0.5)
 cn_pade_6th = solve_cn_pade_6th (omega=0.5, dx=1., dt=0.5)
 cn_fft      = solve_cn_fft      (omega=0.5, dx=1., dt=0.5)
 ```
+</div>
 
-```{R error}
-print(calc_error(cn_2nd))
-print(calc_error(cn_4th))
-print(calc_error(cn_pade_4th))
-print(calc_error(cn_pade_6th))
-print(calc_error(cn_fft))
+<div class="answer">
+```{R error_answer}
+print(calc_error(cn_2nd, 2.))
+print(calc_error(cn_4th, 2.))
+print(calc_error(cn_pade_4th, 2.))
+print(calc_error(cn_pade_6th, 2.))
+print(calc_error(cn_fft, 2.))
 ```
+</div>
 
-```{r message=FALSE, warning=FALSE}
+<div class="answer">
+```{R message=FALSE, warning=FALSE}
 init_line = list(color='black', dash='dot', width=1.5)
 p = plot_ly()
 p = add_trace(p, x=cn_2nd$x, y=cn_2nd$init_dstatedx, name='cn_2nd', mode='lines')
@@ -414,8 +481,10 @@ p = add_trace(p, x=cn_fft$x, y=cn_fft$init_dstatedx, name='cn_fft', mode='lines'
 p = add_trace(p, x=ref$x, y=ref$init_dstatedx, name='ref', mode='lines', line=init_line)
 p
 ```
+</div>
 
-```{r message=FALSE, warning=FALSE}
+<div class="answer">
+```{R message=FALSE, warning=FALSE}
 init_line = list(color='black', dash='dot', width=1.5)
 p = plot_ly()
 p = layout(p, yaxis=list(range = c(-0.4, 1.4)))
@@ -427,12 +496,7 @@ p = add_trace(p, x=cn_fft$x, y=cn_fft$state, name='cn_fft', mode='lines')
 p = add_trace(p, x=ref$x, y=ref$state, name='ref', mode='lines', line=init_line)
 p
 ```
-
-## The challenge
-The peak needs to have a location between 49.9 and 50.1 and a state magnitude between 0.99 and 1.01.
-
-## The tasks
-1. Bla.
+</div>
 
 **END OF ASSIGNMENT**
 
