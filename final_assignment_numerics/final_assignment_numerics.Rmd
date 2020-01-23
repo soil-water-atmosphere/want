@@ -77,7 +77,7 @@ p = add_trace(p, x=ref$x, y=ref$state, name='ref', mode='lines', line=init_line)
 p
 ```
 
-Now, we will integrate the advection equation using the second-order centered discretization in space, combined with the Crank-Nicolson in time. The latter we will not touch in this assignment in order to constrain the degrees of freedom. Study the code below in detail, as this will be your starting point for implemenation of more advanced methods. Note that the code is written as a function, which enables you to call it multiple times with different settings. Also, note that the spatial derivative of the initial state is saved (here in `init_dstatedx`), which allows for evaluation of the spatial scheme alone.
+Now, we will integrate the advection equation using the second-order centered discretization in space, combined with the Crank-Nicolson in time. The latter we will not touch in this assignment in order to constrain the degrees of freedom. Study the code below in detail, as this will be your starting point for implemenation of more advanced methods. Note that the code is written as a function, which enables you to call it multiple times with different settings. Also, note that the spatial derivative of the initial state is saved (in `init_dstatedx`), which allows for evaluation of the spatial scheme independently.
 
 ```{R cn_2nd}
 solve_cn_2nd = function(omega, dx, dt)
@@ -136,7 +136,7 @@ solve_cn_2nd = function(omega, dx, dt)
 cn_2nd = solve_cn_2nd(omega=0.5, dx=0.5, dt=0.1)
 ```
 
-
+Now, we can run the code using `0.5` for omega to have Crank-Nicolson, a grid spacing `dx` of `1.` m and a time step `dt` of `0.5` s.
 
 <div class="student_answer">
 ```{R run_solvers}
@@ -144,11 +144,15 @@ cn_2nd = solve_cn_2nd(omega=0.5, dx=1., dt=0.5)
 ```
 </div>
 
+The code below compares the outcome against the initial profile (note that nothing should have changed after a full round of advection).
+
 <div class="student_answer">
 ```{R error}
 print(calc_error(cn_2nd, 2.))
 ```
 </div>
+
+The plots below compare the spatial derivative against the exact solution and show the final outcome of the simulation.
 
 <div class="student_answer">
 ```{R message=FALSE, warning=FALSE}
@@ -170,6 +174,10 @@ p = add_trace(p, x=ref$x, y=ref$state, name='ref', mode='lines', line=init_line)
 p
 ```
 </div>
+
+Clearly, the final solution does not look good, and this is where the assignment starts.
+
+## Assignment.
 
 <div class="answer">
 ```{R cn_4th}
