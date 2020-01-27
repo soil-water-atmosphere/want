@@ -255,6 +255,29 @@ with the matrix $M$ that is needed to compute the derivative from the state then
 
 10. Implement the `cn_pade_4th` scheme, and compare the required `dx` and `dt` to the previous computations and test how much `dx` and `dt` can be increased without losing accuracy.
 
+### BONUS: Using Fast-Fourier Transforms (only if time permits)
+There is an even more accurate method that is only possible for periodic domains (what goes out on one side comes back into the other) with uniform grid spacing `dx`. This is the case for our problem, but also for a global weather or climate model. This method makes use of discrete Fourier transforms, using an algorithm called the Fast-Fourier Transform (FFT) (https://en.wikipedia.org/wiki/Discrete_Fourier_transform).
+
+The rationale behind the Fourier transform is that we can write any continuous function as a sum of waves with different wave numbers. In a discrete Fourier transform, we transform a state of `n` points into a set of `n` waves with wavenumbers (written in the order as the R `fft` function returns them)
+$$
+k = \dfrac{2 \pi}{L}\left( 0, 1, \cdots, \dfrac{N}{2}, - \dfrac{N}{2}+1, - \dfrac{N}{2}+2, \dots, -1 \right). 
+$$
+Note the sign change after the middle point.
+
+By doing an FFT, we replace the spatial dimension $x$ by a dimension that is in wavenumber space, where each index of the transformed series corresponds to one wave number of the series above.
+
+The FFT of our discretized state $s$ can be written as
+$$
+\hat{s}_n = \dfrac{1}{N} \sum_{m = 1}^{N} s_m e^{i k_n x_m},
+$$
+with each $n$ representing one value of the wave number vector $k$ written above. Note that $\hat{s}_n$ is a complex number with a real and imaginary part. The entire vector $\hat{s}$ can be acquired at once from state $s$ by execution of the command `fft(s)`
+
+For each Fourier mode, it is possible to compute the derivative exactly:
+$$
+\dfrac{\partial \hat{s}_n}{\partial x} = ik_n\hat{s}_n
+$$
+In R, one can write the imaginary number $i$ as `1i`. This shows the power of the FFT method: derivatives can be computed without any errors involved.
+
 <div class="answer">
 ```{R cn_4th}
 solve_cn_4th = function(omega, dx, dt)
