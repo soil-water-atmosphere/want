@@ -11,7 +11,7 @@ library(plotly)
 ```
 
 ## Introduction
-Hydrological and meteorological forecasting is often done under time pressure. Therefore, modelling is often done at a coarser grid spacing than one would ideally use. In the lectures, you have learned to derive first- (forward and backward) and second-order accurate discretizations. With more advanced methods that involve more than two grid points, it is possible to derive numerical schemes that are far more accurate than the schemes you have used thus far.
+Hydrological and meteorological forecasting is often done under time pressure. Therefore, modelling is often done at a coarser grid spacing than one would ideally use. In the lectures, you have learned to derive first- (forward and backward) and second-order accurate spatial discretizations. With more advanced methods that involve more than two grid points, it is possible to derive numerical schemes that are far more accurate than the schemes you have used thus far.
 
 In this assignment, you will work with the linear advection equation
 
@@ -27,7 +27,7 @@ L = 100.
 end_time = 100.
 ```
 
-In order to plot the block, we first define a set of helper functions for the entire assignment and then generate and plot the blob.
+In order to plot the block, we first define a set of helper functions for the entire assignment and then generate and plot the block.
 
 ```{R ref_functions}
 # Generate block in middle of domain.
@@ -77,7 +77,7 @@ p = add_trace(p, x=ref$x, y=ref$state, name='ref', mode='lines', line=init_line)
 p
 ```
 
-Now, we will integrate the advection equation using the second-order centered discretization in space, combined with the Crank-Nicolson in time. The latter we will not touch in this assignment in order to constrain the degrees of freedom. Study the code below in detail, as this will be your starting point for implemenation of more advanced methods. Note that the code is written as a function, which enables you to call it multiple times with different settings. Also, note that the spatial derivative of the initial state is saved (in `init_dstatedx`), which allows for evaluation of the spatial scheme independently.
+Now, we will integrate the advection equation using the second-order centered discretization in space, combined with the Crank-Nicolson in time. The time discretization we will not touch in this assignment. Study the code below in detail, as this will be your starting point for implementation of more advanced methods. Note that the code is written as a function, which enables you to call it multiple times with different settings. Also, note that the spatial derivative of the initial state is saved (in `init_dstatedx`), which allows for evaluation of the spatial scheme independently.
 
 ```{R cn_2nd}
 solve_cn_2nd = function(omega, dx, dt)
@@ -216,7 +216,7 @@ d
 $$
 Think carefully about the vector on the RHS. You need to find the first derivative, and at the same time you need to ensure that the next three error terms add up to zero in order to end up with fourth-order accuracy. 
 
-4. Solving the system by hand in order to find coefficients $(a,b,c,d)$ for the discretization. TIP: simplify the coefficients of the matrix as much as you can before starting the elimination.
+4. Solving the system by hand in order to find coefficients $(a,b,c,d)$ for the discretization. TIP: simplify the coefficients of the matrix and vector as much as you can before starting the elimination.
 
 5. Copy the code from the `cn_2nd` solver and build a solver for the `cn_4th` scheme. Add the solution to the plots and error computation and compare the results.
 
@@ -260,23 +260,46 @@ There is an even more accurate method that is only possible for periodic domains
 
 The rationale behind the Fourier transform is that we can write any continuous function as a sum of waves with different wave numbers. In a discrete Fourier transform, we transform a state of `n` points into a set of `n` waves with wavenumbers (written in the order as the R `fft` function returns them)
 $$
-k = \dfrac{2 \pi}{L}\left( 0, 1, \cdots, \dfrac{N}{2}, - \dfrac{N}{2}+1, - \dfrac{N}{2}+2, \dots, -1 \right). 
+k = \dfrac{2 \pi}{L}\left( 0, 1, \cdots, \dfrac{N}{2}, - \dfrac{N}{2}, - \dfrac{N}{2}+1, \dots, -1 \right). 
 $$
 Note the sign change after the middle point.
 
-By doing an FFT, we replace the spatial dimension $x$ by a dimension that is in wavenumber space, where each index of the transformed series corresponds to one wave number of the series above.
-
-The FFT of our discretized state $s$ can be written as
+The FFT of our discretized state $s$ can for each wave number be written as
 $$
 \hat{s}_n = \dfrac{1}{N} \sum_{m = 1}^{N} s_m e^{i k_n x_m},
 $$
-with each $n$ representing one value of the wave number vector $k$ written above. Note that $\hat{s}_n$ is a complex number with a real and imaginary part. The entire vector $\hat{s}$ can be acquired at once from state $s$ by execution of the command `fft(s)`
+with each $n$ representing one value of the wave number vector $k$ written above. Note that $\hat{s}_n$ is a complex number with a real and imaginary part that together determine the amplitude and phase of the wave. The entire vector $\hat{s}$ can be acquired at once from state $s$ by execution of the command `fft(s)`.
 
 For each Fourier mode, it is possible to compute the derivative exactly:
 $$
 \dfrac{\partial \hat{s}_n}{\partial x} = ik_n\hat{s}_n
 $$
-In R, one can write the imaginary number $i$ as `1i`. This shows the power of the FFT method: derivatives can be computed without any errors involved.
+In R, one can write the imaginary number $i$ as `1i`. This shows the power of the FFT method: spatial derivatives can be computed without any errors involved.
+
+The inverse FFT can be computed to transform the computed derivative back to real space using `fft(s, inverse=TRUE)`. After back transformation, you need to divide out the number of grid points and take the real part of the solution. This has to do with the implementation of the FFT algorithm in R.
+
+All in all, the procedure looks as following:
+
+```{R eval=FALSE}
+# Compute the FFT of the state s.
+s_fft = fft(s)
+
+# Code to compute derivative.
+# dsdx_fft =
+
+# Transform the derivative back to real space.
+dsdx = fft(dsdx_fft, inverse=TRUE)
+# Divide out the length of the vector.
+dsdx = dsdx / length(s)
+# Take the real part.
+dsdx = Re(dsdx)
+```
+
+11. Implement the FFT-based solver, and compare the required `dx` and `dt` to the previous computations. Check how much both can be increased without losing accuracy.
+
+12. Check whether the FFT method is truly free of spatial errors.
+
+**END OF ASSIGNMENT**
 
 <div class="answer">
 ```{R cn_4th}
@@ -604,6 +627,3 @@ p = add_trace(p, x=ref$x, y=ref$state, name='ref', mode='lines', line=init_line)
 p
 ```
 </div>
-
-**END OF ASSIGNMENT**
-
