@@ -262,7 +262,7 @@ There is an even more accurate method that is only possible for periodic domains
 
 The rationale behind the Fourier transform is that we can write any continuous function as a sum of waves (called a Fourier mode) with different wave numbers. In a discrete Fourier transform, we transform a state of `n` points into a set of `n` waves with wavenumbers (written in the order as the R `fft` function returns them)
 $$
-k = \dfrac{2 \pi}{L}\left( 0, 1, \dots, \dfrac{N}{2}, - \dfrac{N}{2}, - \dfrac{N}{2}+1, \dots, -1 \right). 
+k = \dfrac{2 \pi}{L} \cdot \left( 0, 1, \dots, \dfrac{N}{2}-1, -\dfrac{N}{2}, - \dfrac{N}{2}+1, \dots, -1 \right).
 $$
 Note the sign change after the middle point.
 
@@ -549,7 +549,7 @@ solve_cn_fft = function(omega, dx, dt)
   state = calc_init_state(x)
   
   k = seq(from=0, to=N-1)
-  k[(N/2):N] = k[(N/2):N] - length(k)
+  k[(N/2+1):N] = k[(N/2+1):N] - length(k)
   k = 2.*pi*k/L
   fac_rhs = omega*dt*u*1i*k
   fac_lhs = (1.-omega)*dt*u*1i*k
