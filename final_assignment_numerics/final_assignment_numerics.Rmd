@@ -223,10 +223,12 @@ Think carefully about the vector on the RHS. You need to find the first derivati
 6. Test how much you can increase the grid spacing `dx` and time step `dt` without losing too much accuracy.
 
 ### The fourth-order compact scheme.
-The usage of four neighboring points delivers fourth-order accuracy, but also introduces inprecise approximation of fine-scale structures due to the wide stencil. Padé, a mathematician that lived at the beginning of 20th century, invented an alternative method (read theory at https://doi.org/10.1016/0021-9991(92)90324-R). Rather than using the Taylor series evaluated at four neighboring points, he used only the left and right neighboring points, but also introduced a Taylor series for the derivative at those points. Schemes that combine Taylor series of neighboring points and their derivatives are called *compact schemes*, because of the small width of the stencil.
+The usage of four neighboring points delivers fourth-order accuracy, but also introduces inprecise approximation of fine-scale structures due to the wide stencil. Padé, a mathematician who lived in the beginning of 20th century, invented an alternative method (read theory in https://doi.org/10.1016/0021-9991(92)90324-R). Rather than using the Taylor series evaluated at four neighboring points, he used only the left and right neighboring points, but also introduced a Taylor series for the derivative at those points.
 $$
 \dfrac{\partial s}{\partial x}(x + \Delta x) = \dfrac{\partial s}{\partial x}(x) + \dfrac{\Delta x}{1!} \dfrac{\partial^2 s}{\partial x^2}(x) + \dots
 $$
+Schemes that combine Taylor series of neighboring points and their derivatives are called *compact schemes*, because of the small width of the stencil compared to conventional schemes such as `cn_2nd` and `cn_4th`.
+
 In order to derive the fourth-order compact spatial discretization `cn_compact_4th`, we need four Taylor series: $s(x - \Delta x)$, $s(x + \Delta x)$, $\dfrac{\partial s}{\partial x}(x - \Delta x)$, and $\dfrac{\partial s}{\partial x}(x + \Delta x)$.
 
 7. Work out the four Taylor series until the fifth derivative.
@@ -258,9 +260,9 @@ with the matrix $M$ that is needed to compute the derivative from the state then
 ### BONUS: Using Fast-Fourier Transforms (only if time permits)
 There is an even more accurate method that is only possible for periodic domains (what goes out on one side comes back into the other) with uniform grid spacing `dx`. This is the case for our problem, but also for a global weather or climate model. This method makes use of discrete Fourier transforms, using an algorithm called the Fast-Fourier Transform (FFT) (https://en.wikipedia.org/wiki/Discrete_Fourier_transform).
 
-The rationale behind the Fourier transform is that we can write any continuous function as a sum of waves with different wave numbers. In a discrete Fourier transform, we transform a state of `n` points into a set of `n` waves with wavenumbers (written in the order as the R `fft` function returns them)
+The rationale behind the Fourier transform is that we can write any continuous function as a sum of waves (called a Fourier mode) with different wave numbers. In a discrete Fourier transform, we transform a state of `n` points into a set of `n` waves with wavenumbers (written in the order as the R `fft` function returns them)
 $$
-k = \dfrac{2 \pi}{L}\left( 0, 1, \cdots, \dfrac{N}{2}, - \dfrac{N}{2}, - \dfrac{N}{2}+1, \dots, -1 \right). 
+k = \dfrac{2 \pi}{L}\left( 0, 1, \dots, \dfrac{N}{2}, - \dfrac{N}{2}, - \dfrac{N}{2}+1, \dots, -1 \right). 
 $$
 Note the sign change after the middle point.
 
