@@ -1,7 +1,7 @@
 ---
 title: "Advanced numerics: advection with high spatial accuracy"
 author: "Chiel van Heerwaarden"
-date: "1/22/2019"
+date: "1/27/2019"
 output: html_document
 ---
 
@@ -222,18 +222,18 @@ Think carefully about the vector on the RHS. You need to find the first derivati
 
 6. Test how much you can increase the grid spacing `dx` and time step `dt` without losing too much accuracy.
 
-### The fourth-order Padé scheme.
-The usage of four neighboring points delivers fourth-order accuracy, but also introduces inprecise approximation of fine-scale structures. Padé, a mathematician that lived at the beginning of 20th century, invented an alternative method. Rather than using the Taylor series evaluated at four points, he used only the neighboring points, but also introduced a Taylor series for the derivative at neighboring points:
+### The fourth-order compact scheme.
+The usage of four neighboring points delivers fourth-order accuracy, but also introduces inprecise approximation of fine-scale structures due to the wide stencil. Padé, a mathematician that lived at the beginning of 20th century, invented an alternative method (read theory at https://doi.org/10.1016/0021-9991(92)90324-R). Rather than using the Taylor series evaluated at four neighboring points, he used only the left and right neighboring points, but also introduced a Taylor series for the derivative at those points. Schemes that combine Taylor series of neighboring points and their derivatives are called *compact schemes*, because of the small width of the stencil.
 $$
 \dfrac{\partial s}{\partial x}(x + \Delta x) = \dfrac{\partial s}{\partial x}(x) + \dfrac{\Delta x}{1!} \dfrac{\partial^2 s}{\partial x^2}(x) + \dots
 $$
-In order to derive the fourth-order pade spatial discretization `cn_pade_4th`, we need four Taylor series: $s(x - \Delta x)$, $s(x + \Delta x)$, $\dfrac{\partial s}{\partial x}(x - \Delta x)$, and $\dfrac{\partial s}{\partial x}(x + \Delta x)$.
+In order to derive the fourth-order compact spatial discretization `cn_compact_4th`, we need four Taylor series: $s(x - \Delta x)$, $s(x + \Delta x)$, $\dfrac{\partial s}{\partial x}(x - \Delta x)$, and $\dfrac{\partial s}{\partial x}(x + \Delta x)$.
 
 7. Work out the four Taylor series until the fifth derivative.
 
-8. Again, build a linear system in the same way as for the `cn_4th` scheme and solve it.
+8. Again, build a linear system in the same way as for the `cn_4th` scheme and solve again coefficients $(a, b, c, d)$.
 
-9. The solution of the Padé scheme is implicit in space, because the computed $\partial s / \partial x (x)$ is a function of its neighboring derivatives. Therefore, we have to write the numerical solution for the derivative as:
+9. The solution of a compact scheme is implicit in space, because the computed $\partial s / \partial x (x)$ is a function of its neighboring derivatives. Therefore, we have to write the numerical solution for the derivative as:
 $$
 M_{dsdx}
 \cdot
@@ -253,7 +253,7 @@ s_n \\
 $$
 with the matrix $M$ that is needed to compute the derivative from the state then acquired as $M_{dsdx}^{-1} \cdot M_s$. Keep in mind that you do not have to solve this by hand, R can do the inversion for you.
 
-10. Implement the `cn_pade_4th` scheme, and compare the required `dx` and `dt` to the previous computations and test how much `dx` and `dt` can be increased without losing accuracy.
+10. Implement the `cn_compact_4th` scheme, and compare the required `dx` and `dt` to the previous computations and test how much `dx` and `dt` can be increased without losing accuracy.
 
 ### BONUS: Using Fast-Fourier Transforms (only if time permits)
 There is an even more accurate method that is only possible for periodic domains (what goes out on one side comes back into the other) with uniform grid spacing `dx`. This is the case for our problem, but also for a global weather or climate model. This method makes use of discrete Fourier transforms, using an algorithm called the Fast-Fourier Transform (FFT) (https://en.wikipedia.org/wiki/Discrete_Fourier_transform).
@@ -375,8 +375,8 @@ solve_cn_4th = function(omega, dx, dt)
 </div>
 
 <div class="answer">
-```{R cn_pade_4th}
-solve_cn_pade_4th = function(omega, dx, dt)
+```{R cn_compact_4th}
+solve_cn_compact_4th = function(omega, dx, dt)
 {
   # Calculation preparation
   n_time = round(end_time / dt)
@@ -448,8 +448,8 @@ solve_cn_pade_4th = function(omega, dx, dt)
 </div>
 
 <div class="answer">
-```{R cn_pade_6th}
-solve_cn_pade_6th = function(omega, dx, dt)
+```{R cn_compact_6th}
+solve_cn_compact_6th = function(omega, dx, dt)
 {
   # Calculation preparation
   n_time = round(end_time / dt)
@@ -581,11 +581,11 @@ solve_cn_fft = function(omega, dx, dt)
 
 <div class="answer">
 ```{R run_solvers_answer}
-cn_2nd      = solve_cn_2nd      (omega=0.5, dx=1., dt=0.5)
-cn_4th      = solve_cn_4th      (omega=0.5, dx=1., dt=0.5)
-cn_pade_4th = solve_cn_pade_4th (omega=0.5, dx=1., dt=0.5)
-cn_pade_6th = solve_cn_pade_6th (omega=0.5, dx=1., dt=0.5)
-cn_fft      = solve_cn_fft      (omega=0.5, dx=1., dt=0.5)
+cn_2nd         = solve_cn_2nd         (omega=0.5, dx=1., dt=0.5)
+cn_4th         = solve_cn_4th         (omega=0.5, dx=1., dt=0.5)
+cn_compact_4th = solve_cn_compact_4th (omega=0.5, dx=1., dt=0.5)
+cn_compact_6th = solve_cn_compact_6th (omega=0.5, dx=1., dt=0.5)
+cn_fft         = solve_cn_fft         (omega=0.5, dx=1., dt=0.5)
 ```
 </div>
 
@@ -593,8 +593,8 @@ cn_fft      = solve_cn_fft      (omega=0.5, dx=1., dt=0.5)
 ```{R error_answer}
 print(calc_error(cn_2nd, 2.))
 print(calc_error(cn_4th, 2.))
-print(calc_error(cn_pade_4th, 2.))
-print(calc_error(cn_pade_6th, 2.))
+print(calc_error(cn_compact_4th, 2.))
+print(calc_error(cn_compact_6th, 2.))
 print(calc_error(cn_fft, 2.))
 ```
 </div>
@@ -605,8 +605,8 @@ init_line = list(color='black', dash='dot', width=1.5)
 p = plot_ly()
 p = add_trace(p, x=cn_2nd$x, y=cn_2nd$init_dstatedx, name='cn_2nd', mode='lines')
 p = add_trace(p, x=cn_4th$x, y=cn_4th$init_dstatedx, name='cn_4th', mode='lines')
-p = add_trace(p, x=cn_pade_4th$x, y=cn_pade_4th$init_dstatedx, name='cn_pade_4th', mode='lines')
-p = add_trace(p, x=cn_pade_6th$x, y=cn_pade_6th$init_dstatedx, name='cn_pade_6th', mode='lines')
+p = add_trace(p, x=cn_compact_4th$x, y=cn_compact_4th$init_dstatedx, name='cn_compact_4th', mode='lines')
+p = add_trace(p, x=cn_compact_6th$x, y=cn_compact_6th$init_dstatedx, name='cn_compact_6th', mode='lines')
 p = add_trace(p, x=cn_fft$x, y=cn_fft$init_dstatedx, name='cn_fft', mode='lines')
 p = add_trace(p, x=ref$x, y=ref$init_dstatedx, name='ref', mode='lines', line=init_line)
 p
@@ -620,8 +620,8 @@ p = plot_ly()
 p = layout(p, yaxis=list(range = c(-0.4, 1.4)))
 p = add_trace(p, x=cn_2nd$x, y=cn_2nd$state, name='cn_2nd', mode='lines')
 p = add_trace(p, x=cn_4th$x, y=cn_4th$state, name='cn_4th', mode='lines')
-p = add_trace(p, x=cn_pade_4th$x, y=cn_pade_4th$state, name='cn_pade_4th', mode='lines')
-p = add_trace(p, x=cn_pade_6th$x, y=cn_pade_6th$state, name='cn_pade_6th', mode='lines')
+p = add_trace(p, x=cn_compact_4th$x, y=cn_compact_4th$state, name='cn_compact_4th', mode='lines')
+p = add_trace(p, x=cn_compact_6th$x, y=cn_compact_6th$state, name='cn_compact_6th', mode='lines')
 p = add_trace(p, x=cn_fft$x, y=cn_fft$state, name='cn_fft', mode='lines')
 p = add_trace(p, x=ref$x, y=ref$state, name='ref', mode='lines', line=init_line)
 p
