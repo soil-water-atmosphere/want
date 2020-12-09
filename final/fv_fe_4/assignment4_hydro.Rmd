@@ -1,17 +1,26 @@
 ---
 title: "Assignment 4 - Exercises on two dimensional modelling"
 subtitle: "Finite volumes & elements, 2D"
-author: "G. Bier, R. Ronda, P.J.J.F. Torfs & edited by The Want Team"
-date: "December 2019"
+author: "The Want Team"
+date: "December 2020"
 output:
+  html_notebook:
+    css: want_n.css
+    toc: yes
   html_document:
     code_folding: show
     css: want_n.css
     toc: yes
-  html_notebook:
-    css: want_n.css
-    toc: yes
 ---
+<div class="comment">
+**[GB]**Use of sandbox FVFE2D
+</div>
+```{r}
+rm(list = ls())
+source("sourceFVFE2D.R")
+library("fields")
+```
+
 
 
 Note: If you want all the generated 3D-plots to remain open, run the complete Rmd before knitting the document to html.
@@ -27,9 +36,15 @@ Note: If you want all the generated 3D-plots to remain open, run the complete Rm
 # Introduction
 In these exercises the basic steps of two dimensional groundwater flow models will be reviewed with the Finite Volume method and Finite Element method as implemented in the FVFE2D package. These exercises do not provide a complete overview of the functionality of the package, but several important functionalities will be discussed. You can use the built-in help for more information on this package. In many exercises an R-code chunk is given and needs to be edited by adding your answers. Editing is only necessary at locations indicated with 'XXXX', unless explicitly stated otherwise. After completing the R-code chunk, remove the `eval=FALSE` statement in the header of it so it will be included in the final document.
 
-```{r, include=FALSE}
+<div class="comment">
+**[GB]**in header chunk hieronder eval=F gezet ivm pandoc conversion errors en fvfe2d gedoe.. nu met sandbox
+</div>
+
+
+
+```{r, include=FALSE,eval=FALSE}
 # Clear the environment.
-rm(list=ls())
+#rm(list=ls())
 #check packages to use and activate/install them
 #Check to see if package(s) are installed, install if not and then load
 
@@ -363,7 +378,7 @@ Npl = 50
 xtopl = seq(0, 100, length=Npl)
 ytopl = seq(0, 100, length=Npl)
 
-# Makes a plot illustrating the interpolation function. It calculates all the combinations of x-values in 'xtopl' and all the y-values in 'ytopl' by means of the interpolation function just constructed. It is the magical function 'outer()' that does this. You do not need to understand this function, just observe the third argument to be the contructed interpolation function.
+# Makes a plot illustrating the interpolation function. It calculates all the combinations of x-values in 'xtopl' and all the y-values in 'ytopl' by means of the interpolation function just constructed. It is the magical function 'outer()' that does this. You do not need to understand this function, just observe the third argument to be the constructed interpolation function.
 z = outer(xtopl, ytopl, nnf)
 image.plot(xtopl, ytopl, z, main="Nearest neighbour interpolation (nnf)")
 points(tointerp$x, tointerp$y, cex=2, pch=20, col="white")
@@ -836,7 +851,257 @@ bgplot3d({
 ```
 </div>
 
-# 5. Flow through a dike
+# 5. Adding top boundary conditions to the model
+
+With the two dimensional models additional functions can be added representing different kinds of interactions between the saturated groundwater and for example the open water system on top.  
+In the previous exercises the effect of nodal spacing is illustrated, including the effect of local grid refinement close to a line flux.
+In this section we will focus on the effect of implementing a river in the already developed 2D groundwater model `GWModel2D` model.  
+This basic groundwater model contains two Dirichlet boundary conditions and the borders of the model and recharge. The numerical discretization is based on the Finite Volume Method.
+
+```{r}
+plot(GWModel2D,fill = 'state',fluxvecsize = 1)
+```
+<div class="question">
+Can you deduce from the plot above of the states of the model;  
+1. at which sides the Dirichlet boundary conditions are applied?
+2. what type of boundary conditions is used for the other two sides?
+3. that a flux rate, called rain, is added to the model?
+</div>
+
+<div class="answer">
+1. indicated by the contours of the state and the flow direction, the western and eastern boundaries are the lowest and water is discharged at these boundaries.  
+2. the north and south side are clearly flow lines, no water flows *over* these boundaries so these are Neumann boundary conditions. Since this is the 'natural'(you can consider it the default) boundary condition nothing need to be set for these boundaries.  
+3. as illustrated by the state (head) distribution, water flows from the centre of the model towards the western and eastern boundaries. 
+</div>
+
+
+The river will be a function containing an entrance resistance of the river-bed and a prescribed river level. It could function as a source or sink for the groundwater, depending on the calculated state in the model.
+
+<div class="question">
+How would you call this kind of boundary condition?  
+</div>
+
+<div class="student_answer">
+Give you answer here:    
+</div>
+
+<div class="answer">
+That will be the Cauchy boundary condition since is will generate a flux based on the prescribed river level. The resistance takes care of the rate of the flux i.c.m. with the potential difference between the states (heads).  
+</div>
+
+## 5.1 Implementing the river  
+
+As already illustrated in FVFE assignment 2, the interaction between the river and the groundwater model will be modeled with a function.  
+The river level is prescribed: 1.25 m (Above Mean Sea Level)  
+The entrance of the river bed: 5 days  
+The width of the river is 4 m.
+
+To keep the original `GWModel2D` model, a copy of this model will be created in the following chunk.
+```{r}
+GWModel2D_river = copy.model(GWModel2D)
+summary(GWModel2D_river)
+```
+
+
+
+<div class="question">
+Set up a new function for the river in the following chunk
+</div>
+
+
+```{r eval=FALSE}
+#river level
+#river bed resistance
+# river_BC = function(x,y,state)
+# {
+  
+# }
+
+```
+
+<div class="answer">
+See the code chunk below:
+
+```{r }
+river.level = 1.25
+resistance = 5
+river.width = 4 
+river_BC = function(x,y,state)
+{
+  River_flux = river.width * (river.level - state)/resistance
+  return(River_flux)
+}
+```
+
+</div>
+
+Now this river (the position) needs to be added to the model.  
+In one of the exercises in the previous section line flux a variable called `river` was already defined.  
+We will make use of this variable again. It is setup a matrix as shown in the chunk below:  
+
+```{r}
+river
+```
+To add the river to the model we can make use of the `add.lineflux()` function.  
+Checkout the package help on this function for proper implementation.
+
+<div class="question">
+Define the river in a proper way to be added to the model in the following chunk  
+```{r}
+#add river to model
+#add.lineflux()
+#summary(TwoDmodelRiver)
+```
+
+</div>
+
+<div class="answer">
+see code chunk below:
+```{r}
+#add river to model
+add.lineflux(model = GWModel2D_river, points = river, rates = list(river_BC), name = "river" )
+summary(GWModel2D_river)
+```
+As illustrated with the summary of the model the river is implemented as a line flux.
+</div>
+
+The model can now be run and the effect of the river analyzed.
+
+<div class="question">
+set up the following chunk for running the model, plot the stated and to show the balance of the model
+```{r}
+#run the model
+
+#plot the states of the model
+
+#print the (water) balance of the model
+```
+
+</div>
+
+<div class="answer">
+see code chunk below:
+
+```{r}
+#run the model
+solve.steps(GWModel2D_river, verboselevel = 1)
+#plot the states of the model
+plot(GWModel2D_river,fill = "state", fluxvecsize = 1,
+     fill.contours = c(1,2,3,4,5,6),
+     addlines = list(list(river[,1],river[,2],col = 'green')))
+#print the (water) balance of the model
+dataframe.balance(GWModel2D_river)
+```
+The effect of the river is clearly visible in the plot and in the (water) balance.
+
+</div>
+
+We will now have a closer look at the effect of the river on a nodal/volume scale.  
+For this we will add node numbers to the plot and zoom in a bit.
+
+```{r}
+plot(GWModel2D_river,fill="state",nodenumbersize = 0.6,addlines = list(list(river[,1],river[,2],col = 'green')))
+plot(GWModel2D_river,xlim = c(800,1300),ylim=c(500,1000),fill="state",nodenumbersize = 0.6,addlines = list(list(river[,1],river[,2],col = 'green')))
+```
+We will focus on some calculations at node 252 half way the river. 
+The calculated state, which is the head in the groundwater model is:
+
+```{r}
+#put the states in a dataframe
+heads = dataframe.states(GWModel2D_river)
+#have a look at the format of this dataframe
+head(heads)
+#select the data of the node
+heads[252,]
+
+heads[252,]$state
+
+
+```
+<div class="question">
+Calculate "by hand", the discharge rate to the river in this node. Check your results with the (water) balance for this node.
+Total total length $l$ of the river allocated to node 252 is 120.0829 m
+</div>
+
+<div class="answer">
+The river level, the river-bed resistance and the width of the river are all given.
+The discharge is calculated with the river function which is a Cauchy boundary condition.
+
+the flux rate in $m^2/d$:  
+$q_{river}= width \frac{H_{riv}-state}{C_{entrance}} \rightarrow 4 \frac{1.25-2.281047}{5}=-0.8248376 \,\,m^2/d$
+
+and the total discharge for this river node :
+
+$Q_{river}=l\, q_{river}\rightarrow 120.0829*-0.8248376=-99.048891$
+
+
+
+```{r}
+dataframe.balance(GWModel2D_river,c(252))
+externe.fluxen = dataframe.externalfluxes(GWModel2D_river)
+```
+
+The results match perfectly.
+
+</div>
+
+<div class="question">
+Calculate "by hand" the internal flux over the side of node 252 and 230.  
+
+Besides the data already present, additional data is available in the following table:  
+
+* the `facelength` between node 252 and `ni2`.  
+* the `nodedistances` between node 252 and `ni2`.  
+
+```{r}
+#Selection for some geometrical info; the length of the face between node 252 and 230 and the nodal distance between them
+nodal_interfaces = data.frame(GWModel2D_river$cellinterfaces)
+node252.additional = nodal_interfaces[which(nodal_interfaces$ni1 == 252),names(nodal_interfaces) %in% c("ni2","facelength","nodedistance")]
+print(node252.additional)
+```
+</div>
+
+
+<div class="answer">
+Based on the above data one can derive the internal flux over the face between node 252 and 230 by:  
+
+* states of both nodes  
+* transmissivity: 45 $m^2/d$  
+* Darcy's equation
+* `facelength`
+* `nodedistance`  
+
+States (heads) at node 252 and 230 are:
+```{r}
+print(heads[252,]$state)
+print(heads[230,]$state)
+```
+
+
+In a formula: $\overrightarrow Q_{[252,230]} = facelength \,kD\,\frac{H_{252}-H_{230}}{nodedistance}$
+
+Resulting in: $76.15510*60*\frac{2.281047 - 2.7731}{104.7965}=-21.4543$
+
+
+To check the results the following table contains:  
+
+* the node towards the flow goes from 252 `node2`.  
+* `flux1to2`is the flux-rate calculated from node 252 to node; `node2`.  
+* `totflux1to2`is the total flux going from node 252 to `node2`.  
+
+```{r}
+#put the internal fluxes into a dataframe 
+internal.fluxes = dataframe.internalfluxes(GWModel2D_river)
+#select from this dataframe data containing From node 252 to a neighbor node
+node252.internal.flux = internal.fluxes[which(internal.fluxes$node1 == 252),names(internal.fluxes) %in% c("node2","flux1to2","totflux1to2")]
+print(node252.internal.flux)
+```
+
+
+
+</div>
+
+# 6. Flow through a dike
 
 In the last part of this assignment, (simplified) flow through a dike will be modeled, in a situation similar to figure 2.
 
@@ -863,10 +1128,16 @@ In figure 3 a schematized vertical cross section of a dike is presented. Note th
 Fill in your answer here...
 </div>
 
+
+<div class="comment">
+**[GB]**moet hieronder de rm(list=ls()) weer terug (na sandbox)?
+</div>
+
+
 <div class=answer>
 20. The y-to-x-ratio in this example is 5.
 ```{r}
-rm(list=ls())
+#rm(list=ls())
 
 # Domain corners
 P1 = c(0,0)
@@ -887,7 +1158,31 @@ grid()
 ```
 </div>
 
+## 6.1 Unsaturated flow  
+
+While having a constant value for the saturated zone, the hydraulic conductivity is highly non-linear in the unsaturated zone and depends strongly on moisture content en pressure forces.
+
+The hydraulich conductivity depends on the pressure head and not the hydraulic head which is currently the state.
+The relation is simple and straight forward;
+
+$$
+H = \psi + z\\
+\psi = H - z
+
+$$
+
+We will use these ready made functions which are set in the (binary) data set `Staring.Rdata`. 
+
+
+some parameter for a few soil types:  
+
+Soil type |Soil code| $\theta_{res}$| $\theta_{sat}$| n   | $\alpha$| $\lambda$| $K_{sat}$  
+Loamy sand| B2      | 0.02          | 0.42          | 1.49| 0.0276  | -1.06    | 12.5
+
+
 This model will use groundwater head (i.e. pressure + elevation) as the state variable. The internal flux will be added to the model as defined in the R-code chunk below.
+
+
 ```{r}
 # Internal flux function.
 grad.flux = function(x, y, state, grad)
@@ -895,6 +1190,7 @@ grad.flux = function(x, y, state, grad)
   return(-0.1*grad)
 }
 ```
+
 
 <div class="exercise">
 21. The internal flux function is acceptable for the saturated part of the dike. For the unsaturated part of the dike this is less the case. Why? Does this overestimate or underestimate the fluxes there?
@@ -978,7 +1274,7 @@ Fill in your answer here...
 24. The largest flux is observed at the lower west boundary, where all the water is forced through a relatively small surface. The highest flux density is observed here. The length of these vectors represent the magnitude of the flux. The arrows point in the direction of the flow.
 ```{r}
 # Solve
-solve.steps(DikeFlow)
+solve.steps(DikeFlow, verboselevel = 1)
 
 # Plotting
 plot(DikeFlow, fill="state", fill.contours=seq(0, 1, length=10), fill.name="head", fluxvecsize=1)
@@ -1102,7 +1398,7 @@ recharge.bc = dataframe.boundaries(Dike_rain,segids = c(4))
 sum(recharge.bc$flux)
 ```
 
-When the recharge rate is increased to 10 mm/d one can clearly see the water table ($\psi=0$) rise to more than 2/3 of the dike (about 1.5 m above datum).  
+When the recharge rate is increased to 10 mm/d one can clearly see the water table rise to more than 2/3 of the dike (about 1.5 m above datum).  
 </div>
 
 <!-- include the hint.js -->
