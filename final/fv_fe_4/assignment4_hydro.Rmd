@@ -17,7 +17,8 @@ output:
 </div>
 ```{r}
 rm(list = ls())
-source("sourceFVFE2D.R")
+library("FVFE2D")
+#source("sourceFVFE2D.R")
 library("fields")
 ```
 
@@ -28,10 +29,11 @@ Note: If you want all the generated 3D-plots to remain open, run the complete Rm
 
 # Learning Goals
 * Understand how one dimensional groundwater models differ from 2 dimensional groundwater models.
+* Understand how different external fluxes are applied and calculated in 2 dimensional groundwater models
 * Understand how the model solution differs between the Finite Volume and Finite Elements method.
 * Know why interpolation functions are needed, which are implemented in the FVFE2D package and how they differ.
 * Understand the effect of changing the nodal distances near points of interest on the model solution.
-* Understand why unsaturated groundwater flow complicates the model and know which state variable would be more useful for this situation.
+* Understand why unsaturated groundwater flow complicates the solution of the model and know which state variable would be more useful for this situation.
 
 # Introduction
 In these exercises the basic steps of two dimensional groundwater flow models will be reviewed with the Finite Volume method and Finite Element method as implemented in the FVFE2D package. These exercises do not provide a complete overview of the functionality of the package, but several important functionalities will be discussed. You can use the built-in help for more information on this package. In many exercises an R-code chunk is given and needs to be edited by adding your answers. Editing is only necessary at locations indicated with 'XXXX', unless explicitly stated otherwise. After completing the R-code chunk, remove the `eval=FALSE` statement in the header of it so it will be included in the final document.
@@ -171,7 +173,7 @@ set.name(GWModel2D, "2D groundwater model")
 add.spatialflux(GWModel2D, XXXX, "rain")
 
 # Setting the boundary conditions. This command shows you the name of each boundary.
-plot.BC.id(GWModel2D)
+ plot.BC.id(GWModel2D)
 
 XXXX # western boundary
 XXXX # eastern boundary
@@ -200,7 +202,7 @@ set.name(GWModel2D, "2D groundwater model")
 add.spatialflux(GWModel2D, 0.001, "rain")
 
 # Makes a plot of the domain containing the boundary segment identifiers which can be used as arguments for the set.BC functions.
-plot.BC.id(GWModel2D)
+ plot.BC.id(GWModel2D)
 
 # Setting the boundary conditions
 set.BC.fixedstate(GWModel2D, "W", 0)
@@ -855,30 +857,37 @@ bgplot3d({
 
 With the two dimensional models additional functions can be added representing different kinds of interactions between the saturated groundwater and for example the open water system on top.  
 In the previous exercises the effect of nodal spacing is illustrated, including the effect of local grid refinement close to a line flux.
-In this section we will focus on the effect of implementing a river in the already developed 2D groundwater model `GWModel2D` model.  
+In this section we will focus on the effect of implementing a river in the already developed 2D groundwater model `GWModel2D`.  
 This basic groundwater model contains two Dirichlet boundary conditions and the borders of the model and recharge. The numerical discretization is based on the Finite Volume Method.
 
 ```{r}
 plot(GWModel2D,fill = 'state',fluxvecsize = 1)
 ```
 <div class="question">
+20.  
+
 Can you deduce from the plot above of the states of the model;  
+
 1. at which sides the Dirichlet boundary conditions are applied?
 2. what type of boundary conditions is used for the other two sides?
 3. that a flux rate, called rain, is added to the model?
 </div>
 
 <div class="answer">
+20.  
+
+answers
+
 1. indicated by the contours of the state and the flow direction, the western and eastern boundaries are the lowest and water is discharged at these boundaries.  
-2. the north and south side are clearly flow lines, no water flows *over* these boundaries so these are Neumann boundary conditions. Since this is the 'natural'(you can consider it the default) boundary condition nothing need to be set for these boundaries.  
-3. as illustrated by the state (head) distribution, water flows from the centre of the model towards the western and eastern boundaries. 
+2. the north and south side are clearly flow lines, no water flows *over* these boundaries so these are Neumann boundary conditions. Since this is the 'natural'(you can consider it the default) boundary condition, nothing need to be set for these boundaries.  
+3. as illustrated by the state (head) distribution, water flows from the center of the model towards the western and eastern boundaries. 
 </div>
 
 
 The river will be a function containing an entrance resistance of the river-bed and a prescribed river level. It could function as a source or sink for the groundwater, depending on the calculated state in the model.
 
 <div class="question">
-How would you call this kind of boundary condition?  
+21. How would you call this kind of boundary condition?  
 </div>
 
 <div class="student_answer">
@@ -886,14 +895,16 @@ Give you answer here:
 </div>
 
 <div class="answer">
+21.  
+
 That will be the Cauchy boundary condition since is will generate a flux based on the prescribed river level. The resistance takes care of the rate of the flux i.c.m. with the potential difference between the states (heads).  
 </div>
 
 ## 5.1 Implementing the river  
 
 As already illustrated in FVFE assignment 2, the interaction between the river and the groundwater model will be modeled with a function.  
-The river level is prescribed: 1.25 m (Above Mean Sea Level)  
-The entrance of the river bed: 5 days  
+The river level is prescribed at 1.25 m (Above Mean Sea Level)  
+The entrance of the river bed will be 5 days  
 The width of the river is 4 m.
 
 To keep the original `GWModel2D` model, a copy of this model will be created in the following chunk.
@@ -905,7 +916,7 @@ summary(GWModel2D_river)
 
 
 <div class="question">
-Set up a new function for the river in the following chunk
+21. Set up a new function for the river in the following chunk
 </div>
 
 
@@ -920,6 +931,8 @@ Set up a new function for the river in the following chunk
 ```
 
 <div class="answer">
+22.  
+
 See the code chunk below:
 
 ```{r }
@@ -936,8 +949,8 @@ river_BC = function(x,y,state)
 </div>
 
 Now this river (the position) needs to be added to the model.  
-In one of the exercises in the previous section line flux a variable called `river` was already defined.  
-We will make use of this variable again. It is setup a matrix as shown in the chunk below:  
+In one of the exercises in the previous section a line flux variable called `river` was already defined.  
+We will make use of this variable again. It is setup as a matrix, containing the begin point and end point coordinates, as shown in the chunk below:  
 
 ```{r}
 river
@@ -946,20 +959,22 @@ To add the river to the model we can make use of the `add.lineflux()` function.
 Checkout the package help on this function for proper implementation.
 
 <div class="question">
-Define the river in a proper way to be added to the model in the following chunk  
+23. Define the river in a proper way to be added to the model in the following chunk  
 ```{r}
-#add river to model
+##add a river to model
 #add.lineflux()
+##check if the river is actually added to the model
 #summary(TwoDmodelRiver)
 ```
 
 </div>
 
 <div class="answer">
-see code chunk below:
+23. see code chunk below:
 ```{r}
 #add river to model
 add.lineflux(model = GWModel2D_river, points = river, rates = list(river_BC), name = "river" )
+#check if the river is actually added to the model
 summary(GWModel2D_river)
 ```
 As illustrated with the summary of the model the river is implemented as a line flux.
@@ -968,7 +983,7 @@ As illustrated with the summary of the model the river is implemented as a line 
 The model can now be run and the effect of the river analyzed.
 
 <div class="question">
-set up the following chunk for running the model, plot the stated and to show the balance of the model
+24. set up the following chunk for running the model, plot the states and calculate the balance of the model
 ```{r}
 #run the model
 
@@ -980,7 +995,7 @@ set up the following chunk for running the model, plot the stated and to show th
 </div>
 
 <div class="answer">
-see code chunk below:
+24. see code chunk below:
 
 ```{r}
 #run the model
@@ -1019,12 +1034,12 @@ heads[252,]$state
 
 ```
 <div class="question">
-Calculate "by hand", the discharge rate to the river in this node. Check your results with the (water) balance for this node.
+25. Calculate "by hand", the discharge rate to the river in this node. Check your results with the (water) balance for this node.
 Total total length $l$ of the river allocated to node 252 is 120.0829 m
 </div>
 
 <div class="answer">
-The river level, the river-bed resistance and the width of the river are all given.
+25. The river level, the river-bed resistance and the width of the river are all given.
 The discharge is calculated with the river function which is a Cauchy boundary condition.
 
 the flux rate in $m^2/d$:  
@@ -1046,12 +1061,12 @@ The results match perfectly.
 </div>
 
 <div class="question">
-Calculate "by hand" the internal flux over the side of node 252 and 230.  
+26. Calculate "by hand" the internal flux over the side of node 252 and 230.  
 
 Besides the data already present, additional data is available in the following table:  
 
-* the `facelength` between node 252 and `ni2`.  
-* the `nodedistances` between node 252 and `ni2`.  
+* the `facelength` between node 252 and node number `ni2`.  
+* the `nodedistances` between node 252 and node number`ni2`.  
 
 ```{r}
 #Selection for some geometrical info; the length of the face between node 252 and 230 and the nodal distance between them
@@ -1059,14 +1074,17 @@ nodal_interfaces = data.frame(GWModel2D_river$cellinterfaces)
 node252.additional = nodal_interfaces[which(nodal_interfaces$ni1 == 252),names(nodal_interfaces) %in% c("ni2","facelength","nodedistance")]
 print(node252.additional)
 ```
+
+The numbers in the first column; 182, 183 and 184 are just row numbers of the (R) data frame. You may ignore them.
+
 </div>
 
 
 <div class="answer">
-Based on the above data one can derive the internal flux over the face between node 252 and 230 by:  
+26. Based on the above data one can derive the internal flux over the face between node 252 and 230 by:  
 
 * states of both nodes  
-* transmissivity: 45 $m^2/d$  
+* transmissivity: 60 $m^2/d$  
 * Darcy's equation
 * `facelength`
 * `nodedistance`  
@@ -1103,11 +1121,10 @@ print(node252.internal.flux)
 
 # 6. Flow through a dike
 
-In the last part of this assignment, (simplified) flow through a dike will be modeled, in a situation similar to figure 2.
+In the last part of this assignment, flow through a dike will be modeled, in a situation similar to figure 2.
 
 <div align="center">
 ![Figure 2: Photo of a Dutch dike (source:beeldbank.rws.nl rijkswaterstaat.](dike_beeldbank_rws.png)
-
 </div>
 
 In figure 3 a schematized vertical cross section of a dike is presented. Note the different scale of the y-direction compared to the x-direction. From figure 3 can be seen that the y-to-x-ratio is not equal to one. This can be graphically observed in this particular case, but this is not always so clear. Be aware that this y-to-x-ratio exists in this model. 
@@ -1118,7 +1135,7 @@ In figure 3 a schematized vertical cross section of a dike is presented. Note th
 
 
 <div class="exercise">
-20. Define the model domain in a new R-code chunk, as illustrated in figure 3, and plot the new domain. Firstly, clear the defined objects from the work space to prevent unwanted interference with previous model simulations. What is the y-to-x-ratio in this example?
+27. Define the model domain in a new R-code chunk, as illustrated in figure 3, and plot the new domain. Firstly, clear the defined objects from the work space to prevent unwanted interference with previous model simulations. What is the y-to-x-ratio in this example?
 </div>
 
 <button type="button" onclick="showHint(4007)">Show Hint</button>
@@ -1135,7 +1152,7 @@ Fill in your answer here...
 
 
 <div class=answer>
-20. The y-to-x-ratio in this example is 5.
+27. The y-to-x-ratio in this example is 5.
 ```{r}
 #rm(list=ls())
 
@@ -1162,57 +1179,97 @@ grid()
 
 While having a constant value for the saturated zone, the hydraulic conductivity is highly non-linear in the unsaturated zone and depends strongly on moisture content en pressure forces.
 
-The hydraulich conductivity depends on the pressure head and not the hydraulic head which is currently the state.
+The hydraulic conductivity depends on the *pressure* head and **not** the *hydraulic* head which is currently the state.
 The relation is simple and straight forward;
 
 $$
 H = \psi + z\\
 \psi = H - z
-
 $$
 
-We will use these ready made functions which are set in the (binary) data set `Staring.Rdata`. 
+
+With:  
+
+$H$: Hydraulic head (m)  
+
+$\psi$: Pressure head (m)  
+
+$z$: Elevation head (m)  
+
+Figure 4 illustrates the relation between these variables. Imagine a bucket with a height of 1 meter and filled with water. The reference head (green line) equals 0.0 m at the bottom of the bucket, but the pressure head (red line) equals 1.0 m. The hydraulic head is a constant being 1.0 m (blue line). Suppose you would measure the pressure head at a height 0.20 m from the bottom. This would be 0.80 m (intersection point dashed line and red line). The elevation head is 0.20 m (intersection point dashed line and green line). Summing pressure head and elevation head results in the hydraulic head: $H=\psi+z=0.8+0.2=1.0 \, m$ over the whole depth.
+
+![](HydraulicHead.png)
+
+Figure 4: Elevation and pressure heads in a bucket.
+
+In the unsaturated zone above the water table, the situation is different compared to the saturated groundwater model we constructed before:  
+
+*   The hydraulic conductivity $k$ is no longer constant but dependent on the pressure head (and moisture content);   
+*   The pressure head $\psi$ is now a negative number, when above the groundwater table, and can be interpreted as 'suction'.   
+
+In the table below the relation between hydraulic conductivity and pressure is presented for a 'loamy sand'.   
+Data is based on the so called "Staring series".
+
+Table of $k(\psi)$ data
+
+soil type| -1| -10| -20| -31| -50| -100| -250| -500| -1000|-2500|-5000|-10000|-16000 
+---------|---|----|----|----|----|-----|-----|-----|------|-----|-----|------|-----
+B2| 33.34|4.56| 2.42| 1.38|0.77|0.14|8.4E-3|1.9E-3|6.3E-4|1.7E-4|6.2E-5|2.7E-5|1.2E-5
+
+This $k(\psi)$  relation will be turned into a function:
+
+```{r}
+psi.set = c(-1,-10,-20,-31,-50,-100,-250,-500,-1000,-2500,-5000,-10000,-16000)
+k.set = c(33.34,4.56, 2.42, 1.38,0.77,0.14,8.4E-3,1.9E-3,6.3E-4,1.7E-4,6.2E-5,2.7E-5,1.2E-5)/100
+k_psi = approxfun(psi.set,k.set,rule=2)
+psi.pF = seq(4,0,length.out = 100)
+plot(psi.pF,k_psi(-10^psi.pF),type = "l",lwd=3,col="blue",
+     xlab = "pressure in pF (-log(psi) in cm)", ylab= "k(psi) m/d",
+     main = c("k(psi) function for a loamy sand, based on B2 Staring series"))
+#points(log10(-psi.set),k.set)
+grid()
+```
 
 
-some parameter for a few soil types:  
+Comparing the internal flux for flow in the saturated zone with the internal flux for simulating unsaturated conditions show that they are identical except for the hydraulic conductivity.
+As illustrated in the previous plot, the more a negative pressure (and also less moisture) is encountered in the soil, the lower the hydraulic conductivity. When the suction is in the order of -100 (pF=2) or less/more negative, conductivities become very small, resulting is very low fluxes most of the time.
 
-Soil type |Soil code| $\theta_{res}$| $\theta_{sat}$| n   | $\alpha$| $\lambda$| $K_{sat}$  
-Loamy sand| B2      | 0.02          | 0.42          | 1.49| 0.0276  | -1.06    | 12.5
+The internal flux for flow in  the unsaturated zone is therefor highly non-linear:
 
+$q_{s} = -k(\psi=H-z)\frac{\partial H}{\partial s}$
 
-This model will use groundwater head (i.e. pressure + elevation) as the state variable. The internal flux will be added to the model as defined in the R-code chunk below.
+With:  
+
+* $s$:    spatial coordinate (x or y/z) (m)  
 
 
 ```{r}
 # Internal flux function.
 grad.flux = function(x, y, state, grad)
 {
-  return(-0.1*grad)
+  return(-k_psi(100*(state - y))*grad)
 }
 ```
 
 
-<div class="exercise">
-21. The internal flux function is acceptable for the saturated part of the dike. For the unsaturated part of the dike this is less the case. Why? Does this overestimate or underestimate the fluxes there?
+<div class="question">
+28. Why should the (state - y) be multiplied by 100?  
 </div>
 
-<div class="student_answer">
-Fill in your answer here...
-</div>
 
 <div class="answer">
-22. The hydraulic conductivity is a constant $k_{sat}$ for saturated conditions but a function of pressure $\psi$ and highly non-linear for unsaturated conditions, see FVFE assignment 3 for details on this.  
-As pressure gets more negative with increasing distance from the saturated zone, the hydraulic conductivity strongly decreases too. Therefore, the flow in the unsaturated part is overestimated using the current internal flux function.
+28. It's simply the transformation from meter(the states) and centimeter for the `k_spi` function where the $\psi$ is in centimeters. It has a historical background.
 </div>
+
 
 Next, several boundary conditions have to be defined. The boundaries should be implemented as follows:
 
 * Line segment (0,0)-(0,0.5) is assigned a fixed state of 0.5 $m$
 * Line segment (10,0)-(10,1) is assigned a fixed state of 1.0 $m$
-* The horizontal top of the dike receives a recharge flux of 0.001 $mm/day$
+* The horizontal top of the dike receives a recharge flux of 0.001 $m/day$
 
 <div class="exercise">
-22. Create a new model and add the boundary conditions described above. Give an interpretation for each of these boundary conditions. What boundary condition is used on the remaining boundary segments?
+28. Create a new model and add the boundary conditions described above. Give an interpretation for each of these boundary conditions. What boundary condition is used on the remaining boundary segments?
 </div>
 
 <button type="button" onclick="showHint(4008)">Show Hint</button>
@@ -1220,11 +1277,19 @@ Next, several boundary conditions have to be defined. The boundaries should be i
 
 <div class="student_answer">
 Fill in your answer here...
+```{r}
+# =newFLOW2D()
+# plot.BC.id()
+#set.BC...
+#set.BC...
+#set.BC...
+```
+
 </div>
 
 <div class="answer">
 
-22. Boundary conditions:  
+28. Boundary conditions:  
 
 * East & west:  A hydrostatic water depth on both sides of the dike
 * Top:          Rainfall infiltrating into the dike
@@ -1243,163 +1308,165 @@ set.BC.fixedflux(DikeFlow, 4, 0.001)
 </div>
 
 <div class="exercise">
-23. Add a proper discretisation in the model. Use for this the geomden method, with an opdist of 0.5 and the proper y-to-x-ratio. Use the Finite Elements discretisation method. Add a randomly filled plot of the discretised domain.
+29. Add a proper discretization in the model.  
+
+Use for this the `geomden` method, with an `opdist` of 0.5 and the proper y-to-x-ratio.  
+Use the Finite Volumes discretisation method.  
+Add a randomly filled plot of the discretised domain.
 </div>
 
 <div class="student_answer">
 Fill in your answer here...
+```{r}
+#set.discretisation()
+
+
+```
 </div>
 
 <div class="answer">
 
-23. Using the ratio gives an evenly distribution of nodes in the domain although length and height scale are different.
+29. Using the ytoxratio = 5, gives an evenly distribution of nodes in the domain although length and height scale are different.
 ```{r}
 # Set the discretisation.
-set.discretisation(DikeFlow, nodes=list(type="geomgen", optdist=0.5, ytoxratio=5, verbose=FALSE), method="FE")
-
+set.discretisation(DikeFlow, nodes=list(type="geomgen", optdist=0.5, ytoxratio=5, verbose=FALSE), method="FV")
 # Randomly filled plot.
 plot(DikeFlow, fill="random", fill.border="black")
 ```
 </div>
 
 <div class="exercise">
-24. Solve and run the model. Make a plot with 10 contour lines between 0 and 1 and add flux vectors. Where do you observe the largest fluxes?
+30. Since the hydraulic conductivity is highly non-linear, it is good practice to initialize the model with reasonable heads first.  
+
+* Initialize the model with a hydraulic head of 2.0 m.
+* Solve/run the model. 
+* Make a plot with 10 contour lines for the head distribution and add flux vectors.  
+* Calculate the (water)balance for the model
+
+Where do you observe the largest fluxes?  
+
+TIP: Have a look at the plot help of the FVFE2D package for all plot options.
 </div>
 
 <div class="student_answer">
 Fill in your answer here...
+```{r}
+#do.initialise()
+#solve.stepts()
+#plot(xx,fill.contours = )
+#datframe.balance()
+```
+
 </div>
 
 <div class="answer">
-24. The largest flux is observed at the lower west boundary, where all the water is forced through a relatively small surface. The highest flux density is observed here. The length of these vectors represent the magnitude of the flux. The arrows point in the direction of the flow.
+30. The largest flux is observed at the lower west boundary, where all the water is forced through a relatively small surface. The highest flux density is observed here. The length of these vectors represent the magnitude of the flux. The arrows point in the direction of the flow.
 ```{r}
+#initiailize with fully saturated conditions
+do.initialize(DikeFlow,2.00)
 # Solve
-solve.steps(DikeFlow, verboselevel = 1)
-
-# Plotting
-plot(DikeFlow, fill="state", fill.contours=seq(0, 1, length=10), fill.name="head", fluxvecsize=1)
+solve.steps(DikeFlow, MAMcrit = 1e-6,RMSMcrit = 1e-9,verboselevel = 1)
+ # Plotting
+state.range = range(dataframe.states(DikeFlow)$state)
+plot(DikeFlow, fill="state", fill.contours=seq(state.range[1],state.range[2], length=10), fill.name="head", fluxvecsize=1)
+dataframe.balance(DikeFlow)
 ```
 </div>
 
-Apart from flow velocities, the distribution of water pressure in the dike is also important in order to investigate the stability of the dike. The standard use of the plot function as implemented in the FVFE2D package is with `fill= "state"`. This will in this case show the head distribution and not the pressure distribution. However, one can assign a function as fill argument for the plotting function. 
 
-<div class="exercise">
-25. Define the pressure function and create a contour plot of the pressure distribution in the dike. Note that the zero contour line of the pressure head represents the border between the saturated and unsaturated zone (the groundwater level). 
+More interesting is to have a look at the pressure head distribution and the distribution of the hydraulic conductivity.
+To plot this, one needs to create a $psi(x,z)$ and a $k(\psi)$ function first.  
+
+<div class="question">
+31.  For some further analysis of the result;  
+
+* Create a $\psi_{x,z}$ and $k(\psi)_{x,z}$ function to be used with the plot function of FVFE2D.   
+* Create both plots  
+* Add one contour indicating the water table in the $\psi_{x,z}$ plot.
+```{r}
+##the psi function for plotting
+# psi.func = function(x,y,state)
+# {
+#   # 
+# }
+
+##the k.psi function for plotting
+# k.func = function(x,y,state)
+# {
+#   # 
+# }
+#plot(xx,fill = current.psi)
+
+```
 </div>
 
-<button type="button" onclick="showHint(4009)">Show Hint</button>
-<p id="Q4009"> </p>
+<div class="answer">
+31. see the following code chunk;
+```{r}
+psi.func = function(x,y,state)
+{
+  return(100*(state - y))
+}
+k.func = function(x,y,state)
+{
+  return(k_psi(100*(state - y)))
+}
+plot(DikeFlow,fill = psi.func,fill.contours = c(0),main.title = "Pressure head in cm. and groundwater table")
+plot(DikeFlow,fill = k.func,main.title = "Hydraulic condcutivity (m/d)")
+```
+</div>
+
+<div class="question">
+32. Create a copy of the Dike model and redo 29 and 30 with the same discretization but now with the FE method. Use just the simplest one: `"FE"`.  
+Create the same plots for $\psi_{x,z}$ and $k(\psi)_{x,z}$
+
+```{r}
+#DikeFlow_FE = copy.model(DikeFlow)
+#setdiscritisation(xx,method = "FE")
+#do.initialize(xx,2.00)
+#solve.steps()
+#plot(xx,fill = psi.func,)
+#plot(xx, fill = k.func)
+```
+</div>
+
+<div class="answer">
+32. see the chunk below
+
+```{r}
+DikeFlow_FE = copy.model(DikeFlow)
+set.discretisation(DikeFlow_FE, nodes=list(type="geomgen", optdist=0.5, ytoxratio=5, verbose=FALSE), method="FE")
+plot(DikeFlow_FE,fill = "random",main.title = "Finite Elements Discretisation")
+do.initialize(DikeFlow_FE,2.0)
+solve.steps(DikeFlow_FE)
+state.range = range(dataframe.states(DikeFlow_FE)$state)
+plot(DikeFlow_FE, fill="state", fill.contours=seq(state.range[1],state.range[2], length=10), fill.name="head", fluxvecsize=1)
+dataframe.balance(DikeFlow_FE)
+plot(DikeFlow_FE,fill = psi.func, fill.contour=c(0))
+plot(DikeFlow_FE,fill = k.func)
+```
+</div>
+
+<div class="question">
+33. Compare both discretisation focussing on the (water) balance and the distribution of the hydraulic conductivity.  
+For comparing the $k(\psi)$ plots in both models, simply plot both distributions in a new window (left option of three in the upper right corner of the plots in the Rmd)
+Can you argue why the result are different?
+</div>
 
 <div class="student_answer">
-Fill in your answer here...
+Fill out your answer here.
 </div>
 
 <div class="answer">
-
-25. Since $H=\psi + z \rightarrow \psi = H-z$  
-
-```{r}
-# The pressure function.
-pres.fun = function(x,y,state)
-{
-  return(state-y)
-}
-
-# Plot pressure in the dike.
-plot(DikeFlow, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, length=9))
-```
+33. Comparing the FV en FE results;  
+Looking at the (water) balance; With the FV model, total outflow seems larger compared to the FE model. Since the recharge rate is the same for both, lateral flow is larger for the FV model.  
+Having a look at the distribution of the hydraulic conductivities in the model; for the FV model only one strip of volumes located at the water table ($\psi = 0$) have clear different conductivities compared to the volumes above(low conductivities) and volumes below the water table, having all the saturated conductivity.  
+For the FE model conductivities are more spread around the water table which makes it less 'easy' for this model to discharge water towards the left (west) side of the dike.
 </div>
 
-<div class="exercise">
-26. Last exercise; play around with the dike model. Investigate how you, with the help of the model that you have built, can investigate the flow through a dike for the following examples:
 
-* How do the water levels left and right of the dike influence the flow?
-* How do heterogeneities (e.g. a very conductive layer) influence the flow?
-* How does the rainfall intensity influence the flow?
-</div>
 
-<div class="answer">
-26.a  
-The following chunk contains results with an equal water level on the left and right side:  
-However, the right/eastern boundary is 1.0 m high for which only the lower 0.5 m should contain the prescribed head (H). Now the model simulates a prescribed head of 0.5 m AMSL over the total height and therefor also the not saturated upper part, which is not correct.
-To adjust for this, segment with ID= 2 need to be cut into a lower and upper part and the model need to be recreated with this.
-
-```{r}
-#make a copy of the original model
-Dike_equal_levels = copy.model(DikeFlow)
-
-#eastern boundary (nr 2) is set equal to western BC (fixed level 0.5 m)
-set.BC.fixedstate(Dike_equal_levels, 2, 0.5)
-
-# Solve
-solve.steps(Dike_equal_levels)
-
-# Plotting
-plot(Dike_equal_levels, fill="state", fill.contours=seq(0, 1, length=10), fill.name="head", fluxvecsize=1)
-plot(Dike_equal_levels, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, length=9))
-
-```
-
-26.b  
-To include an extra layer with high conductivity hydraulic conductivity the "k" of the internal flux (here 0.1 m/d) need to be transformed into a function based on interpolation.
-Suppose there would be a gravel layer of 0.25 m starting 0.20 m above the bottom.
-To mimic this gravel layer nearestneighbour interpelation seems to fit best.  
-
-```{r}
-gravel = data.frame(
-  x = c(0,10,10,10,10,0,0,0),
-  y =c(0,0,0.2,0.21,2,2,0.21,0.2),
-  k =c(25,25,25,0.1,0.1,0.1,0.1,25))
-gravel.fun = nearestneighbour.fun(data=gravel,zname = "k")
-#make a plot to visualize
-nrpoints = 20
-rows = seq(0,10,length=nrpoints)
-cols = seq(0,2,length=nrpoints)
-kfield = outer(rows,cols,gravel.fun)
-image(rows,cols,kfield)
-#create a new model with a internal flux depending on location
-dike.flux = function(x,y,state,grad)
-{
-  return(-gravel.fun(x,y)*grad)
-}
-Dike_gravel = newFLOW2D(domain=domain,systemfluxfunction = dike.flux,name = "dike_gravel_layer")
-set.BC.fixedstate(Dike_gravel,where = 2,value = 1.0)
-set.BC.fixedstate(Dike_gravel,where = 6, value = 0.5)
-set.BC.fixedflux(Dike_gravel,where =4, value = 0.001 )
-set.discretisation(Dike_gravel,nodes=list(type="geomgen", optdist=0.5, ytoxratio=5, verbose=FALSE), method="FE")
-solve.steps(Dike_gravel)
-plot(Dike_gravel, fill="state", fill.contours=seq(0, 1, length=10), fill.name="head", fluxvecsize=0.5)
-
-plot(Dike_gravel, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, length=9))
-
-```
-
-The results clearly shows preferential flow through the gravel layer
-
-26.c  
-This is simply accomplished by increasing the amount of recharge on top of the dike.  
-To make it a bit more practical the 'rate' will be replaced by a variable. See the code:  
-
-```{r}
-#first make a copy of the original mode:
-Dike_rain = copy.model(DikeFlow)
-set.name(Dike_rain,"recharge rate")
-#replace the old prescribed rain which has a constant value.
-recharge.rate = 0.01 #10 mm/d
-set.BC.fixedflux(Dike_rain,where = 4, value = "recharge.rate")
-
-solve.steps(Dike_rain,verboselevel = 2)
-
-plot(Dike_rain, fill="state", fill.contours=seq(0, 1, length=10), fill.name="head", fluxvecsize=1)
-plot(Dike_rain, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, length=9))
-
-dataframe.balance(Dike_rain)
-recharge.bc = dataframe.boundaries(Dike_rain,segids = c(4))
-sum(recharge.bc$flux)
-```
-
-When the recharge rate is increased to 10 mm/d one can clearly see the water table rise to more than 2/3 of the dike (about 1.5 m above datum).  
-</div>
+This concludes the last FVFE assignments
 
 <!-- include the hint.js -->
 <script src="hints_n.js"></script>
