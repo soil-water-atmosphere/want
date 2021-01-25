@@ -87,7 +87,7 @@ Your task is to write the code that fills the vectors `u_sol` and `v_sol` using 
 </div>
 
 <div class="answer">
-```{r numerical_implementation_solution}
+```{r numerical_implementation_solution, eval=FALSE}
 M = matrix(0, nrow=n_sol*2, ncol=n_sol*2)
 v = rep(0, n_sol*2)
 K = K_m * rep(1, n_sol-1)
@@ -130,6 +130,60 @@ M[2*n, 2*n  ] = M[2*n, 2*n  ] + 1.
 sol = solve(M,v)
 u_sol[] = sol[1:n]
 v_sol[] = sol[(n+1):(2*n)]
+```
+</div>
+
+<div class="answer">
+```{r numerical_implementation_solution_alternative, eval=TRUE}
+M = matrix(0, nrow=n_sol, ncol=n_sol)
+K = K_m * rep(1, n_sol-1)
+n = n_sol
+
+u_gv = u_g * rep(1, n_sol)
+v_gv = v_g * rep(1, n_sol)
+
+# Set the surface Dirichlet BC
+M[  1,  1] = 1.
+
+# Set the diffusion in the matrix.
+for (i in 2:(n-1))
+{
+  M[i,i-1] = M[i,i-1] + K[i-1]/dz_sol**2
+  M[i,i  ] = M[i,i  ] - (K[i-1] + K[i])/dz_sol**2
+  M[i,i+1] = M[i,i+1] + K[i]/dz_sol**2
+}
+
+# Neumann BC at top (free slip, no gradient)
+M[n, n-1] = M[n, n-1] - 1.
+M[n, n  ] = M[n, n  ] + 1.
+
+M_inv = solve(M)
+
+# To solve u, the whole system needs to be inverted.
+N = M + f_0^2*M_inv
+v = f_0^2*M_inv%*%u_gv + f_0*v_gv
+
+# Set the surface Dirichlet BC
+N[1,] = 0.
+N[1,1] = 1.
+
+# Neumann BC at top (free slip, no gradient)
+N[n,] = 0.
+N[n, n-1] = N[n, n-1] - 1.
+N[n, n  ] = N[n, n  ] + 1.
+
+v[1] = 0.
+v[n] = 0.
+
+u_sol = solve(N, v)[1:n]
+
+# v can be easily retrieved if u is known.
+v = f_0*u_sol - f_0*u_gv
+
+# Do not forget to set the BCs, M is still OK, as u and v share BCs
+v[1] = 0.
+v[n] = 0.
+v_sol[] = solve(M, v)[1:n]
 ```
 </div>
 
