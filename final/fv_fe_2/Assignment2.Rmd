@@ -10,7 +10,7 @@ output:
     css: want_n.css
     toc: yes
     toc_depth: 4
-date: "December 2019"
+date: "December 2021"
 subtitle: Finite Volumes, transient 1D
 ---
 
@@ -1437,6 +1437,17 @@ grid()
 print(summary(result.store - result2.store))
 ```
 </div>
+
+
+## Theory
+### Introduction
+The transient groundwater flow model simulated the effect of an extraction on flow between two rivers. The numerical approximation used was the Finite volume technique.  
+Suppose the model was approximated with the Finite Element technique using the linear approach.
+The water balance would then be:
+$$
+
+$$
+Calculate the redistribution of the well rate to the neighboring nodes 
 
 **This finalizes the hydro part of assignment 2**
 
