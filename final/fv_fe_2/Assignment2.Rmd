@@ -1,15 +1,15 @@
 ---
 title: "FVFE Practical 2 - Transient flow in 1D"
 output:
+  html_notebook:
+    css: want_n.css
+    toc: yes
+    toc_depth: 4
   html_document:
     code_folding: show
     css: want_n.css
     toc: yes
     toc_depth: '4'
-  html_notebook:
-    css: want_n.css
-    toc: yes
-    toc_depth: 4
 date: "December 2021"
 subtitle: Finite Volumes, transient 1D
 ---
@@ -1439,15 +1439,54 @@ print(summary(result.store - result2.store))
 </div>
 
 
-## Theory
+## Theory Finite Elements
 ### Introduction
 The transient groundwater flow model simulated the effect of an extraction on flow between two rivers. The numerical approximation used was the Finite volume technique.  
 Suppose the model was approximated with the Finite Element technique using the linear approach.
-The water balance would then be:
+The water balance would then be, for each element $[x_L,x_R]$:
+$$
+\begin{matrix}
+Q_{storage} &=& Q_{internal_{in}}-Q_{internal_{out}}+Q_{well}+Q_{precipation}\\
+\int_{x_L}^{x_R} S(x)\frac{\partial H}{\partial t}(x)\;dx &=& \overrightarrow{Q}(x_L)-\overrightarrow{Q}(x_R)+\int_{x_L}^{x_R} \hat{Q}(x)\;dx+ \sum_{p \in [x_L,x_R]} \dot{Q}(p)\\
+\end{matrix}
 $$
 
-$$
-Calculate the redistribution of the well rate to the neighboring nodes 
+### Theory Question
+
+Suppose the well is located at x=83 m. 
+
+<div class="question">
+Calculate (by hand) the contribution of the well rate to the neighboring nodes.  
+</div>
+
+You may check the results by simply set the discretization to `method = "FE"` of the basis stationary model (with well), `stat_well`.  
+
+<div class="answer">
+The well is a point flux; $\dot Q(x)$ and is redistributed with the aid of the base function $\mathcal{H}_{k}$ with $k$ indicating the nodes.  
+For the left node $k$ of the element, the ratio is $\mathcal{H}_{k_L} = \frac{x_{k+1}-x(p)}{x_{k+1}-x_k}$ .  
+For the right node $k+1$: $\mathcal{H}_{k_R} = \frac{x(p) - x_{k}}{x_{k+1-x_k}}$ 
+
+The well is located at $x=83$m , on the element between nodes $x_L = x_k=80$m and $x_R = x_{k+1}=90$m.  
+$\dot Q(k)=\mathcal{H}_{k_L}\dot Q(83) = \frac{90-83}{90-80}0.25=\frac{7}{10}*0.25=0.175\;m^2/d$  
+$\dot Q(k+1)=\mathcal{H}_{k_R}\dot Q(83) = \frac{83-80}{90-80}0.25=\frac{3}{10}*0.25=0.075\;m^2/d$  
+
+```{r}
+FE_stat_well = newFLOW1D(domain = domain, systemfluxfunction = flux.fun,name = "FE_stationary model")
+set.BC.fixedstate(FE_stat_well,where = "left",value = left.bound )
+set.BC.fixedstate(FE_stat_well,where = "right",value = right.bound)
+add.spatialflux(FE_stat_well,rate = 0.001, name = "recharge")
+add.pointflux(FE_stat_well,at = 83, value = -0.25,name = "Well")
+set.discretisation(FE_stat_well,nodes=nodes,method = "FE")
+solve.steps(FE_stat_well)
+plot(FE_stat_well,fluxplot = T)
+dataframe.balance(FE_stat_well,region = c(9))
+dataframe.balance(FE_stat_well,region = c(10))
+dataframe.externalfluxes(FE_stat_well)[9:10,]
+```
+
+
+</div>   
+
 
 **This finalizes the hydro part of assignment 2**
 
