@@ -1441,15 +1441,16 @@ print(summary(result.store - result2.store))
 
 ## Theory Finite Elements
 ### Introduction
-The transient groundwater flow model simulated the effect of an extraction on flow between two rivers. The numerical approximation used was the Finite volume technique.  
-Suppose the model was approximated with the Finite Element technique using the linear approach.
-The water balance would then be, for each element $[x_L,x_R]$:
+The models,  both the meteorological and hydrological one, consider transient flow in 1D. Such models are mathematically given by the requirement that for each element $[xL,xR]$ the mass balance holds:
 $$
 \begin{matrix}
-Q_{storage} &=& Q_{internal_{in}}-Q_{internal_{out}}+Q_{well}+Q_{precipation}\\
+Q_{storage} &=& Q_{internal_{in}}-Q_{internal_{out}}+Q_{external_{spatial}}+Q_{external_{point}}\\
 \int_{x_L}^{x_R} S(x)\frac{\partial H}{\partial t}(x)\;dx &=& \overrightarrow{Q}(x_L)-\overrightarrow{Q}(x_R)+\int_{x_L}^{x_R} \hat{Q}(x)\;dx+ \sum_{p \in [x_L,x_R]} \dot{Q}(p)\\
 \end{matrix}
 $$
+The model for this Theory Question concerns the last model; a section between two rivers, implemented as boundary conditions, where transient flow towards an extraction well is simulated.  
+The numerical approximation used was the Finite Volume technique. Suppose the model was approximated with the Finite Element technique using the linear approach.
+
 
 ### Theory Question
 
@@ -1462,9 +1463,9 @@ Calculate (by hand) the contribution of the well rate to the neighboring nodes.
 You may check the results by simply set the discretization to `method = "FE"` of the basis stationary model (with well), `stat_well`.  
 
 <div class="answer">
-The well is a point flux; $\dot Q(x)$ and is redistributed with the aid of the base function $\mathcal{H}_{k}$ with $k$ indicating the nodes.  
-For the left node $k$ of the element, the ratio is $\mathcal{H}_{k_L} = \frac{x_{k+1}-x(p)}{x_{k+1}-x_k}$ .  
-For the right node $k+1$: $\mathcal{H}_{k_R} = \frac{x(p) - x_{k}}{x_{k+1-x_k}}$ 
+The well is a point flux; $\dot Q(p)$ and is redistributed with the aid of the base function $\mathcal{H}_{k}$ with $k$ indicating the nodes.  
+For the left node $k$ of the element, the ratio is $\mathcal{H}_{k_L}\big(x(p)\big) = \frac{x_{k+1}-x(p)}{x_{k+1}-x_k}$.  
+For the right node $k+1$: $\mathcal{H}_{k_R}\big(x(p)\big) = \frac{x(p) - x_{k}}{x_{k+1-x_k}}$
 
 The well is located at $x=83$m , on the element between nodes $x_L = x_k=80$m and $x_R = x_{k+1}=90$m.  
 $\dot Q(k)=\mathcal{H}_{k_L}\dot Q(83) = \frac{90-83}{90-80}0.25=\frac{7}{10}*0.25=0.175\;m^2/d$  
