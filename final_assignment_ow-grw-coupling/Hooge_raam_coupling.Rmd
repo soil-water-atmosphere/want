@@ -1,13 +1,13 @@
 ---
 title: "Hooge Raam open water with groundwater interactions"
 output:
+  html_notebook:
+    toc: yes
+    css: want_n.css
   html_document:
     toc: yes
     css: want_n.css
     df_print: paged
-  html_notebook:
-    toc: yes
-    css: want_n.css
 ---
 
 # Introduction
@@ -1506,7 +1506,7 @@ MRESULT = function()
 As an example the following model parameters can be used for the analysis;
 
 1.  `HR.n` the manning coefficient
-2.  `HR.So` the bed slope of the Hooge Raam
+2.  `C_ditch` the entrance resistance of the ditches in the area
 3.  `HR.Qin` the influx in $m^3/s$ at the upstream end of the Hooge Raam
 4.  `H_surface` the average elevation of the drained area
 5.  `H_drainage` the average drain level of the drained area
@@ -1522,9 +1522,7 @@ str(base)# print the list for inspection
 
 <div class="answer">
 ```{r}
-#base = list(HR.n = HR.n, HR.So = HR.So, HR.Qin = HR.Qin, H_surface=H_surface, H_drainage = H_drainage)
-#base = list(HR.n = HR.n, HR.So = HR.So, HR.Qin = HR.Qin, H_surface=H_surface, GW.S = GW.S)
-base = list(HR.n = HR.n, HR.So = HR.So, GW.kD= GW.kD, H_surface=H_surface, H_drainage = H_drainage, GW.S = GW.S)
+base = list(HR.n = HR.n,C_ditch = C_ditch , GW.kD= GW.kD, H_surface=H_surface, H_drainage = H_drainage, GW.S = GW.S)
 str(base)
 ```
 </div>
@@ -1544,15 +1542,14 @@ str(scale)#print the scales for inspection
 <div class="answer">
 ```{r}
 range.HR.n = c(0.005,0.06)
-range.HR.So = c(0.001,0.003)
+range.C_ditch = c(2,8)
 range.GW.kD = c(20,50)
 range.H_surface = c(14.5,17)
 range.H_drainage = c(HR.botelev.downstream+0.5,HR.botelev.upstream+0.50)
 range.GW.S = c(0.02,0.10)
 
 scale = list(HR.n = diff(range.HR.n)/4,
-             HR.So = diff(range.HR.So)/4,
-             #HR.Qin = diff(range.HR.Qin)/4,
+             C_ditch = diff(range.C_ditch)/4,
              GW.kD = diff(range.GW.kD)/4,
              H_surface = diff(range.H_surface)/4,
              H_drainage = diff(range.H_drainage)/4,
@@ -1709,10 +1706,10 @@ Sensitivity.loop()
 dMdHR.n = (MRESULT() - M_base)/(eps*base$HR.n)
 HR.n = base$HR.n
 
-HR.So = base$HR.So*(1 + eps)
+C_ditch = base$C_ditch*(1 + eps)
 Sensitivity.loop()
-dMdHR.So = (MRESULT() - M_base)/(eps*base$HR.So)
-HR.So = base$HR.So
+dMdC_ditch = (MRESULT() - M_base)/(eps*base$C_ditch)
+C_ditch = base$C_ditch
 
 GW.kD = base$GW.kD * (1 + eps)
 Sensitivity.loop()
@@ -1759,15 +1756,15 @@ Determine the derived uncertainty based on the aforementioned list
 <div class="answer">
 ```{r}
 varM.HR.n = (scale$HR.n*dMdHR.n)^2
-varM.HR.So = (scale$HR.So*dMdHR.So)^2
+varM.C_ditch = (scale$C_ditch*dMdC_ditch)^2
 varM.GW.kD = (scale$GW.kD*dMdGW.kD)^2
 varM.H.surface = (scale$H_surface*dMdHR_surface)^2
 varM.H.drainage = (scale$H_drainage*dMdH_drainage)^2
 varM.GW.S = (scale$GW.S*dMdGW.S)^2
-varM.total = varM.HR.n + varM.HR.So + varM.GW.kD + varM.H.surface + varM.H.drainage + varM.GW.S
+varM.total = varM.HR.n + varM.C_ditch + varM.GW.kD + varM.H.surface + varM.H.drainage + varM.GW.S
 
 relvarM = list(HR.n = varM.HR.n/varM.total,
-               HR.So = varM.HR.So/varM.total,
+               C_ditch = varM.C_ditch/varM.total,
                GW.kD = varM.GW.kD/varM.total,
                H.surface = varM.H.surface/varM.total,
                H.drainage = varM.H.drainage/varM.total,
@@ -1780,8 +1777,11 @@ pie(as.numeric(relvarM),labels = names(relvarM),
 
 </div>
 
-
+<div class="comment">
 ## ASSIGNMENT Full coupling
 
 As a last assignment, when you have enough time, create a new `sensitivity.loop` in which you include both models in one time loop exchanging fluxes from groundwater to open water and drainage depths from the open water model to the groundwater model `H_draiange`.  
 How does this influence your results?
+
+GB: volgende keer maar
+</div>
