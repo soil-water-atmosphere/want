@@ -1771,7 +1771,7 @@ relvarM = list(HR.n = varM.HR.n/varM.total,
                GW.S = varM.GW.S/varM.total)
 
 pie(as.numeric(relvarM),labels = names(relvarM),
-    main = paste("Standard deviation of M = ",round(sqrt(varM.total),4),"proper unit"),
+    main = paste("MRESULT = ",round(MRESULT(),2),", Standard deviation of MRESULT = ",round(sqrt(varM.total),2),"proper unit: m3/s"),
     col=rainbow(length(relvarM)))
 ```
 
