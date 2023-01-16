@@ -157,7 +157,7 @@ The saturated part of groundwater begins at the groundwater table and stops, in 
 The permeability of the deposits is defined by the hydraulic conductivity $k$ with unit [$\mathsf{m/d}$].  The product of the conductivity and the (average) saturated thickness $D$ of an aquifer over which the flow occurs, is called **Transmissivity** $kD$ or $T$ with unit [$\mathsf{m^2/d}$].  This extends the basic Darcy equation to:  
 
 \begin{equation}
-q_{Darcy}=-kD \frac{\partial H}{\partial s}
+Q_{Darcy}=-kD \frac{\partial H}{\partial s}
 (\#eq:Dupuit-eq)
 \end{equation}
 With:  
@@ -198,11 +198,11 @@ Fill in your answer...
 <div class="answer">
 * type 1 internal flux is given by: 
 
-$$\vec{q} = - k\;D\; \frac{\partial H}{\partial x}$$
+$$\vec{Q} = - k\;D\; \frac{\partial H}{\partial x}$$
 
 * type 2 internal flux is given by: 
 
-$$\vec{q} = - k\;H\; \frac{\partial H}{\partial x}$$
+$$\vec{Q} = - k\;H\; \frac{\partial H}{\partial x}$$
 </div>
 
 <div class="exercise">
