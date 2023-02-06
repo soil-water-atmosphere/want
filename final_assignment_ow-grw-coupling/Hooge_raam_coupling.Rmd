@@ -25,7 +25,7 @@ De open water model represents a small river called the Hooge Raam. The groundwa
 Flow in the open water model is based on the diffusive wave ("Froude = 0") approximation in 1D. Groundwater flow is based on Darcy's equation and simulates the flow between two open water courses (ditches or drains) in 1D.  Groundwater flow will be simulated in transient mode to account for storage changes. The open water flow model simulates in pseudo stationary mode.  
 A storm event, a heavy rain shower, is the forcing for which we will investigate flow from the surface into the soil, towards ditches and finally to the Hooge Raam to get discharged at the weir on the lower side.
 
-The Hooge Raam is located just below the small town Grave and is part of the waterboard "Aa en Maas". The surrounding area is mainly used as grasslands, some cornfields and a few forest plots. The area is reasonably flat where surface levels range from 15.5 till about 17.5 m AMSL (Above Mean Sea Level).
+The Hooge Raam is located just below the small town Grave and is part of the water board "Aa en Maas". The surrounding area is mainly used as grasslands, some cornfields and a few forest plots. The area is reasonably flat where surface levels range from 15.5 till about 17.5 m AMSL (Above Mean Sea Level).
 
 The figure below gives an overview of the Hooge Raam which will be considered for modeling.
 
@@ -85,18 +85,11 @@ We will use the following data for dimensioning the river. Data is based on "leg
 You may want to quickly browse through this "legger" to see what information is available. Go to https://www.aaenmaas.nl/onswerk/regels/legger/ and open the 'Legger oppervlaktewater'.
 
 
-<div class="comment">
-Misschien toevoegen:
-
-You may want to quickly browse through this "legger" to see what information is available. Go to https://www.aaenmaas.nl/onswerk/regels/legger/ and open the 'Legger oppervlaktewater'.
-GB goed idee!
-</div>
-
-The length of this reach of the Hooge Raam is 1470 m. Upstream bottom level 14.50 m AMSL, downstream bottom level 11.80 m AMSL, bottom width 2.10 m, side slope 1.5 m/m.
+The length of this reach of the Hooge Raam is 1470 m. Upstream bottom level 14.50 m AMSL, downstream bottom level 11.80 m AMSL, (average) bottom width 2.10 m, (average) side slope 1.5 m/m.
 
 Weir: crest width 2.0 m, crest height: 11.45 and 12.60 m.
 
-Influx stationary upstream based on base flow as discharge of an upstream area of 250 ha (discharge 0.5 ? - 1 l/s/ha).
+Influx stationary upstream based on base flow as discharge of an upstream area of 250 ha (assume a discharge of 0.5 l/s/ha).
 
 ```{r}
 rm(list = ls())
@@ -134,7 +127,7 @@ The cross section can in general have a complex and spatially varying form. Her 
 
 ```{r, eval=TRUE}
 
-HR.b=2.5   # bottom  width
+HR.b=2.1   # bottom  width
 HR.m=1.5   # side slope
 ```
 
@@ -173,16 +166,29 @@ HR.A = function(a)
 }
 ```
 
-One of the reasons that this wetted cross section is so important is because of the important formula $Q = v A$, were $Q$ is the discharge, $v$ is the velocity and $A$ is the wetted cross section. As can be seen in the function above that the wetted cross section is dependent on the water depth $a$. One way to see the influence of the wetted cross section on the discharge is to investigate the relationship between $Q$ and $a$ for fixed velocities. Here is a typical example (it is customary to plot water depths on the vertical axis):
+One of the reasons that this wetted cross section is so important is because of the important formula $Q = v A$, were $Q$ is the discharge, $v$ is the velocity and $A$ is the wetted cross section. 
+Some typical (max) velocities depending of the soil type are given the table below  
+
+| Soil type           | velocity m/s   |
+|:-------------------:|:--------------:|
+| clay/loam/loess     | 0.60 - 0.80    |
+| sand/solid peat     | 0.30 - 0.60    |
+| coarse sand         | 0.20 - 0.50    |
+| fine sand/soft peat | 0.15 - 0.30    |
+
+: source: Cultuurtechnisch Vademecum 1988
+
+As can be seen in the function above that the wetted cross section is dependent on the water depth $a$. One way to see the influence of the wetted cross section on the discharge is to investigate the relationship between $Q$ and $a$ for fixed velocities. Here is a typical example (it is customary to plot water depths on the vertical axis):
 
 ```{r, eval=TRUE}
 Arange =  HR.A(arange)
-Qrange = 1.25*Arange
+vel = 0.50 #m/s
+Qrange = vel*Arange
 plot(Qrange,arange,
      main="Hooge Raam Q-a relation for fixed velocity v",
      xlab="Q (m^3/s)",ylab="a (m)",col="brown",lwd=3,type="l")
 legend("bottomright", inset=.05, title="v (m/s)",
-       c("1.25"), col=c("brown"),lwd=3,horiz=TRUE)
+       c("0.5"), col=c("brown"),lwd=3,horiz=TRUE)
 grid(col="black")
 ```
 
@@ -483,7 +489,7 @@ $$
   h = z_b(x)+a 
 $$
 
-For the Hooge Raam, a function for the bottom was already given: **HR-zb** (see above). 
+For the Hooge Raam, a function for the bottom was already given: **HR.zb** (see above). 
 
 
 ## The equation
@@ -614,7 +620,8 @@ Discuss:
 -   use the help of FVFE1D to discuss the role of the double quotes around HR.Qin in the definition of the upstream boundary condition:
 </div>
 <div class="answer">
--   The quotes makes that whenever the variable HR.Qin changes its value #-- the upstream boundary condition is adjusted to this new value. #--
+-   The quotes indicate the variable string is defined and whenever the variable HR.Qin changes its value; the upstream boundary condition is adjusted to this new value. 
+In de </set.BC.fluxstate()/> function above </HR.weir.BC/> is not enclosed by brackets because this refers to the function HR.weir.BC
 </div>
 <div class="question">
 -   describe the acceptability condition of the model for the level in words:
@@ -645,7 +652,7 @@ legend("bottomleft", inset=.05,
 
 ## Model 2: adding drainage
 
-All the approaches only considered the Hooge Raam as a transport river: water coming in upstream had to be transported downstream. In reality input (in draining situations) of water does also occur along the trajectory. This is called *lateral inflow*. In terms of the FVFE1D package this is called *spatialflux*. In this example we will think of this flux as due to *diffuse drainage*: water collected in ditches and drain tubes ending up in the river. We will think this drainage flux to be uniform over the length of the river. A beautiful name was chosen here: HR.lateraldrainage. The name lateral is a typical name for this type of fluxes in open water: lateral means "coming from the side", so external.
+All the approaches only considered the Hooge Raam as a transport river: water coming in upstream had to be transported downstream. In reality input (in draining situations) of water does also occur along the trajectory. This is called *lateral inflow*. In terms of the FVFE1D package this is called *spatialflux*. In this example we will think of this flux coming from draining the arabel land where water collected in ditches and drain tubes ending up in the river. We will think of this drainage flux to be uniform over the length of the river. In this case this is called HR.lateraldrainage. The name lateral is a typical name for this type of fluxes in open water: lateral means "coming from the side", so external.
 
 A proper value for this number should come from a groundwater model. For an example value here we just take 50% of the inflow upstream as a total, that has to be distributed over the length of the river.
 
