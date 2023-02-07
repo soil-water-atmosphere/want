@@ -1,13 +1,13 @@
 ---
 title: "Hooge Raam open water with groundwater interactions"
 output:
+  html_notebook:
+    toc: yes
+    css: want_n.css
   html_document:
     toc: yes
     css: want_n.css
     df_print: paged
-  html_notebook:
-    toc: yes
-    css: want_n.css
 ---
 
 # Introduction
@@ -22,7 +22,7 @@ The Hooge Raam is located just below the small town Grave and is part of the wat
 
 The figure below gives an overview of the Hooge Raam which will be considered for modeling.
 
-![Overview Hooge raam and area](Hooge-raam_overview.png)
+![Overview Hooge Raam and area](Hooge-raam_overview.png)
 
 The first part contains the explanation and assignments for the open water model, the second will go into the details of the groundwater model, the coupling of both models is described in the third part and finally the last part (4) contains the setup to determine derived uncertainties of the "model-train".
 
@@ -1065,6 +1065,9 @@ Later on, one may use the calculated open water level to adjust the drain depth 
 The pre-calculated drainage and surface runoff of the groundwater model are used as input ("forcing") for the open water model `HR.backwatermodel` and need to be "scaled" to proper dimensions; $m^3/s$.  \
 The groundwater drainage and surface runoff fluxes are based on one typical parcel having an average ditch distance of 125 m. 
 There are many of these parcels in the catchment area of the Hooge Raam. These discharge rates have unit $m^2/d$ and need to be transformed to the total discharging area of the Hooge Raam into units of $m^3/s$. For this, you can imagine all parcels, with an average ditch distance of 125m, were set behind each other resulting in a, let's call it a *diffuse length* calculated as: $\frac {\text{total_drained_area}}{\text{ditch_distance}}$.
+The figure below illustrates the determination of the total diffuse length = ${\sum\text{LocalPathLength}}=\frac{\text{Drained Area}}{\text{Ditch Distance}}$  \
+![illustration to indicate how the diffuse length is determined](Hooge_raam_diffuse_length.png)
+ \
 Finally the groundwater drainage and surface runoff need to be transformed to a lateral inflow rate of $m^3/s/m_{HRcourse}$ for the Hooge Raam.\
 The total considered discharging area of the Hooge Raam is 500 ha.  
 
