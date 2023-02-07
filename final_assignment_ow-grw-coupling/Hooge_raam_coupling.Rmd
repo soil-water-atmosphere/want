@@ -1,23 +1,16 @@
 ---
 title: "Hooge Raam open water with groundwater interactions"
 output:
-  html_notebook:
-    toc: yes
-    css: want_n.css
   html_document:
     toc: yes
     css: want_n.css
     df_print: paged
+  html_notebook:
+    toc: yes
+    css: want_n.css
 ---
 
 # Introduction
-
-<div class="comment">
-
-Generieke opmerkingen: ik vind het wat verwarrend dat HR.xxx wordt gebruikt voor zowel (vaste) waarden als functies. Wellicht voor functies HR.fun.xxx gebruiken? 
-GB. `HR.XXX` is bedoeld als onderscheid wat bij open water en wat bij grondwater hoort maar ik begrijp je punt.
-Heb nu geen tijd meer om dat goed aan te passen. Voor 2022-2023 wellicht..
-</div>
 
 
 With this final assignment both an open water model and a groundwater model will be developed which will be coupled.  
@@ -218,14 +211,14 @@ grid(col="black") #--
 </div>
 
 <div class="answer">
-Reasonable velocities would be e.g. 0.25, 0.5, 0.75 and 1 m/d  
+Reasonable velocities would be e.g. 0.15, 0.25, 0.50 and 0.8 m/d
 
 ```{r, eval=TRUE}
 Arange =  HR.A(arange) #--
-Q1range = 0.25*Arange  #--
-Q2range=  0.5*Arange   #--
-Q3range=  0.75*Arange  #--
-Q4range = 1*Arange     #--
+Q1range = 0.15*Arange  #--
+Q2range=  0.25*Arange   #--
+Q3range=  0.50*Arange  #--
+Q4range = 0.8*Arange     #--
 plot(Q4range,arange,   #--
      main="Hooge Raam Q-a relation for fixed velocity v", #--
      xlab="Q (m^3/s)",ylab="a (m)",col="brown",lwd=3,type="l") #--
@@ -233,7 +226,7 @@ lines(Q3range,arange,lwd=3,col="blue") #--
 lines(Q2range,arange,lwd=3,col="red")  #--
 lines(Q1range,arange,lwd=3,col="green") #--
 legend("bottomright", inset=.05, title="v (m/s)", #--
-       c("0.25","0.5","0.75","1"), col=c("green","red","blue","brown"),lwd=3,horiz=TRUE) #--
+       c("0.15","0.25","0.5","0.8"), col=c("green","red","blue","brown"),lwd=3,horiz=TRUE) #--
 grid(col="black") #--
 ```
 </div>
@@ -705,17 +698,11 @@ The average ditch level is given as the average river bottom level + 20 $cm$.
 
 The entrance resistance, due to sediments at the bottom of the ditch, is 3 $days$.
 
-When surface runoff occurs, the state exceeds the surface level of 16.0 $m$ AMSL, a vertical resistance of the upper soil of 5 days can be assumed.
+When surface runoff occurs, the state exceeds the surface level of 16.0 $m$ AMSL, a vertical resistance of the upper soil of 20 days (Veranderingsrapportage LHM 3.30 2017, pg 23) can be assumed.
 
 The stationary situation is based on the average yearly recharge; about 0.8 $mm/d$. For the transient model a situation of a storm event with a maximum precipitation rate of 36 $mm/hour$ during one hour, will be used as forcing. 
 
-<div class="comment">
-
-In de tekst hierboven stond een entrance resistance voor de ditch van 5 d, voor de surface van 3 d. In de code hieronder staat dit precies andersom. Ik heb daarom de tekst hierboven aangepast, zodat de antwoorden niet veranderen.
-GB: Dank.
-
-</div>
-
+  
 # Basic setup
 
 ## Required functions
@@ -732,7 +719,7 @@ GW.kD = 7 * 4 # m2/d #k = 7 m/d and D = 5 m/d
 P = 0.0008 #estimated average precipitation m/d
 
 H_surface = 16.0 #average surface level area m
-C_surface = 5 #d surface vertical resistance
+C_surface = 20 #d surface vertical resistance
 C_ditch = 3 #d entrance resistance of the ditches
 
 Ditch.bc = function(state)
@@ -808,7 +795,7 @@ GW.kD = 7 * 4 # m2/d #k = 7 m/d and D = 5 m/d
 P = 0.0008 #estimated average precipitation m/d
 
 H_surface = 16.0 #average surface level area m
-C_surface = 5 #d surface vertical resistance
+C_surface = 20 #d surface vertical resistance
 C_ditch = 3 #d entrance resistance of the ditches
 
 Ditch.bc = function(state)
@@ -859,7 +846,7 @@ summary(GW.stat)
 solve.steps(GW.stat, verboselevel = 1)
 plot(GW.stat,fluxplot=T)
 wbal = dataframe.balance(GW.stat)
-knitr:: kable(wbal)
+knitr:: kable(wbal, caption = "water balance groundwater model")
 ```
 </div>
 
@@ -975,30 +962,31 @@ while (current.time < end.time)
   
   #plot some results
   Q.range = range(GW.Q.trans$surface_runoff,GW.Q.trans$storage_2flow,GW.Q.trans$storage_2storage,GW.Q.trans$precip,GW.Q.trans$boundary)
-  plot(GW.Q.trans$time,GW.Q.trans$surface_runoff,ylim = Q.range, type = "o", col = "red",lwd =2,
-       ylab = "flux rates in m2/d", xlab = "time in days")
-  lines(GW.Q.trans$time,GW.Q.trans$storage_2flow,col="yellow",lwd = 2)
+  plot(GW.Q.trans$time,GW.Q.trans$surface_runoff,ylim = Q.range, type = "l", col = "red",lwd =2,
+       ylab = "flux rates in m2/d", xlab = "time in days", main = "flux rates groundwater model")
+  lines(GW.Q.trans$time,GW.Q.trans$storage_2flow,col="yellow4",lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$storage_2storage,col="orange",lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$precip,col="blue", lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$boundary,col="green")
   legend("topright", inset=.05,
-       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow","orange","blue","green"),
+       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
        lwd=3,horiz=FALSE)
 #first 2 days 2*24 = 48 row
   plot(GW.Q.trans$time[1:48],GW.Q.trans$surface_runoff[1:48],ylim = Q.range, type = "o", col = "red",lwd =2,
-       ylab = "flux rates in m2/d", xlab = "time in days")
-  lines(GW.Q.trans$time[1:48],GW.Q.trans$storage_2flow[1:48],col="yellow",lwd = 2)
+       ylab = "flux rates in m2/d", xlab = "time in days", main = "flux rates groundwater model")
+  lines(GW.Q.trans$time[1:48],GW.Q.trans$storage_2flow[1:48],col="yellow4",lwd = 2)
   lines(GW.Q.trans$time[1:48],GW.Q.trans$storage_2storage[1:48],col="orange",lwd = 2)
   lines(GW.Q.trans$time[1:48],GW.Q.trans$precip[1:48],col="blue", lwd = 2)
   lines(GW.Q.trans$time[1:48],GW.Q.trans$boundary[1:48],col="green", lwd = 2)
   legend("topright", inset=.05,
-       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow","orange","blue","green"),
+       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
        lwd=3,horiz=FALSE)
 grid()  
 
 GW.Q.data = summary(GW.Q.trans)  
-knitr::kable(GW.Q.data)
+knitr::kable(GW.Q.data, caption = "summary flow budget groundwater model in m2/d", format = "simple")
 ```
+The term <code>storage_2flow</code> stands for storage which is released to flow and <code>storage_2storage</code> is the amount of water which will be stored.
 </div>
 
 <div class="answer">
@@ -1038,50 +1026,48 @@ while (current.time < end.time)
   #plot some results
   Q.range = range(GW.Q.trans$surface_runoff,GW.Q.trans$storage_2flow,GW.Q.trans$storage_2storage,GW.Q.trans$precip,GW.Q.trans$boundary)
   plot(GW.Q.trans$time,GW.Q.trans$surface_runoff,ylim = Q.range, type = "o", col = "red",lwd =2,
-       ylab = "flux rates in m2/d", xlab = "time in days")
-  lines(GW.Q.trans$time,GW.Q.trans$storage_2flow,col="yellow",lwd = 2)
+       ylab = "flux rates in m2/d", xlab = "time in days", main = "flux rates groundwater model")
+  lines(GW.Q.trans$time,GW.Q.trans$storage_2flow,col="yellow4",lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$storage_2storage,col="orange",lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$precip,col="blue", lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$boundary,col="green")
   legend("topright", inset=.05,
-       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow","orange","blue","green"),
+       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
        lwd=3,horiz=FALSE)
 #first 2 days 2*24 = 48 row
-  plot(GW.Q.trans$time[1:48],GW.Q.trans$surface_runoff[1:48],ylim = Q.range, type = "o", col = "red",lwd =2,
-       ylab = "flux rates in m2/d", xlab = "time in days")
-  lines(GW.Q.trans$time[1:48],GW.Q.trans$storage_2flow[1:48],col="yellow",lwd = 2)
+  plot(GW.Q.trans$time[1:48],GW.Q.trans$surface_runoff[1:48],ylim = Q.range, type = "l", col = "red",lwd =2,
+       ylab = "flux rates in m2/d", xlab = "time in days", main = "flux rates groundwater model")
+  lines(GW.Q.trans$time[1:48],GW.Q.trans$storage_2flow[1:48],col="yellow4",lwd = 2)
   lines(GW.Q.trans$time[1:48],GW.Q.trans$storage_2storage[1:48],col="orange",lwd = 2)
   lines(GW.Q.trans$time[1:48],GW.Q.trans$precip[1:48],col="blue", lwd = 2)
   lines(GW.Q.trans$time[1:48],GW.Q.trans$boundary[1:48],col="green", lwd = 2)
   legend("topright", inset=.05,
-       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow","orange","blue","green"),
+       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
        lwd=3,horiz=FALSE)
 grid()  
 
 GW.Q.data = summary(GW.Q.trans)  
-knitr::kable(GW.Q.data)
+knitr::kable(GW.Q.data, caption = "summary flow budget groundwater model in m2/d", format = "simple")
 ```
+The term <code>storage_2flow</code> stands for storage which is released to flow and <code>storage_2storage</code> is the amount of water which will be stored.
+
 </div>
 
 
 # PART 3 Coupling open water and groundwater
 
-A "loose" coupling will be analyzed. With this the open water model will receive drainage and surface runoff fluxes from the groundwater model.  
+A "loose" coupling will be applied and analyzed. With this the open water model will receive drainage and surface runoff fluxes from the groundwater model.  
 Later on, one may use the calculated open water level to adjust the drain depth in the groundwater model achieving a full coupling. This will result in a full coupling: exchanging fluxes from groundwater to open water and drain depth from open water to groundwater
 
 
 ### Scaling of Drainage and surface runoff
 
 The pre-calculated drainage and surface runoff of the groundwater model are used as input ("forcing") for the open water model `HR.backwatermodel` and need to be "scaled" to proper dimensions; $m^3/s$.  \
-The groundwater drainage and surface runoff are based on one parcel having a ditch distance of 125 m. These discharge rates have unit $m^2/d$ and need to be transformed to the total discharging area of the Hooge Raam into units of $m^3/s$. You can imagine all parcels, with an average ditch distance of 125m, were set behind each other resulting in a certain extent/length: $\frac {\text{total_drained_area}}{\text{ditch_distance}}$.
+The groundwater drainage and surface runoff fluxes are based on one typical parcel having an average ditch distance of 125 m. 
+There are many of these parcels in the catchment area of the Hooge Raam. These discharge rates have unit $m^2/d$ and need to be transformed to the total discharging area of the Hooge Raam into units of $m^3/s$. For this, you can imagine all parcels, with an average ditch distance of 125m, were set behind each other resulting in a, let's call it a *diffuse length* calculated as: $\frac {\text{total_drained_area}}{\text{ditch_distance}}$.
 Finally the groundwater drainage and surface runoff need to be transformed to a lateral inflow rate of $m^3/s/m_{HRcourse}$ for the Hooge Raam.\
 The total considered discharging area of the Hooge Raam is 500 ha.  
 
-<div class="comment">
-
-m2.day.to.m3.day klinkt alsof 'deel 1' (m2.day) vermenigvuldigd moet worden met een lengtemaat, maar in plaats daarvan wordt m2 gedeeld door m (geeft dus unit m). Duurde even voordat ik doorhad dat m2.day.to.m3.day ging om een vermenigvuldigingsfactor met unit m, welke *gebruikt* wordt om van m2.d naar m3.d te komen. Wellicht naam veranderen? (al heb ik nog geen goed alternatief bedacht)
-GB: is inderdaad tricky. Heb dit maar gegeven..
-</div>
 
  
 
@@ -1092,7 +1078,7 @@ Determine the properly scaled drainage and runoff for the Hooge Raam model ; `HR
 ## from groundwater discharge to lateral inflow into the Hooge Raam open water model
 HR.discharge.area =  #in m2
 day2sec = 86400 #from day to seconds
-m2.day.to.m3.day =   HR.discharge.area/L #from m2/day to m3/day; a length based on the total drained area divided by the L(ditch distance)
+m2.day.to.m3.day =   HR.discharge.area/L #from m2/day to m3/day; a "diffuse length" based on the total drained area divided by the L(ditch distance)
 
 Q.drainage.m3.d = #
 Q.drainage.m3.s = #
@@ -1110,7 +1096,7 @@ Q.runoff.m2.s = #
 ## from groundwater discharge to lateral inflow into the Hooge Raam open water model
 HR.discharge.area = 500 * 10000 #in m2
 day2sec = 86400
-m2.day.to.m3.day = HR.discharge.area/L
+m2.day.to.m3.day = HR.discharge.area/L #multiply with "diffuse length"; i.e. Area/drain_distance
 
 Q.drainage.m3.d = GW.Q.trans$boundary * m2.day.to.m3.day
 Q.drainage.m3.s = Q.drainage.m3.d/day2sec
@@ -1170,7 +1156,7 @@ while(current.time < end.time)
   solve.steps(HR.backwatermodel)
   ##saving intermediate results
   wb = dataframe.balance(HR.backwatermodel)
-  HR.Q.trans = rbind(HR.Q.trans, c(current.time,wb[4,2],wb[2,2],wb[3,2],wb[4,3]))
+  HR.Q.trans = rbind(HR.Q.trans, c(current.time,wb[4,2],wb[3,2],wb[2,2],wb[4,3]))
   HR.h.trans = rbind(HR.h.trans, dataframe.states(HR.backwatermodel)[,2])
   
   #create plot to generate an animation in the knitted HTML document
@@ -1188,15 +1174,16 @@ while(current.time < end.time)
 
 ### Checking fluxes and total volumes
 
-For both the transient groundwater and the pseudo-stationary open water model the total volums of water during the simulation time are compared with both models.
+For both the transient groundwater and the pseudo-stationary open water model the total volumes of water (in $m^3$) during the simulation time are compared with both models.
 
 #### groundwater
 
 Volume balance for the groundwater model 
 $$
 Total_{in} = \sum_{t= 0}^{t=T}Precip(t)\Delta t\\
-Total_{out} = \left \{ \sum Qsto(t)+\sum Runoff(t) + \sum Drainage(t) \right \} \Delta t
+Total_{out} = \left \{ \sum_{t=0}^{t=T} Qsto(t)+\sum_{t=0}^{t=T} Runoff(t) + \sum_{t=0}^{t=T} Drainage(t) \right \} \Delta t
 $$
+Recall that the water balance of the groundwater model is expressed in $m^2/d$. To come to volumes ($m^3$) one need to consider the "diffuse length" and the time step.
 
 ```{r}
 # Water volumes for the 1D groundwater model during the total simulation time
@@ -1215,15 +1202,15 @@ volume.bal.GW = data.frame(Groundwater = c("precipitation","storage_2flow","drai
                         Volume_in = c(GW.volume.precipitation,GW.volume.storage_into,0,0,0,sum(GW.volume.precipitation,GW.volume.storage_into)),
                         Volume_out = c(0,0,GW.volume.drainage,GW.volume.runoff,GW.volume.storage_outof,sum(GW.volume.drainage,GW.volume.runoff,GW.volume.storage_outof)))#,
                         
-knitr::kable(volume.bal.GW,format = "simple")
+knitr::kable(volume.bal.GW,format = "simple", caption = "Total volumes in m^3 groundwater model")
 
 ```
 
 #### open water
 
 $$
-Total_{in} = \sum boundary_{upstream}\Delta t + \sum runoff \Delta t + \sum drainage \Delta t\\
-Total_{out} = \sum boundary_{downstream}
+Total_{in} = \sum_{t=0}^{t=T} boundary_{upstream}\Delta t + \sum_{t=0}^{t=T} runoff \Delta t + \sum_{t=0}^{t=T} drainage \Delta t\\
+Total_{out} = \sum_{t=0}^{t=T} boundary_{downstream}
 $$
 
 ```{r}
@@ -1242,16 +1229,17 @@ HR.volume.out = HR.volume.bnd.downstream
 volume.bal.HR = data.frame(Open_water = c("inflow_upstream","surface_runoff","drainage","outflow_downstream","total"),
                            Volume_in = c(HR.volume.bnd.upstream,HR.volume.runoff,HR.volume.drainage,0,HR.volume.in),
                            Volume_out = c(0,0,0,HR.volume.bnd.downstream,HR.volume.out))
-knitr::kable(volume.bal.HR,format.arg = list(digits = 8,nsmall = 3)) #,digits = 15)
+knitr::kable(volume.bal.HR,format.arg = list(digits = 8,nsmall = 3), caption = "Total volumes in m^3 open water model") #,digits = 15)
 
 ```
+Check whether the output of the groundwater are the same inputs for the open water model.
 
 ## Time series analysis
 
 It can be interesting to for example compare time series for the precipitation and discharge of the Hooge Raam. With this, one can examine the response of a storm event on the open water - groundwater system.
 
 ```{r}
-plot(GW.Q.trans$time, P.pattern(GW.Q.trans$time), col = "blue", lwd =2, ylab = "m/d",xlab = "days",type= "o", main = "Transient fluxes in mm/d", sub = "Total simulation time")
+plot(GW.Q.trans$time, P.pattern(GW.Q.trans$time), col = "blue", lwd =2, ylab = "m/d",xlab = "days",type= "l", main = "Transient fluxes open water model in m/d", sub = "Total simulation time")
 HR.discharge.m.d = HR.Q.trans$boundary_downstream * 86400 / HR.discharge.area
 lines(HR.Q.trans$time,HR.discharge.m.d,col = "red", lwd =2)
 HR.runoff.m.d = HR.Q.trans$runoff * 86400 / HR.discharge.area
@@ -1278,7 +1266,7 @@ Zooming in for the first two days.
 
 ```{r}
 plot.time = GW.Q.trans$time[1:48]
-plot(plot.time, P.pattern(plot.time), col = "blue", lwd =2, ylab = "m/d",xlab = "days",type= "o", main = "Transient fluxes in m/d", sub = "First two days simulation time")
+plot(plot.time, P.pattern(plot.time), col = "blue", lwd =2, ylab = "m/d",xlab = "days",type= "o", main = "Transient fluxes open water model in m/d", sub = "First two days simulation time")
 HR.discharge.m.d = HR.Q.trans$boundary_downstream * 86400 / HR.discharge.area
 lines(HR.Q.trans$time,HR.discharge.m.d,col = "red", lwd =2)
 HR.runoff.m.d = HR.Q.trans$runoff * 86400 / HR.discharge.area
@@ -1297,14 +1285,14 @@ time.max.discharge = which.max(HR.Q.trans$boundary_downstream)*delt.t
 time.max.runoff = which.max(HR.Q.trans$runoff)*delt.t
 time.max.drainage = which.max(HR.Q.trans$drainage)*delt.t
 
-abline(v=time.max.discharge,col='red',lwd=3)
+abline(v=time.max.discharge,col='red',lwd=1)
 abline(v=time.max.drainage, col = "green")
 ```
 
 From the graphs it's clearly visible that the discharge is delayed compared to the precipitation.  
-The max. precipitation is at day `r time.max.precip` and the max. discharge is at day : `r time.max.discharge`
+The max. precipitation is at day `r time.max.precip` (blue vertical line) and the max. discharge is at day : `r time.max.discharge` (red vertical line)
 
-The moment when the maximum discharge at the weir of the Hooge Raam is reached coincides with the max. runoff and drainage.
+The moment when the maximum discharge at the weir of the Hooge Raam is reached coincides with the max. runoff.
 Why?
 ANSWER: Runoff and drainage both come from the same 1D groundwater model. Since this model is 1 dimensional, from ditch to ditch, it does not contain a spatial distribution with parcel far away and close by the Hooge Raam. Moreover the 1D transient groundwater model calculates the effect of precipitation on groundwater storage, drainage and surface runoff in the same time step. In other words, precipitation is distributed over these three groundwater sinks in the same time.  
 
@@ -1423,11 +1411,20 @@ GB, Check
 
 Carry out a local sensitivity analysis for one of the model results, the groundwater and open water model.  
 
-1.  Choose in total 5 or 6 parameters, preferably from both models, to carry out the sensitivity analysis with
-2.  Estimate the scale of variation of the 5 or 6 parameters, based on your experience or what you have heard during courses
+1.  Choose at least 6 parameters, preferably from both models, to carry out the sensitivity analysis with
+2.  Estimate the scale of variation of these parameters, based on your experience, what you have heard during courses or simply google it
 3.  Create chunks to determine the local sensitivities
 4.  Make use of the pre-programmed `sensitivity.loop()` executing time loops for each model and saving intermediate data
 5.  Create a chunk to calculate the derived uncertainties
+
+This <code>sensitivity.loop()</code> contains many lines of code but basically does the following:
+
+1. Run the transient groundwater model 
+2. Store results, flux rates (m2/d) and heads, of the groundwater model 
+3. Multiply the drainage and runoff flux rates with the diffuse length to come to m3/d and then to m3/s
+4. Run the transient open water model with the current drainage and runoff flux rates 
+5. Store the open water flux rates and open water levels
+
 
 To set up a proper procedure, have close look at the Local Sensitivity Analysis assignment 1, Local sensitivity 1D.
 
@@ -1444,6 +1441,13 @@ There are several interesting model results for close inspection w.r.t. their 'd
 *  The max. water level in the Hooge Raam
 *  Effect of the precipitation distribution during a storm event.
 
+All results are stored in the following "containers" which are all simple data frame. Simply click on them in the upper right panel (Environmental tab) to what's all stored;
+
+*  `GW.Q.trans` for all flux rates of the groundwater model in m2/d; each row is one time step
+*  `GW.H.trans` for all heads in the groundwater model; each row is one time step 
+*  `HR.Q.trans` for all flux rates in the open water model in m3/s; each row is one time step 
+*  `HR.H.trans` for all heads in the open water model; each row is one time step  
+
 <div class="question">
 As an example, `MRESULT()` is the max. discharge of the Hooge Raam at the weir.  
 
@@ -1455,6 +1459,8 @@ MRESULT = function()
 }
 ```
 </div>
+
+Be aware that `MRESULT()` is based on the results which are contained in the **current** data frames `GW.Q.trans, QW.H.trans, HR.Q.trans, HR.H.trans`. The original value of `MRESULT()` is assigned to `M_base`, in the code chunk of the following section "Base run".
 
 <div class="answer">
 ```{r}
@@ -1668,7 +1674,7 @@ Sensitivity.loop = function()
     solve.steps(HR.backwatermodel)
     ##saving intermediate results
     wb = dataframe.balance(HR.backwatermodel)
-    HR.Q.trans = rbind(HR.Q.trans, c(current.time,wb[4,2],wb[2,2],wb[3,2],wb[4,3]))
+    HR.Q.trans = rbind(HR.Q.trans, c(current.time,wb[4,2],wb[3,2],wb[2,2],wb[4,3]))
     HR.h.trans = rbind(HR.h.trans, dataframe.states(HR.backwatermodel)[,2])
     ##saving intermediate results
   }
@@ -1687,7 +1693,7 @@ Sensitivity.loop = function()
 
 ### Local sensitivities
 
-The local sensitivities can now be determined using a sequence of:  
+Each local sensitivity can now be determined using a sequence of:  
 
 *  adding `eps` to the current parameter $P_i$
 *  running the `Sensitivity.loop()` 
@@ -1695,7 +1701,7 @@ The local sensitivities can now be determined using a sequence of:
 *  subtracting `eps` from the current parameter.  
 
 <div class="question">
-Set up the sensitivity sequence, see above, to determine the local sensitivities  
+Set up the sensitivity sequence, see above, to determine the local sensitivities for the chosen parameters.  
 
 **TIP**: you can use `eps` being an offset so, $P_i = P_i + eps$ or use it as a fraction: $P_i = P_i*(1 + eps)$
 
@@ -1749,12 +1755,16 @@ Recall the previous Local Sensitivity Assignment where you calculated the:
 *  variances for each parameter based on its scale of variance and the local sensitivity of that parameter w.r.t. `MRESULT()`
 *  calculate the sum of these variances
 *  calculate the relative contribution of each parameter to the total variance
-*  plot a pie chart to visualize the contributions to the derived uncertainty.
+*  plot a pie chart to visualize the contributions to the derived uncertainty 
+*  a table of fractions, `knitr::kable()` is already implemented to inspect the procentual sensitivities
 
 <div class="question">
 Determine the derived uncertainty based on the aforementioned list
 
 ```{r eval = FALSE}
+
+#a table for some results "relvarM" contains the relative variances of MRESULT
+knitr::kable(as.data.frame(relvarM)*100, caption = "percentage local sensitivities",align="c")
 
 ```
 
@@ -1780,6 +1790,9 @@ relvarM = list(HR.n = varM.HR.n/varM.total,
 pie(as.numeric(relvarM),labels = names(relvarM),
     main = paste("MRESULT = ",round(MRESULT(),2),", Standard deviation of MRESULT = ",round(sqrt(varM.total),2),"proper unit: m3/s"),
     col=rainbow(length(relvarM)))
+
+knitr::kable(as.data.frame(relvarM)*100, caption = "percentage local sensitivities",align="c")
+
 ```
 
 </div>
