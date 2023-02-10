@@ -331,7 +331,9 @@ Solutes are displaced due to the groundwater velocity; $vC$, hence the $v$ which
 ### Dispersion/Diffusion
 
 Solutes are displaced by concentration gradients, similar like groundwater is displaced by the head gradient.  
-This term $-D \frac{\partial C}{\partial x}$ is called the (first) Fick's law (similar like Darcy's law for groudnwater flow)
+This term $-D \frac{\partial C}{\partial x}$ is called the (first) Fick's law (similar like Darcy's law for groudnwater flow).  
+During the transport simulations we will assume a constant dispersion coefficient $D$ and start with 2.5 $m^2/d$
+
 
 
 ### Derivation of the internal flux function for transport
@@ -375,8 +377,8 @@ The domain of the solute transport model is identical to the groundwater flow mo
 
 Also here we chose between the three different types of boundary condtions
 
-*  Dirichlet, a prescribed concentration; $C(x,t$
-*  Neumann, a prescribed concentration **gradient** $\frac{\partial C}{\partial x}$
+*  Dirichlet, a prescribed concentration: $C(x,t)$
+*  Neumann, a prescribed concentration **gradient**: $\frac{\partial C}{\partial x}$
 *  Cauchy, combination of both: $vC - D \frac{\partial C}{\partial x}$  
 
 A relevant difference between applying boundary conditions for transport models is that there is a large difference in applications when water with a certian concentration is flowing **in** or **out** of the model.
@@ -388,7 +390,7 @@ Applying the Neumann boundary condition and assuming that no mass/solute is ente
 The Cauchy boundary condition is a special and important case for transport modeling. It serves as a tool to let water with a solute move out of the model. Most of the time the concentration gradient at the boundary (outflow) is assumed to be 0 resulting in $vC$ indicating that the local groundwater velocity at this boundary multiplied with the concentration at that point results in mass flux outside of the model.  
 
 
-The dispersion coefficient is set to 5 $\mathsf{m^2/d}$
+The dispersion coefficient is set to 2.5 $\mathsf{m^2/d}$ being 1/2 of the volume size, nodal distance.
 
 <div class="question">
 
@@ -403,22 +405,26 @@ The dispersion coefficient is set to 5 $\mathsf{m^2/d}$
 
 ### Point source  
 
-Somewhere in the middle of the solute transport model a solute source (pollutant) is assigned to the model. It will be implemented as a _mass loading_ condition/forcing. One could imagine it being a substance dissolving into the groundwater. This way an amount of 'mass' is loaded into the model/groundwater during a certain amount of time.  In this case the substance is leaking into the groundwater continuously with a mass loading of 0.2 $\mathsf{kg/(md)}$
+Somewhere in the middle of the solute transport model a solute source (pollutant) is assigned to the model. It will be implemented as a _mass loading_ condition/forcing. One could imagine it being a substance dissolving into the groundwater. This way an amount of 'mass' is loaded into the model/groundwater during a certain amount of time.  In this case the substance is leaking into the groundwater continuously with a mass loading of 0.125 $\mathsf{kg/(md)}$
 
-
+### Implementation of the model
 <div class="question">
 Setup the solute transport model.  
 * Add the point source  
 * What is the unit for the continuous solute source?  
-* Run the model and analyse the results; Concentration, internal flux, mass balance  
+* Run the model.
+* Plot the Concentration and internal mass flux
+* Analysze the mass balance `dataframe.balance()`
 </div>
+
+
 
 When looking at the results of this  model;  
 
 <div class="answer">
 First the setup of the model
 ```{r}
-Disp = 5 #m2/d constant dispersion not depending on local velocities
+Disp = 2.5  # 5 m2/d constant dispersion not depending on local velocities
 # math model
 CDE = function(x,C,gradC)
 {
@@ -443,18 +449,24 @@ set.discretisation(model = Cmodel,nodes = nodes, method = "FV")
 solve.steps(Cmodel)
 
 ```
-Now looking at the results;
+### Results
+
+Important result to have a closer look at are:
+
+1.  the concentration distribution and  
+2.  the mass flux distribution.
+3.  the mass flux leaving the model at the river
+
+
+1.  `plot(your_transport_model, fluxplot = TRUE, FVstyle = T)`
+2.  `mass_balance = dataframe.balance(your_transport_model)`
+3.  `boundary_flux = dataframe.boundaries(your_transport_model)`
+
 
 ```{r}
 plot(Cmodel,fluxplot = T,FVstyle = T)
 dataframe.balance(Cmodel)
 dataframe.boundaries(Cmodel)
-dataframe.balance(Cmodel)
-mbal_39 = dataframe.balance(Cmodel,region = c(39))
-c_38_39_40 = dataframe.states(Cmodel)[38:40,]
-Mflux_39 = dataframe.internalfluxes(Cmodel)[39,]
-Qflow_x_C_5 = Qflow(nodes[5])*c_38_39_40$state[2] - Vflow(nodes[5])* (c_38_39_40$state[3]-c_38_39_40$state[2])/5
-
 ```
 </div>  
 
@@ -462,7 +474,7 @@ Qflow_x_C_5 = Qflow(nodes[5])*c_38_39_40$state[2] - Vflow(nodes[5])* (c_38_39_40
 
 1. What are these calculated states?
 2. What is the unit of this balance?
-3. Check for the left boundary (your own calculation) the mass flux leaving the left boundary and what unit does it have?
+3. Check for the left boundary (with some "hand" calculations) the mass flux leaving the left boundary and what unit does it have?
 
 </div>
 <div class="answer">
@@ -476,6 +488,25 @@ Qflow_x_C_5 = Qflow(nodes[5])*c_38_39_40$state[2] - Vflow(nodes[5])* (c_38_39_40
 Qflow(0)*Cmodel$states[1]
 ```
 The unit of this mass flux is identical to the unit of the Mass flux equation and here:  $\text{qC}\rightarrow \mathsf{m^2/d\,kg/m^3} \rightarrow \mathsf{kg/(m d)}$
+</div>
+
+### Results a closer look 
+
+Most probably your results looks similar like the following plots:
+![Results base transport model](base_results_transport.png)
+In the upper panel the concentration distribution is visible, the lower panel shows the mass flux distribution in the model.
+The leaking vessel is located at x=85 where concentrations are highest and mass flux switches from 0.0 $kg/(md)$ to 0.125 $kg/(md)$.  
+
+<div class="question">
+Isn't that strange? On the right hand side of the vessel there seems to be some concentration.  
+Can you explain why?
+Moreover, there is some concentration on the right side of the vessel but no mass flux. 
+Can you explain this?
+</div>
+
+<div class="answer">
+Due to dispersion, a concentration gradient, concentration will migrate opposite the flow as well.  
+The convective/advective term and the dispersive term of the mass flux cancel each other.
 </div>
 
 ## Model setup transient  
