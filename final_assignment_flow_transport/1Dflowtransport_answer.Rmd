@@ -2,13 +2,13 @@
 title: "1D Flow & Transport modeling"
 author: "G.Bier, P.Torfs"
 output:
-  html_document:
-    css : want.css
-    df_print: paged
-    toc: yes
   html_notebook:
     css: want.css
     number_sections: yes
+    toc: yes
+  html_document:
+    css : want.css
+    df_print: paged
     toc: yes
 ---
 
@@ -28,7 +28,12 @@ library(FVFE1D)
 
 # Introduction  
 
-In this exercise the basic Convection Diffusion Equation (CDE) as discussed during the lectures will be reviewed and an analysis of the appropriate dimensions/units will be discussed. Next, the first equations to setup a 1 dimensional flow and 1 dimensional transport model need to be derived and implemented. Specific attention is paid to the translation of the flow, volume, density and mass into the proper units for the flow and transport problem. After the stationary flow model is run the stationary transport model is run based on the local velocities of the flow model. This situation represents for example leakage of a certain pollutant from a drum into the groundwater system. The following modeling exercises will analyse the effect of remediating the spill based on local groundwater flow only and with the aid of a pump and treat scenario.  
+
+In this exercise the basic Convection Diffusion Equation (CDE) as discussed during the lectures will be reviewed and an analysis of the appropriate dimensions/units will be discussed. As an example we will consider the leakage of a contaminant from a vessel on the surface into the saturated groundwater towards a local brook.  
+First the equations (i.e. the internal fluxes) to setup a 1- (pseudo 2-) dimensional flow and 1- (pseudo 2-) dimensional transport model need to be derived and implemented. Specific attention is paid to the translation of the flow, volume, density and mass into the proper units for the flow and transport problem.   
+After the stationary flow model is run, the stationary transport model is run based on the local water velocities and saturated thickness of the flow model transporting the contaminants towards the brook.  
+The following assignment will be to analyse the effect of remediating the spill based on local groundwater flow only and with the aid of a pump and treat scenario.  
+Finally a local sensitivity analysis is carried out analyzing the effects of various variables and parameters of both models on their results.  
 
 The convection diffusion equation as discussed during the lectures is:
 $$
@@ -44,21 +49,19 @@ With:
 
 All the above terms (obviously) have dimensions: $\frac{\text{mass}}{\text{volume time}}$ and when multiplied with the appropriate control volume based on the finite volume or finite element techniques it results in a mass flux of $\frac{\text{mass}}{time}$ per time step.  
 
-The above equation is a general expression for the CDE and can be used for simulating/addressing many environmental "flow" problems with such a signature.  
-Here we are going to use it for a groundwater flow and solute transport problem in the saturated part of the soil.  
-
-Retardation (add/desoprtion properties of a solute which effectively slows down the convection and diffusion processes) and decay are omitted from this equation for simplicity.
+Retardation (add/desoprtion properties of a solute which effectively slows down the convection and diffusion processes) and decay are omitted from this equation for simplicity and will not be considered in the simulations.
 
 The convective part of this equation is based on the mass influx into (or out of) an elementary volume (e.g. a cube): 
 $$
-qC
+qC\,\,\text{or}\,\, v \text{por}C
 $$  
 Where:  
 
 * $q$: Flux rate into (or out of) a face of the elementary volume (length/time)  
+* $\text{por}$ : porosity of the soil ($\frac{m^3}{m^3}$)
 * $C$: Concentration of the solute (mass/volume)  
 
-The convective part couples groundwater to solute transport.  
+The convective part couples groundwater to solute transport since this $q$ is determined by the groundwater model.  
 
 The diffusive part it is based on the equation of Fick (first law) which resembles Darcy's equation:
 $$
@@ -104,9 +107,20 @@ What is the unit for the following variables when one assumes 3 dimensional flow
 * $J$ : $\mathsf{kg/d}$
 </div>
 
-In this exercise we consider the concentration of a solute to be the __only__ amount of mass in a __unit volume__ of groundwater. However in reality a concentration of e.g. 35 $kg/m^3$ of salt in a volume of 1000 liters groundwater will have a __density__ of about 1025 $kg/m^3$ (also depending on pressure, viscosity and temperature). So although $C$ and $\rho$ do have the same unit they are different in the way we calculate them. By the way flow due to density differences are also not considered here!  
+In this assignment we consider the concentration of a solute to be the __only__ amount of mass in a __unit volume__ of groundwater. However in reality a concentration of e.g. 35 $kg/m^3$ of salt in a volume of 1000 liters groundwater will have a __density__ of about 1025 $kg/m^3$ (also depending on pressure, viscosity and temperature). So although $C$ and $\rho$ do have the same unit, they are different in the way we calculate them. By the way, flow due to density differences are also not considered here!  
 
-# Groundwater flow model
+# Groundwater flow model  
+
+The model for stationary groundwater flow consists of one phreatic aquifer (k = 3[$\mathsf{m/d}$]) for which the bottom tilts from left to right. The total length of the model is 200 m, use a nodal distance of 5 m. At the left boundary a river with an open water level of 3 m Above Mean Sea Level (AMSL) is situated, the right boundary is based on a water divide. On top a uniform recharge om 1 mm/d is applied.  
+The bottom of the aquifer has an altitude of 1 m AMSL on the left and slopes downwards towards the right with 5 m/km.  
+At a later stage an extraction well will be added to the model.  
+To determine specific volume fluxes the porosity of the soil is required and is here estimated on 30%.  
+Figure 2 illustrates the situation;
+
+![**Figure 2**: Sketch of the field situation including a point source  ](flow_transportmodel_ref.png)
+
+## Internal groundwater flux  
+
 The model which calculates the water(volume)flux is based on a flux rate integrated over the saturated thickness;
 $$
 q_D = -kD_{sat}(x)\frac{\partial H}{\partial x}
@@ -124,16 +138,16 @@ $D_{sat}$: The saturated thickness over which flow takes place ($m$).
 
 The following illustration clarifies some dimensions of the flow in the 1D(or quasi 2D) model;  
 
-![**Figure 1**: Sketch of different properties and dimensions of the flow model](Dupuit_flow.png)
+![**Figure 1**: Sketch of different properties and the three spatial dimensions of groundwater flow](Dupuit_flow.png)
 
 
-  
-  Consider the 'cube' being a volume containing and receiving a certain amount of solute from groundwater flow.
-  
+
+The volume groundwater in a slice of soil is now : $\text{por}\Delta x \Delta y$  (check the units!). But since we consider a quasi 2-D model the $\Delta y$ is not considered in the equations. In other words, the volume of groundwater in a slice ($\Delta x$) of soil is $m^3/m$, the $/m$ indicating the "per meter $\Delta y$.
+
 <div class="question">
 
 
-* How would you derive the velocity velocity this model?
+* How would you derive the water velocity this groundwater flow model?
 
 </div>
 <div class="answer">
@@ -143,17 +157,31 @@ The following illustration clarifies some dimensions of the flow in the 1D(or qu
  
 </div>
 
-## Model setup  
-The model for stationary groundwater flow consists of one phreatic aquifer (k = 3[$\mathsf{m/d}$]) for which the bottom tilts from left to right. The total length of the model is 200 m, use a nodal distance of 5 m. The left boundary contains a Dirichlet boundary of 3 m Above Mean Sea Level (AMSL), the right boundary is situated on a water divide. On top a uniform recharge om 1 mm/d is applied.  
-The bottom of the aquifer has an altitude of 1 m AMSL on the left and slopes downwards towards the right with 5 m/km.  
-At a later stage an extraction well will be added to the model.  
-To determine specific volume fluxes the porosity of the soil is required and is here estimated on 30%.  
-Figure 2 illustrates the situation;
+## Boundary conditions  
 
-![**Figure 2**: Sketch of the field situation including a point source  ](flow_transportmodel_ref.png)
+Possible boundary conditions for the groundwater flow model are based on:
+
+1. Dirichlet type 
+2. Neumann type
+3. Cauchy type 
 
 <div class="question">
-1. Setup this flow model and give it a distinctive name e.g. Fmodel or Flowmodel or so.  
+implement the appropriate boundary conditions; 
+the prescribed river level left and  
+the water divide on the right
+</div>
+
+<div class="answer">
+
+* left is a Dirichlet boundary condition with a prescribed level of 3 m AMSL
+* right is a Neumann bounary condition for no action is required
+</div>
+
+## Setup groundwater flow model  
+
+<div class="question">
+1. Setup this flow model and give it a distinctive name e.g. Fmodel or Flowmodel or so. 
+   a. Use the `do.initialize()` function to avoid numerical problems due to the non-linear character of the internal flux flunction.
 2. Run the model and look at the results; head distribution, internal flux and water balance terms.  
 3. Create a plot showing both the calculated head and the bottom of the aquifer.  
 </div>
@@ -239,13 +267,14 @@ grid()
 
 ## Flux and Volume functions for the solute transport equation
 
-1. The convection diffusion equation contains a convective aspect for which the flow 'velocity' or in our case volume flux in [$\mathsf{m^2/d}$] is required. It is based on the internal flux of the groundwater flow equation.  
+1. The convection diffusion equation contains a convective aspect for which the flow(water) 'velocity' and in our case a flux rate in the x-direction in [$\mathsf{m^2/d}$] is required. It is based on the internal flux of the groundwater flow equation.  
 2. For the dispersive part of the convection diffusion equation it is also required to create a function for the volume per $\Delta x \Delta y$ to determine the amount of mass in the solute transport model.  Here this 'volume' is simply the saturated thickness multiplied with the porosity. 
 
 <div class="question">  
 
-1. Create the "volume flux" function(x) for the internal flux. Call it __Qflow__ and make use of __approxfun__  and set __rule=2__.  
-2. Create the "volume water" function(x) in a similar way. It is based on the total "volume" of water contained in the saturated thickness per $\Delta x\Delta y$. Call it __Vflow__.
+1. Create the (water) flux function(x) for the internal flux. Call it __Qflow__ and make use of __approxfun__  and set __rule=2__.  
+2. Create the "volume water" function(x). It is based on the volume of water contained in a slice of soil in the x-direction (and "y") and call it **Vflow**. Recall that the FVFE1D package will determine the $\Delta x$ of the slice based on the size of the volumes or elements.  
+
 </div>
 
 <div class="answer">
@@ -264,14 +293,18 @@ plot(nodes,Vflow(nodes),type='l',lwd=2,col='blue',main="Volume distribution",yla
 
 # Solute transport model  
 The solute transport model will simulate the movement of a certain solute in the groundwater which comes from a continuous source. The source is simulated with a prescribed amount of mass "loaded" into the groundwater which is called "mass loading".  
-The movement and displacement of the solute is based on the convection diffusion equation as described in the introduction:
+The movement and displacement of the solute is based on the convection diffusion equation as described in the introduction and is now extended with the source term (the contaminant from the vessel) $S$:  
+
 $$
-\frac{\partial s}{\partial t}=-v \frac{\partial s}{\partial x}+D \frac{\partial^2 s}{\partial x^2}
+\frac{\partial s}{\partial t}=-v \frac{\partial s}{\partial x}+D \frac{\partial^2 s}{\partial x^2} + S
 $$
 
-But since we are using the FVFE1D package we simply implement Fick's first law for the diffusion/dispersion part combined with the convection part.  This will be the internal *mass flux* function for the solute transport model.  To distinguish the 'flow' process between groundwater flow and solute transport, groundwater flow is indicated with 'flow', as in __Qflow(x)__, for the internal flux with unit $m^2/d$. Solute transport focuses on the amount of mass of a certain solute/pollutant in the groundwater and is here indicated with __Mflux(x)__ with unit $kg/(dm)$.  
+The abovemention (CDE) equation can be considered to be a **mass balance**, simply multiply all term with a volume and it results in mass per time  $\frac{kg}{d}$.  
 
-The mass flux is oriented perpendicular to local groundwater flow:
+## Internal mass flux for the transportmodel  
+
+The internal *mass flux* for the solute transport model describes the movement of mass per time unit.
+
 
 $$
 M_{flux} =A \,\, por \left\{ vC-D\frac{\partial C}{\partial x}\right\}
@@ -284,6 +317,27 @@ With:
 * $v$: local velocity in $\mathsf{m/d}$  
 * $C$: concentration of the solute in $\mathsf{kg/m^3}$  
 * $D$: Diffusion/Dispersion coefficient in $\mathsf{m^2/d}$  
+
+
+Looking at both the Darcy flux and this "mass flux", there are similarities and differences:
+
+* both have a diffusion term with a minus sign up front
+* the mass flux has an additional term, the convective term
+
+### Advection/Convection
+
+Solutes are displaced due to the groundwater velocity; $vC$, hence the $v$ which come from the Darcy flux and is calculated as: $v=\frac{q}{\text{por}}$
+
+### Dispersion/Diffusion
+
+Solutes are displaced by concentration gradients, similar like groundwater is displaced by the head gradient.  
+This term $-D \frac{\partial C}{\partial x}$ is called the (first) Fick's law (similar like Darcy's law for groudnwater flow)
+
+
+### Derivation of the internal flux function for transport
+
+To distinguish the 'flow' and 'mass' flux rates between groundwater flow and solute transport, groundwater flow is indicated with 'flow', as in __Qflow(x)__, for the internal flux with unit $m^2/d$. Solute transport focuses on the amount of mass of a certain solute/pollutant in the groundwater and is here indicated with __Mflux(x)__ with unit $kg/(dm)$.  Again, the $/m$ comes from the "per meter $\Delta y$
+
 
 The diffusion/dispersion here is a combination of the molecular diffusion(Brownian movement) and the mechanical dispersion(accounting for the local pore flow and its pore structure) and is assumed to be constant here.  
 
@@ -315,7 +369,25 @@ $$
 
 ## Model setup  stationary
 
-The domain of the solute transport model is identical to the groundwater flow model.  On the right hand side no solute is entering or leaving the model so the boundary is closed, simply because there is no flow there. On the left hand side solute leaves the model due to convection; i.o.w. groundwater flow carries the solute out of the model.  
+The domain of the solute transport model is identical to the groundwater flow model.  On the right hand side no solute is entering or leaving the model so the boundary is closed, simply because there is no flow there. On the left hand side solute leaves the model due to convection; i.o.w. groundwater flow carries the solute out of the model, into the river.
+
+### Boundary conditions tranport model
+
+Also here we chose between the three different types of boundary condtions
+
+*  Dirichlet, a prescribed concentration; $C(x,t$
+*  Neumann, a prescribed concentration **gradient** $\frac{\partial C}{\partial x}$
+*  Cauchy, combination of both: $vC - D \frac{\partial C}{\partial x}$  
+
+A relevant difference between applying boundary conditions for transport models is that there is a large difference in applications when water with a certian concentration is flowing **in** or **out** of the model.
+
+The Dirichlet condition is used mostly when the concentration is known at a certain point in time and that one is ensured the flow will always be oriented inwards. Simply consider what would happen with a model when you force it to come up with a prescibed concentration flowing out of the model...
+
+Applying the Neumann boundary condition and assuming that no mass/solute is entering the model, is similar to applying this in a flow model.  
+
+The Cauchy boundary condition is a special and important case for transport modeling. It serves as a tool to let water with a solute move out of the model. Most of the time the concentration gradient at the boundary (outflow) is assumed to be 0 resulting in $vC$ indicating that the local groundwater velocity at this boundary multiplied with the concentration at that point results in mass flux outside of the model.  
+
+
 The dispersion coefficient is set to 5 $\mathsf{m^2/d}$
 
 <div class="question">
@@ -361,9 +433,9 @@ Cauchy = function(C)
   return(Qflow(domain[1])*C)
 }
 set.BC.fluxstate(model = Cmodel,where = 'left',Cauchy)
-M.flux.in = 0.2 #kg/(m d)
-add.pointflux(model = Cmodel,at = 100,value = "M.flux.in",name = "Solute source")
-
+M.flux.in = 0.125 #kg/(m d)
+#add.pointflux(model = Cmodel,at = 100,value = "M.flux.in",name = "Solute source")
+add.pointflux(model = Cmodel,at = 85,value = "M.flux.in",name = "Solute source")
 #numerical model
 set.discretisation(model = Cmodel,nodes = nodes, method = "FV")
 
@@ -377,6 +449,11 @@ Now looking at the results;
 plot(Cmodel,fluxplot = T,FVstyle = T)
 dataframe.balance(Cmodel)
 dataframe.boundaries(Cmodel)
+dataframe.balance(Cmodel)
+mbal_39 = dataframe.balance(Cmodel,region = c(39))
+c_38_39_40 = dataframe.states(Cmodel)[38:40,]
+Mflux_39 = dataframe.internalfluxes(Cmodel)[39,]
+Qflow_x_C_5 = Qflow(nodes[5])*c_38_39_40$state[2] - Vflow(nodes[5])* (c_38_39_40$state[3]-c_38_39_40$state[2])/5
 
 ```
 </div>  
