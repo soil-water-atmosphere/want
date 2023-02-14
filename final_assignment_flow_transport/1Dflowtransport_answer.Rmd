@@ -497,16 +497,58 @@ Most probably your results looks similar like the following plots:
 In the upper panel the concentration distribution is visible, the lower panel shows the mass flux distribution in the model.
 The leaking vessel is located at x=85 where concentrations are highest and mass flux switches from 0.0 $kg/(md)$ to 0.125 $kg/(md)$.  
 
-<div class="question">
-Isn't that strange? On the right hand side of the vessel there seems to be some concentration.  
-Can you explain why?
-Moreover, there is some concentration on the right side of the vessel but no mass flux. 
-Can you explain this?
+<div class="question">  
+  
+*  Isn't it strange? On the right hand side of the vessel there seems to be some concentration. Can you explain why?  
+*  Moreover, there is some concentration on the right side of the vessel but no mass flux. 
+Can you explain this?  
+
 </div>
+
+The following analysis could help answering the question above.  
+Looking at the mass (internal) flux equation of the tranport model, see below, one can see that it contains two components, a convective part (first one) and a dispersive part (second one):
+
+$$
+\begin{align}
+M_{flux} &= A\,\text{por} \left ( vC -D\frac{\partial C}{\partial x}\right )\\
+&= \text{Qflow}\,C - \text{Vflow}\,D\frac{\partial C}{\partial x}\\
+\end{align}
+$$
+Calculate both parts for two volumes in the model, one upstream of the vessel and one downstream and sum these to have the mass flux at that border of the volume. Calculate the mass balance for both volumes and look at the results (mass flux inregion and outregiom).
+Some tips:
+
+*  Put the concentrations in a dataframe, e.g. `conc = dataframe.states(your_C_model)`
+*  Calculate concentrations at the borders of the volumes/elements
+*  Calculate the concentration gradients at the borders of the volumes/elements
+*  Determine both terms and sum them
+*  Compare your results with the mass balance of the volumes/elements.
+
+```{r}
+# mass flux for volume 30 right hand side
+concentration = dataframe.states(Cmodel)
+convection_part_30_31 = Qflow((nodes[31]+nodes[30])/2) * (concentration[31,2] + concentration[30,2])/2
+
+grad_C_30_31 = (concentration[31,2] - concentration[30,2])/(nodes[31] - nodes[30])
+dispersion_part_30_31 = -Vflow((nodes[31]+nodes[30])/2) * Disp * grad_C_30_31
+
+mass_flux_30_31 = convection_part_30_31 + dispersion_part_30_31
+
+mass.balance_30 = dataframe.balance(Cmodel,c(30))
+
+# mass flux for volume 10
+convection_part_10_11 = Qflow((nodes[11]+nodes[10])/2) * (concentration[11,2] + concentration[10,2])/2
+
+grad_C_10_11 = (concentration[11,2] - concentration[10,2])/(nodes[11] - nodes[10])
+dispersion_part_10_11 = -Vflow((nodes[11]+nodes[10])/2) * Disp * grad_C_10_11
+
+```
+
+
 
 <div class="answer">
 Due to dispersion, a concentration gradient, concentration will migrate opposite the flow as well.  
-The convective/advective term and the dispersive term of the mass flux cancel each other.
+Convection carries the solute with the flow.
+The convective/advective term and the dispersive term of the mass flux cancel each other on the right hand side of the vessel.
 </div>
 
 ## Model setup transient  
