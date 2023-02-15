@@ -499,7 +499,7 @@ The leaking vessel is located at x=85 where concentrations are highest and mass 
 
 <div class="question">  
   
-*  Isn't it strange? On the right hand side of the vessel there seems to be some concentration. Can you explain why?  
+*  Isn't it strange? On the right hand side of the vessel there seems to be some concentration although the water flow is from right to left. Can you explain why?  
 *  Moreover, there is some concentration on the right side of the vessel but no mass flux. 
 Can you explain this?  
 
@@ -541,6 +541,8 @@ convection_part_10_11 = Qflow((nodes[11]+nodes[10])/2) * (concentration[11,2] + 
 grad_C_10_11 = (concentration[11,2] - concentration[10,2])/(nodes[11] - nodes[10])
 dispersion_part_10_11 = -Vflow((nodes[11]+nodes[10])/2) * Disp * grad_C_10_11
 
+mass_flux_10_11 = convection_part_10_11 + dispersion_part_10_11
+mass_balance_10 = dataframe.balance(Cmodel,c(10))
 ```
 
 
