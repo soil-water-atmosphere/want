@@ -117,7 +117,7 @@ At a later stage an extraction well will be added to the model.
 To determine specific volume fluxes the porosity of the soil is required and is here estimated on 30%.  
 Figure 2 illustrates the situation;
 
-![**Figure 2**: Sketch of the field situation including a point source  ](flow_transportmodel_ref.png)
+![**Figure 2**: Sketch of the field situation including a point source  ](Field_situation_spill.png)
 
 ## Internal groundwater flux  
 
@@ -138,7 +138,7 @@ $D_{sat}$: The saturated thickness over which flow takes place ($m$).
 
 The following illustration clarifies some dimensions of the flow in the 1D(or quasi 2D) model;  
 
-![**Figure 1**: Sketch of different properties and the three spatial dimensions of groundwater flow](Dupuit_flow.png)
+![**Figure 1**: Sketch of different properties and the three spatial dimensions of groundwater flow](Dimensions_properties_flow_model.png)
 
 
 
@@ -147,7 +147,7 @@ The volume groundwater in a slice of soil is now : $\text{por}\Delta x \Delta y$
 <div class="question">
 
 
-* How would you derive the water velocity this groundwater flow model?
+* How would you derive the water velocity from this groundwater flow model?
 
 </div>
 <div class="answer">
@@ -195,8 +195,9 @@ bnd.left = 0 #m boundary at left
 bnd.right = 200 #m boundary at right
 domain = c(bnd.left,bnd.right)
 #sloping aquifer
+bot.slope = 5/1000
 bot.left =1
-bot.right = bot.left - 5/1000*bnd.right
+bot.right = bot.left - bot.slope*bnd.right
 bottom = approxfun(x = domain,y = c(bot.left,bot.right))
 
 #properties
@@ -439,9 +440,9 @@ Cauchy = function(C)
   return(Qflow(domain[1])*C)
 }
 set.BC.fluxstate(model = Cmodel,where = 'left',Cauchy)
-M.flux.in = 0.125 #kg/(m d)
-#add.pointflux(model = Cmodel,at = 100,value = "M.flux.in",name = "Solute source")
-add.pointflux(model = Cmodel,at = 85,value = "M.flux.in",name = "Solute source")
+M.load = 0.125 #kg/(m d)
+#add.pointflux(model = Cmodel,at = 100,value = "M.load",name = "Solute source")
+add.pointflux(model = Cmodel,at = 85,value = "M.load",name = "Solute source")
 #numerical model
 set.discretisation(model = Cmodel,nodes = nodes, method = "FV")
 
@@ -747,8 +748,8 @@ add.spatialflux(Ctransmodel,C.sto,name = "mass storage")
 #check numerical aspects
 v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
 
-#calculation of reasonable time step
-#V*delta.t/delta.x < 1 so delta.t < delta.x/v
+#calculation of reasonable time step (using Courant)
+#abs(V)*delta.t/delta.x < 1 so delta.t < delta.x/abs(V)
 bound.delta = delta.x/abs(v)
 plot(nodes,bound.delta,type =  "o",col="green", main = "bound.delta at nodes")
 delta.t = floor(min(bound.delta))
@@ -779,7 +780,7 @@ storage.out = c()
 time.step = c()
 pump.treat = c()
 
-# transient aspccts
+# transient aspects
 beg.time = 0
 end.time = 5*365
 
@@ -862,9 +863,43 @@ error = tot.bnd.out + tot.pump.treat + tot.left -tot.begin
 
 To finally check if all is in balance in $kg/m$ which is the mass per unit length $\Delta y$:
 
-mass begin | mass boundary out | mass pump&treat | mass left behind | difference  
----------- | ----------------- | ----------------- | ---------------- | ----------  
-`r tot.begin` | `r tot.bnd.out` | `r tot.pump.treat` | `r tot.left` | `r error` 
+mass begin    | mass boundary out | mass pump&treat    | mass left behind | difference  
+------------- | ----------------- | -----------------  | ---------------- | ----------  
+`r tot.begin` | `r tot.bnd.out`   | `r tot.pump.treat` | `r tot.left`     | `r error` 
 
 </div>
+
+# Sensitivity Analysis
+
+Finally you are conducting a sensitivity analysis to investigate the most import aspects of the numerical simulations.  
+Here we will consider two interesting outputs;  
+
+1.  Efficiency pump and treat  
+2.  Highest concentration in the subsoil  
+
+The most important parameters impacting the aforementioned outputs are:  
+
+*  Flow model  
+    + fix.H     : prescribed head of the river  
+    + k         : hydraulic conductivity of the subsoil (aquifer)
+    + Qwell     : extraction rate of the well  
+    + precip    : precipitation rate  
+    + bot.slope : bottom slope of the subsoil (aquifer)  
+  
+*  Transport model   
+    + M.load    : Mass load at the spill out of the vessel  
+    + Disp      : Dispersion coefficient  
+    + por       : porosity of the subsoil (aquifer)  
+    
+    
+## Outputs to be analyzed  
+
+### Efficiency pump and treat  
+
+The efficiency of the pump and treat scenario is determined by the amount mass extracted by the extraction well.  
+This can be calculated by setting up the mass balance for the model for each time step and analyze the total amount of mass extracted by the well. This amount is tracked by the data frame `tot.pump.treat`
+
+  
+
+
 
