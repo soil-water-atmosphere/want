@@ -442,7 +442,7 @@ Cauchy = function(C)
 set.BC.fluxstate(model = Cmodel,where = 'left',Cauchy)
 M.load = 0.125 #kg/(m d)
 #add.pointflux(model = Cmodel,at = 100,value = "M.load",name = "Solute source")
-add.pointflux(model = Cmodel,at = 85,value = "M.load",name = "Solute source")
+add.pointflux(model = Cmodel,at = 85,value = "M.load",name = "Solute_source")
 #numerical model
 set.discretisation(model = Cmodel,nodes = nodes, method = "FV")
 
@@ -605,10 +605,10 @@ Ctransmodel = copy.model(Cmodel)
 prev.C = state.fun(Cmodel)
 
 # remove the source from the transient solute transport model
-rem.pointflux(Ctransmodel,"Solute source")
+rem.pointflux(Ctransmodel,"Solute_source")
 
 # add storage to the model
-add.spatialflux(Ctransmodel,C.sto,name = "mass storage")
+add.spatialflux(Ctransmodel,C.sto,name = "mass_storage")
 
 # some containers for the mass balance terms
 bnd.out = c()
@@ -616,7 +616,7 @@ storage.in = c()
 storage.out = c()
 time.step = c()
 
-# transient aspccts
+# transient aspects
 beg.time = 0
 end.time = 5*365
 
@@ -721,8 +721,9 @@ Ctransmodel = copy.model(Cmodel)
 # save the current concentration distribution in prev.C
 prev.C = state.fun(Cmodel)
 
+
 # remove the source from the transient solute transport model
-rem.pointflux(Ctransmodel,"Solute source")
+rem.pointflux(Ctransmodel,"Solute_source")
 
 # add the pump&treat extraction well for removing the solute
 p_t.sink = function(conc)
@@ -732,7 +733,7 @@ p_t.sink = function(conc)
 add.pointflux(Ctransmodel,at = 100,p_t.sink,name = "pump_treat")
 
 # add storage to the model
-add.spatialflux(Ctransmodel,C.sto,name = "mass storage")
+add.spatialflux(Ctransmodel,C.sto,name = "mass_storage")
 
 ```
 </div>
@@ -787,7 +788,7 @@ end.time = 5*365
 current.time= beg.time
 
 
-#plot the starting solute concetration distribution
+#plot the starting solute concentration distribution
 plot(nodes,prev.C(nodes),type = 'o',col='red',ylab = "concentration kg/m3",
      xlab= "distance (m)", main = "Transient solute concentration distribution",
      ylim = c(0,max(prev.C(nodes))))
@@ -901,5 +902,147 @@ This can be calculated by setting up the mass balance for the model for each tim
 
   
 
+### Highest concentration in the subsoil
 
+One can imagine that de highest concentration could be important when the solute is (very) toxic.  
+The concentration is the actual calculated state and can easily be derived through the `dataframe.state()` function.
+
+## Modeling function
+
+Since the transport model requires the `Qflow` and `Vflow` functions from the flow model, both models need to run in one sequence.  
+
+The following chunk creates such a function
+
+```{r}
+
+#save(list = c(grep(pattern = "Ctrans",x=ls(),mass.balance.old,max.C.old),value = TRUE),file = "testCtransdata.Rdata")
+bewaar = function()
+{
+  D.sat.old <<- D.sat
+  Vflow.old <<- Vflow
+  Qflow.old <<- Qflow
+  mb.Ctrans.old <<- dataframe.balance(Ctransmodel)
+  wb.Fmodel.old <<- dataframe.balance(Fmodel)
+  max.C.old <<- max.C
+  mass.balance.old <<- mass.balance
+  ext.q.Ctrans.old = dataframe.externalfluxes(Ctransmodel)
+  int.q.Ctrans.old = dataframe.internalfluxes(Ctransmodel)
+  bnd.q.Ctrans.old = dataframe.boundaries(Ctransmodel)
+  
+}
+
+plotten = function()
+{
+  plot(mass.balance.old$time.step,mass.balance.old$bnd.out,main = "bnd.out",type = "o")
+  lines(mass.balance$time.step,mass.balance$bnd.out, col="red",type ="o",pch = 20)
+  grid()
+  plot(mass.balance.old$time.step,mass.balance.old$storage.in,main = "storage.in",type = "o")
+  lines(mass.balance$time.step,mass.balance$storage.in, col="blue",type ="o",pch = 20)
+  grid()
+  plot(mass.balance.old$time.step,mass.balance.old$storage.out,main = "storage.out",type = "o")
+  lines(mass.balance$time.step,mass.balance$storage.out, col="green",type ="o",pch = 20)
+  grid()
+  plot(mass.balance.old$time.step,mass.balance.old$pump.treat,main = "pump.treat",type = "o")
+  lines(mass.balance$time.step,mass.balance$pump.treat, col="cyan",type ="o",pch = 20)
+  grid()
+  plot(max.C.old$time,max.C.old$max.conc,main = "max C in time",type = "o")
+  lines(max.C$time,max.C$max.conc, col = "orange",type ="o",pch = 20)
+  grid()
+  plot(max.C.old$"position.x",max.C.old$max.conc,main = "max C in time",type = "o")
+  lines(max.C$"position.x",max.C$max.conc, col = "yellow",type ="o",pch = 20)
+  grid()
+}
+
+#since the transient Ctransmodel is transient, it needs to be reset with the initial concentration of the 
+#stationary Cmodel.
+initial.C = state.fun(Cmodel)
+
+sensitivity = function()
+{
+#run current stationary flow model
+#calculate new Qflow and new Vflow functions
+solve.steps(Fmodel)
+#first the folume per m delta_y
+D.sat = approxfun(nodes,Fmodel$states - bottom(nodes),rule = 2)
+Vflow = approxfun(nodes,D.sat(nodes)*por,rule = 2)
+#now the flux function to determine the local groundwater velocities
+Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
+#calculate a new delta.t in case delta.x, v is adjusted
+v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+#calculation of reasonable time step (using Courant)
+#abs(V)*delta.t/delta.x < 1 so delta.t < delta.x/abs(V)
+max.delta.t = delta.x/abs(v)
+delta.t <<- floor(min(max.delta.t))
+
+#run the transient transport model
+#create some data containers for the results
+bnd.out = c()
+storage.in = c()
+storage.out = c()
+time.step = c()
+max.C = c()
+pump.treat = c()
+current.time = 0.0
+
+#reset the current transient transport model
+do.initialize(Ctransmodel,init = initial.C)
+while (current.time < end.time)
+{
+  prev.C <<- state.fun(Ctransmodel)
+  solve.steps(Ctransmodel)
+  #write mass balance data 
+  df.states = dataframe.states(Ctransmodel)
+  # lines(df.states$x,df.states$state)
+  df.mass = dataframe.balance(Ctransmodel)
+  bnd.out = c(bnd.out,df.mass[3,3])
+  storage.in = c(storage.in,df.mass[2,2])
+  storage.out = c(storage.out,df.mass[2,3])
+  pump.treat = c(pump.treat,df.mass[3,3])
+  current.time = current.time + delta.t
+  time.step = c(time.step,current.time)
+  #write max concentration(x,t) to max.C
+  df.conc = dataframe.states(Ctransmodel)
+  cur.maxC = which(df.conc$state == max(df.conc$state)) #which node contains the highest C now
+  cur.result = c(current.time,nodes[cur.maxC],df.conc$state[cur.maxC])
+ # max.C = cbind(max.C, cur.time,nodes[cur.maxC],df.conc$state[cur.maxC])
+  max.C = rbind(max.C,cur.result)
+  # print(current.time)
+}
+max.C <<- data.frame(max.C)
+rownames(max.C) <<- c()
+colnames(max.C) <<-c("time","position.x","max.conc")
+mass.balance <<- data.frame(time.step,bnd.out,storage.in,storage.out,pump.treat)
+
+}
+```
+
+Some test cases to check if all is ok
+
+
+let's go
+
+```{r}
+#load(file = "testCtransdata.Rdata")
+p_t.rate = p_t.rate/2
+sensitivity()
+p_t.rate = 2*p_t.rate
+plotten()
+
+p_t.rate = 2*p_t.rate
+sensitivity()
+p_t.rate = p_t.rate/2
+plotten()
+
+
+Disp = 2*Disp
+sensitivity()
+Disp = Disp/2
+plotten()
+
+Disp = Disp/2
+sensitivity()
+Disp = 2* Disp
+plotten()
+
+```
 
