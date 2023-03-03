@@ -15,6 +15,7 @@ output:
 ```{r}
 rm(list = ls())
 library(FVFE1D)
+library(stringr)
 ```
 
 # Learning Goals  
@@ -957,6 +958,8 @@ plotten = function()
 #stationary Cmodel.
 initial.C = state.fun(Cmodel)
 
+Cevery.days = 100 #modulo for days to write C(x,t)
+
 sensitivity = function()
 {
 #run current stationary flow model
@@ -983,6 +986,7 @@ time.step = c()
 max.C = c()
 pump.treat = c()
 current.time = 0.0
+C_trans = c()
 
 #reset the current transient transport model
 do.initialize(Ctransmodel,init = initial.C)
@@ -991,8 +995,6 @@ while (current.time < end.time)
   prev.C <<- state.fun(Ctransmodel)
   solve.steps(Ctransmodel)
   #write mass balance data 
-  df.states = dataframe.states(Ctransmodel)
-  # lines(df.states$x,df.states$state)
   df.mass = dataframe.balance(Ctransmodel)
   bnd.out = c(bnd.out,df.mass[3,3])
   storage.in = c(storage.in,df.mass[2,2])
@@ -1006,11 +1008,21 @@ while (current.time < end.time)
   cur.result = c(current.time,nodes[cur.maxC],df.conc$state[cur.maxC])
  # max.C = cbind(max.C, cur.time,nodes[cur.maxC],df.conc$state[cur.maxC])
   max.C = rbind(max.C,cur.result)
+  if (current.time %% Cevery.days == 0 )
+  {
+    C_trans = rbind(C_trans,c(current.time,df.conc$state))
+  }
   # print(current.time)
 }
 max.C <<- data.frame(max.C)
 rownames(max.C) <<- c()
 colnames(max.C) <<-c("time","position.x","max.conc")
+C_trans <<- data.frame(C_trans)
+parnames = paste0('c("',str_flatten_comma(as.character(nodes)), collapse="", \"")
+
+str_flatten_comma(as.character(nodes),collapse=""")
+
+colnames(C_trans) <<- c("time",(str_flatten_comma(as.character(nodes))))
 mass.balance <<- data.frame(time.step,bnd.out,storage.in,storage.out,pump.treat)
 
 }
@@ -1043,6 +1055,37 @@ Disp = Disp/2
 sensitivity()
 Disp = 2* Disp
 plotten()
+
+precip = 2*precip
+sensitivity()
+precip = precip/2
+plotten()
+
+precip = precip/2
+sensitivity()
+precip = 2*precip
+plotten()
+
+bot.slope = 2*bot.slope
+sensitivity()
+bot.slope = bot.slope/2
+plotten()
+
+bot.slope = bot.slope/2
+sensitivity()
+bot.slope = 2*bot.slope
+plotten()
+
+fix.H = fix.H + 1.0
+sensitivity()
+fix.H = fix.H - 1.0
+plotten()
+
+fix.H = fix.H - 1.0
+sensitivity()
+fix.H = fix.H + 1.0
+plotten()
+
 
 ```
 
