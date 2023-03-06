@@ -15,7 +15,6 @@ output:
 ```{r}
 rm(list = ls())
 library(FVFE1D)
-library(stringr)
 ```
 
 # Learning Goals  
@@ -916,7 +915,7 @@ The following chunk creates such a function
 
 ```{r}
 
-#save(list = c(grep(pattern = "Ctrans",x=ls(),mass.balance.old,max.C.old),value = TRUE),file = "testCtransdata.Rdata")
+#save(list = c(grep(pattern = "Ctrans",x=ls(),value = TRUE),"mass.balance.old","max.C.old","C_trans.old"),file = "testCtransdata.Rdata")
 bewaar = function()
 {
   D.sat.old <<- D.sat
@@ -929,7 +928,7 @@ bewaar = function()
   ext.q.Ctrans.old = dataframe.externalfluxes(Ctransmodel)
   int.q.Ctrans.old = dataframe.internalfluxes(Ctransmodel)
   bnd.q.Ctrans.old = dataframe.boundaries(Ctransmodel)
-  
+  C_trans.old <<- C_trans
 }
 
 plotten = function()
@@ -950,15 +949,27 @@ plotten = function()
   lines(max.C$time,max.C$max.conc, col = "orange",type ="o",pch = 20)
   grid()
   plot(max.C.old$"position.x",max.C.old$max.conc,main = "max C in time",type = "o")
-  lines(max.C$"position.x",max.C$max.conc, col = "yellow",type ="o",pch = 20)
+  lines(max.C$"position.x",max.C$max.conc, col = "magenta",type ="o",pch = 20)
   grid()
+  #plotting some concentration distributions
+  grijs = grey(level = 0:length(C_trans.old[,1])/length(C_trans.old[,1]))
+  #kleur = hcl.colors(n =0:length(C_trans.old[,1])/length(C_trans.old[,1]),palette = "viridis", alpha = 1)
+  kleur = heat.colors(n =length(C_trans.old[,1]))
+  plot(nodes,C_trans.old[1,2:(length(nodes)+1)],type = "l",lwd = 2, col = grijs[1], main = "max C in time")
+  for (i in 2:length(C_trans.old[,1]))
+  {
+    lines(nodes,C_trans.old[i,2:(length(nodes)+1)],col = grijs[i], lwd = 2)
+    lines(nodes,C_trans[i,2:(length(nodes)+1)],col = kleur[i], lwd = 2)
+  }
+  grid()
+  legend(x = "topright", legend = c(paste0("time:",C_trans.old[,1])),col = grijs[1:length(grijs)])
 }
 
 #since the transient Ctransmodel is transient, it needs to be reset with the initial concentration of the 
 #stationary Cmodel.
 initial.C = state.fun(Cmodel)
 
-Cevery.days = 100 #modulo for days to write C(x,t)
+Cevery.delta.t = 5 #modulo for delta t 's days to write C(x,t)
 
 sensitivity = function()
 {
@@ -1008,7 +1019,7 @@ while (current.time < end.time)
   cur.result = c(current.time,nodes[cur.maxC],df.conc$state[cur.maxC])
  # max.C = cbind(max.C, cur.time,nodes[cur.maxC],df.conc$state[cur.maxC])
   max.C = rbind(max.C,cur.result)
-  if (current.time %% Cevery.days == 0 )
+  if (current.time %% (Cevery.delta.t * delta.t) == 0 )
   {
     C_trans = rbind(C_trans,c(current.time,df.conc$state))
   }
@@ -1018,11 +1029,7 @@ max.C <<- data.frame(max.C)
 rownames(max.C) <<- c()
 colnames(max.C) <<-c("time","position.x","max.conc")
 C_trans <<- data.frame(C_trans)
-parnames = paste0('c("',str_flatten_comma(as.character(nodes)), collapse="", \"")
-
-str_flatten_comma(as.character(nodes),collapse=""")
-
-colnames(C_trans) <<- c("time",(str_flatten_comma(as.character(nodes))))
+colnames(C_trans) <<- c("time",as.character(nodes))
 mass.balance <<- data.frame(time.step,bnd.out,storage.in,storage.out,pump.treat)
 
 }
@@ -1034,7 +1041,7 @@ Some test cases to check if all is ok
 let's go
 
 ```{r}
-#load(file = "testCtransdata.Rdata")
+load(file = "testCtransdata.Rdata")
 p_t.rate = p_t.rate/2
 sensitivity()
 p_t.rate = 2*p_t.rate
