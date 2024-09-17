@@ -1,7 +1,7 @@
 ---
-title: "Tutorial 1: Finite differences in time"
+title: "Assignment 1: Finite differences in time"
 author: "The WANT team"
-date: "25/11/2018"
+date: "Updated on 17/0-9/2024"
 output:
   html_document:
     css: ../../want.css
@@ -26,9 +26,8 @@ After completing this tutorial you will:
 # Introduction
 In this tutorial, you will analyse and develop models of ordinary differential equations (ODEs) that only depend on time. You will test the influence of parameter values and numerical schemes on the behavior of the solutions for simple 1D models, such as the emptying reservoir model (leaving out the spatial dimensions). Then you will learn how to use Taylor series to develop such models using different techniques. You will also use Taylor series to estimate the errors of numerical models in order to judge their quality.
 
-# Part 1 - Simple models in time
-## Section 1.1 - Introduction ordinary differential equations
-The first model that you will study, is that of an emptying bucket (see Figure). This is a very illustrative example, because this model has an analytical solution against which the outcome of the numerical models, that you will implement, can be compared and it's intuitively understandable.
+# 1. Simple models in time
+The first model that you will study, is that of an emptying bucket (see Figure). This is a very illustrative example, because this model has an analytical solution against which the outcome of the numerical models, that you will implement, can be compared, besides that it's intuitively understandable.
 
 ![](reservoir_properties.png) 
 
@@ -51,7 +50,7 @@ Note that this solution is no longer exact. The difference between $t$ and $t + 
 With equation 3, we can build models in which we can approximate the value of the state $s$ at a future time step $t + \Delta t$.
 
 <span class="question">
-1.1.1 Combine equations 1 and 3 to find an equation that can give you the value of $s$ at the next time step ($s(t+\Delta t)$)
+1.1 Combine equations 1 and 3 to find an equation that can give you the value of $s$ at the next time step ($s(t+\Delta t)$)
 </span>
 
 <span class="answer">
@@ -60,7 +59,7 @@ $$ s(t+\Delta t) = s(t)(1-c_0 \Delta t) \tag{5}$$
 </span>
 
 <span class="question">
-1.1.2 In order to refresh your mathematics, calculate the analytical solution to equation 1, so we can use it later to validate your models against. Use the following initial condition $s(t = 0) = s_{0}$
+1.2 In order to refresh your mathematics, calculate the analytical solution to equation 1, so we can use it later to validate your models against. Use the following initial condition $s(t = 0) = s_{0}$
 </span>
 
 <span class = "answer">
@@ -78,9 +77,8 @@ s &= s_{0}\mathrm{e}^{-c_0 t}
 $$
 </span>
 
-## Section 1.2 - Implementing emptying reservoir model
 <span class="question">
-1.2.1 Implement the formula derived in question 1.1.1 in the following script to set up a numerical model for the emptying reservoir.
+1.3 Implement the formula derived in question 1.1 in the following script to set up a numerical model for the emptying reservoir.
 </span>
 
 <span class="student_answer">
@@ -104,7 +102,7 @@ sys.fun = function(state)
 </span>
 
 <span class="question">
-1.2.2 Run the following chunk to perform the actual simulation and visualize it.
+1.4 Run the following chunk to perform the actual simulation and visualize it.
 ```{r chunk3}
 # Initial parameter values
 begin.time = 0     # usually this variable is set to 0
@@ -136,15 +134,17 @@ grid()
 </span>
 
 <span class="question">
-1.2.3 Vary the `dt` parameter between 0.001 and 25. Are there any numerical problems arising beyond a certain value for `dt`? What are the problems when choosing a value for `dt` close to or on the high/low end of this range? Can you interpret your results in terms of convergence, oscillations and stability?
+1.5 Vary the `dt` parameter between 0.001 and 25. Are there any numerical problems arising beyond a certain value for `dt`? What are the problems when choosing a value for `dt` close to or on the high/low end of this range? Can you interpret your results in terms of convergence, oscillations and stability?
 </span>
+
+<span class="comment"> **[LM]** @Chiel every year there are issues here because convergence, oscillation and stability are not yet treated in the lecture. How about adding a definition here? also nice for them to learn..</span>
 
 <span class="answer">
 For small values of `dt` run-time will be significantly higher and can become impractically slow (although the result is very accurate). High values for `dt`; first you will notice that already in the first step the state of the reservoir will be lower than 0, which is physically incorrect. Secondly, when choosing a `dt` that is even higher, the numerical approximation does not converge, oscillates and can even go to positive/negative infinity.
 </span>
 
 <span class="question">
-1.2.4 Reset `dt` to 0.1 and vary `c0` between 0.25 and 25. Describe for `c0` 0.25, 5, 10, 15, 20, 25 whether the simulation is physically correct, converging (approximation and exact solution advance to the same, or at least roughly the same, solution) and stable, and explain why, with the help of the equation that calculates the next state. 
+1.6 Reset `dt` to 0.1 and vary `c0` between 0.25 and 25. Describe for `c0` 0.25, 5, 10, 15, 20, 25 whether the simulation is physically correct, converging (approximation and exact solution advance to the same, or at least roughly the same, solution) and stable, and explain why, with the help of the equation that calculates the next state. 
 
 $c_0$ | physically correct | convergent | stability | explanation 
 ---------| ------------------ | ---------- | --------- | ----------- 
@@ -172,7 +172,7 @@ $c_0$ | physically correct | convergent | stability | explanation
 You will now compare the results against the exact analytical solution that you derived. If you are in for a **challenging exercise** open Excercise 1 of `Finite_differences_1_extended.Rmd` where you will add the analytical solution yourself, otherwise do the exercise below.
 
 <span class="question">
-1.2.5 Unfold `chunk4` and run the code in order to study the quality of the approximation in comparison with the exact solution.
+1.7 Unfold `chunk4` and run the code in order to study the quality of the approximation in comparison with the exact solution.
 </span>
 
 <button type="button" onclick="toggle('Q1')">Show chunk</button>
@@ -213,15 +213,15 @@ grid()
 <br/>
 
 <span class="question">
-1.2.6 At which `dt` do the numerical approximation and analytical solution start to agree fairly reasonably?
+1.8 At which `dt` do the numerical approximation and analytical solution start to agree fairly reasonably?
 </span>
 
 <span class="answer">
 Around `dt = 1` the analytical solution and the numerical approximation come quite close to each other.
 </span>
 
-# Part 2 - Taylor series
-## Section 2.1 - Introduction of Taylor Series 
+# 2. Taylor series
+
 The previous exercise can also be done in a more formal way, such that the error of the numerical approximation can be calculated. For that you will make use of **Taylor series**. Taylor series (https://en.wikipedia.org/wiki/Taylor_series) can be used to make approximations of complex mathematical functions using expansion. 
 
 If you use an infinite series, the approximation is exact. The finite difference approximation that you have derived earlier, can also be derived using a Taylor series. **TIP**: if you are unfamiliar with this topic or you simply want a refresher, you can watch the following video by *3Blue1Brown*: https://www.youtube.com/watch?v=3d6DsjIBzJ4
@@ -259,11 +259,10 @@ $$\frac{s(t + \Delta t) - s(t)}{\Delta t} =  \frac{ds}{dt} \bigg\rvert_{t} + err
 $$ error = \frac{\Delta t}{2!} \frac{d^{2}s}{dt^{2}} \bigg\rvert_{t} + \frac{\Delta t^{2}}{3!} \frac{d^{3}s}{dt^{3}} \bigg\rvert_{t} + \frac{\Delta t^{3}}{4!} \frac{d^{4}s}{dt^{4}} \bigg\rvert_{t} + \ ... \tag{13}$$
 </div>
 
-##Section 2.2 - Error of estimation
 If you prefer a **challenging exercise**, you can open Exercise 3 in the `Finite_differences_1_extended.Rmd` file. If not, you can proceed with this exercise.
 
 <span class="question">
-2.1.1 1 Run the chunk below, which will open a new window. The chunk calculates the state s of the reservoir at $t_0 + \Delta t$ (the first timestep), using a defined number of terms of the Taylor series. It also shows the error at $t_0 + \Delta t$ (compared with the analytical solution). The approximation we used so far (which gives the black line) is based on the first two terms of the Taylor series. Use the arrows to change the number of terms of the Taylor series that are implemented and write down the errors between the Taylor series implementation and the true emptying bucket.
+2.1. Run the chunk below, which will open a new window. The chunk calculates the state s of the reservoir at $t_0 + \Delta t$ (the first timestep), using a defined number of terms of the Taylor series. It also shows the error at $t_0 + \Delta t$ (compared with the analytical solution). The approximation we used so far (which gives the black line) is based on the first two terms of the Taylor series. Use the arrows to change the number of terms of the Taylor series that are implemented and write down the errors between the Taylor series implementation and the true emptying bucket.
 
 terms | error 
 ----- | ----- 
@@ -394,7 +393,7 @@ terms | error
 
 </span>
 
-# Part 3 - An emptying reservoir with input.
+# 3. An emptying reservoir with input.
 In this exercise, the emptying bucket model will be adapted to make it more realistic, by adding an input source that depends on time. This introduces an extra source of fluctuation and makes the output graph more complex. Therefore, it is an excellent model to investigate the accuracy of different type of integration methods. We introduce a simple input function that could, for instance, be described as time-varying precipitation $\sin(time)+1$:
 
 ```{R chunk6}
@@ -409,7 +408,7 @@ The volume of the bucket, $V$, can be replaced by the area times the height: $A\
 The earlier model that you used in Part 1 and 2 was a simplification of this model, with $Q_{in}$ equals 0 and A equals unity.
 
 <span class="question">
-3.1.0 What are the units of $V$, $Q_{in}$, $A$ and $\alpha$? Do the units of the equation match?
+3.1 What are the units of $V$, $Q_{in}$, $A$ and $\alpha$? Do the units of the equation match?
 </span>
 
 <span class="answer">
@@ -425,7 +424,7 @@ which is consistent with both the numerical approximation and the analytical sol
 </span>
 
 <span class="question">
-3.1.1 Replace $Q_{in}$ and $Q_{out}$ with their formulas and derive the finite differences approximation for $s(t+\Delta t)$ starting from equation 14.
+3.2 Replace $Q_{in}$ and $Q_{out}$ with their formulas and derive the finite differences approximation for $s(t+\Delta t)$ starting from equation 14.
 </span>
 
 <span class="answer">
@@ -443,7 +442,7 @@ $$
 </span>
 
 <span class="question"> 
-3.1.2 Copy `chunk3` here and add a new, updated `sys.fun` that represents the equation derived in question 3.1.1. Replace the parameter section with the following:
+3.3 Copy `chunk3` here and add a new, updated `sys.fun` that represents the equation derived in question 3.1 Replace the parameter section with the following:
 
 ```{}
 rm(list=ls())
@@ -500,7 +499,7 @@ grid()
 In order to assess the quality of the approximation we need a reference. In the previous exercise we added the analytical solution to the chunk as the reference. However, for this equation the solution of the differential is not so trivial to obtain, even though the equation doesn't seem to be too complex (https://www.wolframalpha.com/input/?i=ds%2Fdt+%3D++((sin(t)%2B1)+-+a*s(t))%2FA). In many real world scenarios an analytical solution is impossible to be derived. Therefore, we run the model twice. One with a very small time step to represent the exact solution, and one with a larger time step `dt` chosen by you to asses the quality of the approximation.
 
 <span class="question">
-3.1.3 Copy the last chunk here. Then copy the following lines of code into the end of the chunk.
+3.4 Copy the last chunk here. Then copy the following lines of code into the end of the chunk.
 
 ```{}
 dt = 2.0 # a new dt value to evaluate current scheme
@@ -581,16 +580,16 @@ lines(result.time,result.state,type='o',col='blue')
 If everything went well, there are two lines in the graph. The grey line is the 'true' solution and the blue line is the approximation. The 'true' solution here is the same finite differences approximation, but with such a small `dt`, for which we assume that it approximates the analytical solution very well. 
 
 <span class="question">
-3.1.4 Play a bit around with the second `dt` variable to see how well the approximation is doing for a slightly more complex system. Does your answer of 1.2.3 still hold here?
+3.5 Play a bit around with the second `dt` variable to see how well the approximation is doing for a slightly more complex system. Does your answer to question 1.5 still hold here?
 </span>
 
-# Part 4 - Different integration methods
+# 4. Different integration methods
 So far, you have used the *explicit* integration scheme. This means that information of the current time step is used to calculate the future. In mathematical notation, this sentence can be formulated in a generic way as:
 
 $$\dfrac{ds}{dt} = f(t, s(t)) \tag{15}$$
 However, other methods do exist. In the following sections, you will encounter the implicit, midpoint, and Runge-Kutta time-integration methods that each have their own specific properties.
 
-## Section 4.1 - Implicit method
+## 4.1. Implicit method
 The implicit integration scheme is based on taking the derivative not with the current information, but with the information from the next time-step. In its generic form, it is:
 
 $$\dfrac{ds}{dt} = f(t+\Delta t, s(t + \Delta t)) \tag{16}$$
@@ -603,7 +602,7 @@ The implicit method works differently. It evaluates the gradient found at the ne
 The methods behave very differently. The explicit scheme has oscillatory behaviour and has outliers far from the correct solution. The implicit method is a bit more conservative. It is more stable and is more likely to keep within physical limitations. However, it is computationally more expensive to run and is generally harder to implement, especially for non-linear functions, as you will see in the next exercises.
 
 <span class="question">
-4.1.1 Derive a new equation for $s(t+\Delta t)$ for the emptying reservoir with variable input of Part 3 using the implicit time-integration method.
+4.1. Derive a new equation for $s(t+\Delta t)$ for the emptying reservoir with variable input of Part 3 using the implicit time-integration method.
 </span>
 
 <span class="answer">
@@ -620,7 +619,7 @@ s(t+\Delta t) &=& \dfrac{1}{1 + \alpha\frac{\Delta t}{A}}(s(t) + \dfrac{\Delta t
 </span>
 
 <span class="question"> 
-4.1.2 Copy the previous chunk with the explicit scheme here and replace the `sys.fun` with the implicit version.
+4.2 Copy the previous chunk with the explicit scheme here and replace the `sys.fun` with the implicit version.
 </span>
 
 <span class="answer">
@@ -677,11 +676,11 @@ lines(result.time,result.state,type='o',col='blue')
 ```
 </span>
 
-## Section 4.2 - Midpoint method
+## 4.2. Midpoint method
 As you can see in the implementation of the both the explicit and the implicit integration scheme, the results look quite good with a low `dt` but for a larger time-step the results worsen. By closely examining the differences in the the implementation of the explicit and the implicit scheme you can see a phase-shift. 
 
 <span class="question">
-4.2.1 The implicit scheme has a tendency to lie slightly above/right of the true solution, while the explicit scheme lies slightly under/to the left. Explain why this is the case.
+4.3 The implicit scheme has a tendency to lie slightly above/right of the true solution, while the explicit scheme lies slightly under/to the left. Explain why this is the case.
 </span>
 
 <span class="answer">
@@ -700,7 +699,7 @@ $$s(t+\Delta t) = \widetilde{s} + \frac{\Delta t}{2} \ f(t+\Delta t,s(t+\Delta t
 In comparison with the implicit and explicit schemes, the midpoint method converges faster. It is also twice as expensive to run since it creates a temporary midpoint for calculation. It is, however, often worth the investment in time and effort.
 
 <span class="question">
-4.2.2 Update the `sys.fun` function to implement the midpoint method. You can choose yourself whether you want to do it in two steps, or to do a direct calculation.
+4.4 Update the `sys.fun` function to implement the midpoint method. You can choose yourself whether you want to do it in two steps, or to do a direct calculation.
 </span>
 
 <span class="answer">
@@ -770,14 +769,14 @@ lines(result.time,result.state,type='o',col='blue')
 </span>
 
 <span class="question">
-4.2.3 Does this midpoint method converge faster or slower than the previous explicit and implicit method?
+4.5 Does this midpoint method converge faster or slower than the previous explicit and implicit method?
 </span>
 
 <span class="answer">
 faster
 </span>
 
-## Section 4.3 - Runge-Kutta method
+## 4.3. Runge-Kutta method
 For many applications, the best compromise between calculation time and numerical accuracy is the Runge-Kutta 4 (RK4) numerical approximation. RK4 is an explicit method. As seen before explicit methods are much easier to define because the formula(s) don't need reworking before implementation. RK4 uses four intermediate function evaluations, compared to the two evaluations that we used in the midpoint method.
 
 $$
@@ -794,11 +793,11 @@ $$
 </span>
 
 <span class="question">
-4.3.1 Create a new chunk and copy the Midpoint approximation chunk into it.
+4.6 Create a new chunk and copy the Midpoint approximation chunk into it.
 </span>
 
 <span class="question">
-4.3.2 Rewrite the `sys.fun` with the intermediate values and states shown above.
+4.7 Rewrite the `sys.fun` with the intermediate values and states shown above.
 </span>
 
 <span class="answer">
@@ -864,7 +863,7 @@ lines(result.time,result.state,type='o',col='blue')
 ```
 </span>
 
-# Part 5 - Comparing the different integration schemes
+# 5. Comparing the different integration schemes
 
 <span class="question">
 5.1 Fill out the following table with the following options:
@@ -1092,7 +1091,7 @@ dt|Explicit|Implicit|Midpoint|Runge-Kutta
 
 </span>
 
-# Part 6 - Real world example
+# 6. Real world example
 The reservoir models up till now considerd one outlet only. This entails a constant and linear relation between volume change and state change (for the linear reservoirs). For some environmental flow problems a reservoir model with a slow and fast acting component would be a more appropriate model.
 
 Its practical use may for example be found in meteorology, where you could have a reservoir containing thermal energy which can be released at different rates. In hydrology, you could have a catchment model that includes both base flow and quick discharge (e.g. due to surface runoff). In the graph below, the principle and workings of such a reservoir model are illustrated:
@@ -1105,7 +1104,8 @@ Depending on the state of the reservoir, the discharge out of the upper outlet i
 
 For this situation, we will still use the same equation for the outflows: $Q_{out}=\alpha*H$, where H is the height of water above the outlet. Note that before we used only a lower outlet, located at the bottom of the reservoir, so that $H = s$ and $Q_{out}=\alpha*s$. For the upper outlet, H depends on the height of the outlet pipe. Besides a different height, the two outlets might also have a different $\alpha$.
 
-<span class="question">6.1 Set up a model including the input flux ($Q_{in}$), volume change over time and the output fluxes (discharges). Next, derive a numerical approximation for the state using the explicit integration scheme</span>  
+<span class="question">
+6.1 Set up a model including the input flux ($Q_{in}$), volume change over time and the output fluxes (discharges). Next, derive a numerical approximation for the state using the explicit integration scheme</span>  
 
 <button type="button" onclick="toggle('Q3')">Show hint</button>
 <div id="Q3" style="display: none">
