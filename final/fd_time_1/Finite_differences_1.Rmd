@@ -1,7 +1,7 @@
 ---
 title: "Assignment 1: Finite differences in time"
 author: "The WANT team"
-date: "Updated on 17/0-9/2024"
+date: "Updated on 17/09/2024"
 output:
   html_document:
     css: ../../want.css
@@ -12,8 +12,6 @@ output:
 <script src="../../hints.js"></script>
 
 # Learning goals
-After completing this tutorial you will:
-
 * Understand the use of Taylor series.
 * Understand the mathematics of Taylor series.
 * Be able to calculate Taylor series for arbitrary functions.
