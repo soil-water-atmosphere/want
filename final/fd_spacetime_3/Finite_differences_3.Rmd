@@ -1,7 +1,7 @@
 ---
-title: "Finite differences 3: Space and Time"
+title: "Assignment 3: Finite Differences in Space and Time"
 author: "The WANT team"
-date: "24/09/2018"
+date: "Updated on 17/09/2024"
 output:
   html_document:
     css: want.css
@@ -14,36 +14,45 @@ output:
 <!-- include the hint.js -->
 <!-- <script src="hints.js"></script> -->
 
-# Introduction
-Here, you will combine the topics of the previous two assignments. Until now, you have dealt with systems that have a state that is a function of time $s(t)$, such as the emptying reservoir, and with systems that are steady state in time but vary in space $s(x)$, such as the stationary advection-diffusion equation. Now, you will analyze systems that have a state that varies in time and in space $s(x,t)$.
 
-# Part 1 - Clarifying the last missing parts
-## Section 1.1 - Notation
+# Learning goals
+* Combine space and time dimensions in finite differences
+* Implement and combine first order time and second order space methods
+* Evaluate model results implemented using finite differences
+* Evaluate model results using the Von Neumann and the Courant number
+* Appreciate the concept of numerical diffusion 
+
+
+# Introduction
+In this assignment, you will combine the topics of the previous two assignments. Until now, you have dealt with systems that have a state that is a function of time $s(t)$, such as the emptying reservoir, and with systems that are steady state in time but vary in space $s(x)$, such as the stationary advection-diffusion equation. Now, you will analyze systems that have a state that varies in time and in space $s(x,t)$.
+
+# 1. Clarifying the last missing parts
+## 1.1. Notation
 Until now, we have been using two different notations when talking about discretisation of equations. Namely the following;
 
 $$
 s_i\\
 s(x)\ \text{or} \ s(t)
 $$
-The first notation signifies the location in discrete space, which also refers to its location in the corresponding vector. $i$ is therefore always a positive integer. The second one is a specific value. It describes the state of a system at for example `x = 12.5` meters or the state at a specific time. When talking about space and time at the same time these notations tend to become quite cumbersome as you can see in the following example:
+The first notation signifies the location in discrete space, which also refers to its location in the corresponding vector. $i$ is therefore always a positive integer. The second one is a specific value. It describes the state of a system at for example `x = 12.5` meters or the state at a specific time. When combining space, these notations tend to become quite cumbersome, as you can see in the following example:
 
 $$
 s(x + \Delta x, t + \frac{1}{2}\Delta t)
 $$
-To solve this issue we will use the following notation during this tutorial:
+To solve this issue, we will use the following notation during this assignment:
 
 $$
 s^{t + \frac{1}{2}\Delta t}_{x + \Delta x}
 $$
-This equation means exactly the same as the equation above but in a much shorter notation. The convention is to put time above and space below. The same goes for the discrete form, where $n$ refers to the time index, and $i$ to the space index:
+This equation means exactly the same as the equation above, but in a much shorter notation. The convention is to put time above and space below. The same goes for the discrete form, where $n$ refers to the time index, and $i$ to the space index:
 
 $$
 s^{n + 1}_{i}
 $$
 Thus, this specific location refers to the next time-step `n+1` (current time step: `n`) and at the current location `i`.
 
-## Section 1.2 - Crank-Nicolson
-The Crank-Nicolson method is another way of solving ODEs in time. What it does in simple words, it averages for each time step the solution of an explicit and an implicit scheme. In mathematics, it looks as follows:
+## 1.2. Crank-Nicolson
+The Crank-Nicolson method is another way of solving ODEs in time. What it does in simple words; it averages for each time step the solution of an explicit and an implicit scheme. In mathematics, it looks as follows:
 
 $$
 \dfrac{ds}{dt} = \frac{1}{2}f(t) + \frac{1}{2}f(t+\Delta t)
@@ -53,18 +62,17 @@ A strategy that is often used to be able to solve the explicit, implicit and Cra
 $$
 \dfrac{ds}{dt} = \omega f(t) + (1-\omega)f(t+\Delta t)
 $$
-By setting up a solver using $\omega$, you can solve for all three methods, and easily switch. If you plug in $\omega = 1$ you get the explicit solution, $\omega = 0$ the implicit solution and $\omega = \frac{1}{2}$ the Crank-Nicolson version. This convention makes programming the three down the line much more convenient.
+By setting up a solver using $\omega$, you can solve for all three methods, and easily switch. If you plug in $\omega = 1$ you get the explicit solution, $\omega = 0$ the implicit solution and $\omega = \frac{1}{2}$ the Crank-Nicolson version. This convention makes programming the three approaches much more convenient.
 
-# Part 2 - The advection-diffusion equation revisited
-## Section 2.1 - Setting up the equations
-We will go back to the advection difussion equation now, which was introduced in the second assignment. In the second assignment, we worked with this equation only in the stationary case; $\dfrac{ds}{dt} = 0$. This is the full version of the equation.
+# 2. The advection-diffusion equation revisited
+## 2.1. Setting up the equations
+We will go back to the advection-diffusion equation now, which was introduced in the second assignment. In the second assignment, we worked with this equation only in the stationary case; $\dfrac{ds}{dt} = 0$. This is the full version of the equation:
 
 $$\frac{\partial s}{\partial t} = -u \frac{\partial s}{\partial x} + D\frac{\partial^{2}s}{\partial x^{2}}$$
 
 If you are in for a **challenging** assignment, you can open **Exercise 1** from the `Finite_difference_3_extended.Rmd` markdown.
 
-### Discretisation
-The first step in the discretisation is choosing the differencing scheme for the time and space derivatives. First, we apply the explicit scheme in time (first in the original notation and then in the short notation of section 1.1):
+What we have to do now first, is to **discretise**: We have to translate our continuous function into discrete parts, basically cutting it into small pieces. The first step in the discretisation is choosing the differencing scheme for the time and space derivatives. First, we apply the explicit scheme in time (first in the original notation and then in the short notation of section 1.1):
 $$
 \dfrac{\partial s}{\partial t} = \dfrac{s(x, t+\Delta t) - s(x, t)}{\Delta t} = f(x,t,s(x,t))\\
 \dfrac{s^{n+1}_{i} - s^{n}_{i}}{\Delta t} = f(x,t,s(x,t))
@@ -75,7 +83,7 @@ $$
 $$
 
 <div class="exercise">
-2.1.1 Replace function $f$ in the equation above by the right-hand side of the advection diffusion equation. Use the central scheme for both the first and second-order derivative in space. 
+2.1 Replace function $f$ in the equation above by the right-hand side of the advection-diffusion equation. Use the central scheme for both the first and second-order derivative in space. 
 </div>
 
 <div class="answer">
@@ -88,14 +96,14 @@ $$
 
 The final result of this discretisation is the matrix equation
 $$N s^{n+1} = v$$
-In order to achieve that, the answer of question 2.1.1 can be rewritten in the form:
+In order to achieve that, the answer to question 2.1 can be rewritten in the form:
 
 $$
 as^{n+1}_{i-1} + b s^{n+1}_{i} + c s^{n+1}_{i+1} = d
 $$
 
 <div class="exercise">
-2.1.2 Rewrite the equation obtained in question 2.1.1 in the matrix-form as shown above. Find the coefficients `a`, `b`, `c` and `d`. TIP!: move as a first step all states of the next time step to the left-hand side and the states of the current time step to the right-hand side;
+2.2 Rewrite the equation obtained in question 2.1 in the matrix-form as shown above. Find the coefficients `a`, `b`, `c` and `d`. TIP!: move as a first step all states of the next time step to the left-hand side and the states of the current time step to the right-hand side;
 $$
 f(s^{n+1}) = g(s^{n})
 $$
@@ -146,7 +154,7 @@ $$
 with the matrix $N$ on the left.
 
 <div class=answer>
-In the lecture, we have followed a slightly different approach, that leads eventually to the same matrix $N$. We then first defined the matrix $M$ which contains only the advection and diffusion operators, but not $\omega$ and the instances of $\Delta t$ yet:
+In the lecture, we have followed a slightly different approach, that eventually leads to the same matrix $N$. We then first defined the matrix $M$ which contains only the advection and diffusion operators, but not $\omega$ and the instances of $\Delta t$ yet:
 
 $$
 M = 
@@ -187,13 +195,13 @@ in order to end up with an expression $N_\textrm{lhs} s^{n+1} = v$, which can be
 Careful comparison shows that in this approach the matrix $N_\textrm{lhs}$ is not exactly identical to the one that you worked out using the $a$, $b$, and $c$ coefficients. In the method presented here, every row that does not contain the boundary conditions is multiplied with $\Delta t$ compared to the method with the $a$, $b$, and $c$ coefficients. However, also $N_\textrm{rhs}$ is multiplied with $\Delta t$, so mathematically this method and the method with $a$, $b$, and $c$ come down to the same thing.
 </div>
 
-## Section 2.2 - Setting up the program
-In the time practical, all calculations required an initial state to calculate the future time-steps. To solve an equation in space and time, exactly the same initial state is needed. The difference is, however, that a state on all locations needs to be given. The initial state is therefore a vector. 
+## 2.2. Setting up the program
+In the first assignment with finite differences in time, all calculations required an initial state to calculate the next time-steps. To solve an equation in space and time, exactly the same initial state is needed. The difference is, however, that a state on all locations needs to be given. The initial state is therefore a vector (or in 2D a matrix). 
 
-In this tutorial, we choose a Gaussian bell as an initial state vector for the advection-diffusion equation, because of its ability to show the performance of a numerical scheme visually. This could be thought of as a pulse going through the system.
+In this assignment, we choose a Gaussian bell as an initial state vector for the advection-diffusion equation, because of its ability to show the performance of a numerical scheme visually. This could be thought of as a pulse going through the system.
 
 <div class="exercise">
-2.2.1 Run the following chunk and plot the `init.state` variable. 
+2.3 Run the following chunk and plot the `init.state` variable. 
 ```{R}
 # Input variables
 domain  = c(0,100)
@@ -221,7 +229,7 @@ init.state  = initfun(x)
 </div>
 
 <div class="exercise">
-2.2.2 Construct the matrix and invert it. You can do it first on paper and then implement it into the chuck below. TIP: You can make use of the coefficients `a`, `b` and `c` to define simpler code, but it is not required.
+2.4 Construct the matrix and invert it. You can do it first on paper and then implement it into the chunk below. TIP: You can make use of the coefficients `a`, `b` and `c` to define simpler code, but it is not required.
 </div>
 
 <div class="student_answer">
@@ -266,7 +274,7 @@ Minv = solve(M)
 **Challenging**: If you would like to construct the entire loop yourself, you can go to **Exercise 2**` in the `Finite_differences_3_extended.Rmd` document.
 
 <div class="exercise">
-2.2.3 Fill in the XXX in the following chunk
+2.5 Fill in the XXX in the following chunk
 </div>
 
 <div class="student_answer">
@@ -381,25 +389,33 @@ while(time < endtime)
 ```
 </div>
 
-## Section 2.3 - Stability of the solution
-The advection-diffusion equation is an equation that tends to get unstable pretty fast. To examine this behaviour, two different parameters are used; the Von Neumann and Courant number. These are defined in the following way:
+<div class="question">
+2.6 Set the diffusion equal to zero, and increase your step size. What do you observe?
+</div> 
+
+<div class="answer">
+If the step size is too large, numerical diffusion can occur: the peak of the pulse declines, even though no physical diffusion takes place.  
+</div>
+
+<span class="comment"> **[LM]** @Chiel I thought it would be nice to add this here. Do you think it works like this?</span>
+
+
+## 2.3. Stability of the solution
+The advection-diffusion equation is an equation that tends to get unstable pretty fast. To examine this behavior, two different parameters are used; the Von Neumann and the Courant number. These are defined in the following way:
 
 $$
 V = \dfrac{2D\Delta t}{\Delta x^2}\\
 C = \dfrac{u\Delta t}{\Delta x}
 $$
 
-<div class="question>
-2.3.1 Fill in the following table by using the chunk below. Use the filled in part of the table as settings for the model and write the Von Neumann and Courant number down and classify the performence of the model as:
+<div class="question">
+2.6 Fill in the following table by using the chunk below. Use the filled in part of the table as settings for the model and write the Von Neumann and Courant number down and classify the performence of the model as:
 
 * Good (G)
 * Wrong amplitude (A)
 * Oscillating (O)
 * Unstable (U)
 
-</div>
-
-<div class="student_answer">
 
 u|D|$\Delta t$|$\Delta x$| Scheme|Von Neumann number (V) |Courant number (C)|Classification|
 -|-|-|-|-|-|-|-|
@@ -416,13 +432,15 @@ u|D|$\Delta t$|$\Delta x$| Scheme|Von Neumann number (V) |Courant number (C)|Cla
 1|1|1  |2.5|Implicit|.|.|.|
 1|1|1  |2.5|Explicit|.|.|.|
 
+</div>
+
 ```{r advection_diffusion_app, eval=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
 rm(list=ls())
 library(plotly)
 library(shiny)
 shinyAppFile("advec_diff_app.R", options='quiet')
 ```
-</div>
+
 
 <div class="answer">
 
@@ -444,9 +462,12 @@ u|D|$\Delta t$|$\Delta x$| Scheme| Von Neumann number (V) | Courant number (C)| 
 </div>
 
 <div class="exercise">
-2.3.2 Explain the effect of the different values u,D, $\Delta t$,$\Delta x$ and the different schemes on the performance and stability of the solutions. TIP!: use the von Neumann and Courant number
+2.7 Explain the effect of the different values u,D, $\Delta t$,$\Delta x$ and the different schemes on the performance and stability of the solutions. TIP!: use the von Neumann and Courant number
 </div>
 
 <div class="answer">
 Without diffusion, the solutions gets unstable. Decrease $\Delta t$ and the solution gets more stable. Increase $\Delta x$ and the solution gets more stable. The implicit scheme is always stable but the amplitude tends to be too low. Explicit schemes tends to get unstable very fast. CN scheme lies in the middle. It does not get unstable, the amplitude is well-preserved, but the tail oscillates pretty easily.
+
+To know when the Explicit method is stable, we use the Courant-Friedrichs-Lewy (CFL) condition. With the Peclet number, the relative importance of advection and diffusion is quantified. If advection dominates, the Courant number should be smaller or equal to 1. If diffusion dominates, the Von Neumann number should be smaller or equal to 1.  
+
 </div>
