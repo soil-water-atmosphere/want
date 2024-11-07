@@ -5,6 +5,9 @@ output:
     toc: true
     css: want_n.css
     df_print: paged
+  pdf_document:
+    toc: true
+    css: want_n.css
 ---
 
 # Introduction
@@ -13,7 +16,7 @@ output:
 With this final assignment both an open water model and a groundwater model will be developed which will be coupled.  
 De open water model represents a small river called the Hooge Raam. The groundwater model will simulate the transition of precipitation into drainage and surface runoff of the area surrounding the Hooge Raam.  
 Flow in the open water model is based on the diffusive wave ("Froude = 0") approximation in 1D. Groundwater flow is based on Darcy's equation and simulates the flow between two open water courses (ditches or drains) in 1D.  Groundwater flow will be simulated in transient mode to account for storage changes. The open water flow model simulates in pseudo stationary mode.  
-A storm event, a heavy rain shower, is the forcing for which we will investigate flow from the surface into the soil, towards ditches and finally to the Hooge Raam to get discharged at the weir on the lower side.
+A storm event, a heavy rain shower, is the forcing for which we will investigate flow from the surface into the soil, towards ditches and finally to the Hooge Raam to get discharged at the weir downstream.
 
 The Hooge Raam is located just below the small town Grave and is part of the water board "Aa en Maas". The surrounding area is mainly used as grasslands, some cornfields and a few forest plots. The area is reasonably flat where surface levels range from 15.5 till about 17.5 m AMSL (Above Mean Sea Level).
 
@@ -21,22 +24,24 @@ The figure below gives an overview of the Hooge Raam which will be considered fo
 
 ![Overview Hooge Raam and area](Hooge-raam_overview.png)
 
-The first part contains the explanation and assignments for the open water model, the second will go into the details of the groundwater model, the coupling of both models is described in the third part and finally the last part (4) contains the setup to determine derived uncertainties of the "model-train".
+This document is divided into four parts. The first part contains the explanation and assignments for the open water model, the second will go into the details of the groundwater model, the coupling of both models is described in the third part and finally the last part (4) contains the setup to determine predictive uncertainties of the "model-train".
 
 # PART 1 the Open water model
 
 ## Open water equations
 
-This document should give an introduction to the hydraulic modeling of the Hooge Raam river.
+This part of the document gives an introduction to the hydraulic modeling of the Hooge Raam river.
 
-An attempt is made to make the document self contained. For that reason we start by giving some basic formulas, and more formulas will follow further in the document. This document should however not to be considered as a course in hydrodynamics. The formulas are cited (which should be for most of you a repetition?) to form the base of the code.
+An attempt is made to make the document self contained. For that reason we start by giving some basic formulas, and more formulas will follow further in the document. This document should however not to be considered as a course in hydrodynamics. The formulas are cited to form the base of the code.
 
-The flow in rivers as the Hooge Raam is most often described by the so called St-Venant equations, expressing respectively the mass and the momentum balance (only in *x*-direction:
+The flow in rivers as the Hooge Raam is most often described by the so called St-Venant equations, expressing respectively the mass and the momentum balance (only in *x*-direction):
 
 $$
-\frac{\partial A}{\partial t} + \frac{\partial Q}{\partial x} = I\\
+\begin{align*}
+\frac{\partial A}{\partial t} + \frac{\partial Q}{\partial x} &= I \text{: mass balance}\\
 \frac{\partial Q}{\partial t} + \frac{\partial Q\,u}{\partial x} 
-            = g\;A\;\Big( S_o - S_f - \frac{\partial a}{\partial x}\Big)
+            &= g\;A\;\Big( S_o - S_f - \frac{\partial a}{\partial x}\Big) \text{: momentum balance}
+\end{align*}
 $$
 
 As we are here less interested in highly dynamic open water calculations, a simplification of the second equation above will be used. This simplification starts from the observation that in many situations (certainly lowland situations) the first two terms in the momentum part of the St-Venant equations are much smaller than the terms on the right hand side.
@@ -63,8 +68,8 @@ This type of open water model that will be developed in this document will be co
 
 The open water has its own standard units:
 
--   length unit = $m$ meter
--   time unit = $s$ second
+-   length unit = $\bf{m}$ meter
+-   time unit = $\bf{s}$ second
 
 ## Hooge Raam dimensions and parameters
 
@@ -75,8 +80,17 @@ We will use the following data for dimensioning the river. Data is based on "leg
 You may want to quickly browse through this "legger" to see what information is available. Go to https://www.aaenmaas.nl/onswerk/regels/legger/ and open the 'Legger oppervlaktewater'.
 
 
-The length of this reach of the Hooge Raam is 1470 m. Upstream bottom level 14.50 m AMSL, downstream bottom level 11.80 m AMSL, (average) bottom width 2.10 m, (average) side slope 1.5 m/m.
+The following properties of the HOoge Raam are given in the table below:
 
+|property|value|unit|
+|:-------|:----|:---|
+|length|1470|m|
+|bottom width|2.1|m|
+|side slope|1.5|m/m|
+|bottom level upstream|14.50|m AMSL|
+|bottom level downstream|11.80|m AMSL|
+
+The weir at the downstream end of the Hooge Raam has the following properties:
 Weir: crest width 2.0 m, crest height: 11.45 and 12.60 m.
 
 Influx stationary upstream based on base flow as discharge of an upstream area of 250 ha (assume a discharge of 0.5 l/s/ha).
@@ -87,8 +101,6 @@ rm(list = ls()) #clear the workspace
 library(FVFE1D) #load the library for the 1D finite elements/finite volumes models
 library(nleqslv) #load the library for solving non-linear equations
 library(gifski) #load the library for making gifs
-HR.Qin = 250*0.005  #250ha * 0.5 l/s/ha
-cat('Total influx upstream : ',HR.Qin)
 ```
 
 ## Longitudinal view
@@ -110,6 +122,10 @@ HR.zb = approxfun(HR.domain,c(HR.botelev.upstream,HR.botelev.downstream),
 plot(HR.domain,HR.zb(HR.domain),type = "l",col="brown",lwd=4,
      main="Hooge Raam bed bottom",xlab="x (m)", ylab= "z (m)")
 grid()
+
+# upstream influx
+HR.Qin = 250*0.005  #250ha * 0.5 l/s/ha
+cat('Total influx upstream : ',HR.Qin)
 ```
 
 
@@ -117,7 +133,7 @@ This bottom slope brings the gravity into the equations: the higher this slope, 
 
 ## Cross section geometry
 
-The cross section can in general have a complex and spatially varying form. Her we take just a simple trapezoidal profile with a constant bottom width $b$ and constant side slope $m$:
+The cross section can in general have a complex and spatially varying form. Here we take just a simple trapezoidal profile with a constant bottom width $b$ and constant side slope $m$:
 
 ```{r, eval=TRUE}
 
@@ -144,13 +160,13 @@ The next chunk creates a plot of the cross section
 arange=seq(0,1.5,length=100) # large enough of possible depth values 
 widthrange = HR.width(arange)
 plot(c(-rev(widthrange/2),widthrange/2),c(rev(arange),arange),
-     xlab="y",ylab="a",main="cross section",type="l",lwd=5,col="brown")
+     xlab="y",ylab="a",main="cross section Hooge Raam",type="l",lwd=5,col="brown")
 grid(col="black")
 ```
 
 ## Wetted area
 
-One of the important cross section functions is the wetted area. It was in the St-Venant equation denoted by $A$. For a trapezoidal cross section this can be easily calculated by the following function:
+One of the important cross section functions is the wetted area. In the St-Venant equation denoted by $A$. For a trapezoidal cross section this can be easily calculated by the following function:
 
 ```{r, eval=TRUE}
 
@@ -236,7 +252,7 @@ grid(col="black") #--
 
 But of course usually both and $A$ and $v$ change if the water depth $a$ changes.
 
-For equilibrium situations this relationship can be investigated through formulas. Equilibrium means that the water depth is constant in space ($\frac{\partial a}{\partial x} = 0$) in terms of the St-Venant equations of the introduction) and time. For this situation the open water equation simplifies into; $$S_0 = S_f = \frac{n^2\; Q^2}{A^2\; R^{4/3}}$$   
+For equilibrium situations this relationship can be investigated through formulas. Equilibrium means that the water depth is constant in space ($\frac{\partial a}{\partial x} = 0$) in terms of the St-Venant equations of the introduction and time. For this situation the open water equation simplifies into; $$S_0 = S_f = \frac{n^2\; Q^2}{A^2\; R^{4/3}}$$   
 
 From this one can derive: $$Q_\mathrm{equi} = \frac{\sqrt{S_o}}{n} A\; R^{2/3}$$ where
 
@@ -248,11 +264,6 @@ From this one can derive: $$Q_\mathrm{equi} = \frac{\sqrt{S_o}}{n} A\; R^{2/3}$$
 
 -   $R$: hydraulic radius. Formally defined as wetted Area divided by the wetted perimeter($R=\frac {A}{P}$), as in the next chunk:
 
-<div class="comment">
-
-Eerste chunk verwijderd omdat HR.R tweemaal werd gedefinieerd.
-GB: Check!
-</div>
 
 ```{r, eval=TRUE}
 HR.n = 0.045 
@@ -276,7 +287,7 @@ plot(Qequirange,arange,
 grid(col="black")
 ```
 
-Sometimes the question is posed the other way around. Assume that one wants to drain a constant intensity of 10 $mm/day$ of an area of the size of 30 $km^2$ through this river.
+Sometimes the question is posed the other way around. Assume that one wants to discharge a constant intensity of 10 $mm/day$ of an area of the size of 30 $km^2$ through this river.
 
 <div class="question">
 Step1: calculate the discharge through the river.
@@ -337,7 +348,8 @@ for( i in 1:length(Is))
   tosolve = function(a){return (HR.Qequi(a)-Q)}
   aequis[i] = nleqslv(1,tosolve)$x
 }
-plot(Is,aequis,type="l",col="blue",lwd=3,ylab="a equilibrium (m)",xlab ="precipitation (mm/d)")
+plot(Is,aequis,type="l",col="blue",lwd=3,
+     main = "precipitation (mm/d) vs. equilibrium water level",ylab="a equilibrium (m)",xlab ="precipitation (mm/d)")
 grid(col="black")
 ```
 </div>
@@ -359,13 +371,18 @@ lines(c(-HR.weir.width/2,-HR.weir.width/2,HR.weir.width/2,HR.weir.width/2),
       ,col="blue",lwd=3)
 legend("bottomright", inset=.05,
        c("river","weir"), col=c("brown","blue"),lwd=3,horiz=FALSE)
+arrows(-HR.weir.width/2,HR.weir.crest,HR.weir.width/2,HR.weir.crest, length = 0.1, angle = 30, code = 3)
+text(-0.5,HR.weir.crest+0.1,"crest width",pos=4, col = "blue")
 grid(col="black")
-
+arrows(0,0,0,1.0,length = 0.1, angle = 30, code = 3,col = "blue")
+text(0.1,0.5,"crest height",pos=3,col="blue",srt=90)
 ```
 
 ## Weir Q-a relation
 
-The amount of water flowing over a weir is a function of the water height above the crest. For a rectangular weir this is a well known formula: $$Q_\mathrm{weir} = 1.83\; B_\mathrm{weir}\; (a-c_\mathrm{weir})^{3/2}$$
+The amount of water flowing over a weir is a function of the water height above the crest. For a rectangular weir this is a well known formula: $$Q_\mathrm{weir} = 1.83\; B_\mathrm{weir}\; (a-c_\mathrm{weir})^{3/2}$$ where $B_\mathrm{weir}$ is the width of the weir and $c_\mathrm{weir}$ is the height of the crest above the bottom of the river.
+
+  
 
 <div class="question">
 Finish the code below such that the function calculates discharges according to the formula above.
@@ -465,6 +482,9 @@ plot(HR.domain,HR.bwrough(HR.domain),ylim=c(HR.botelev.downstream,HR.botelev.ups
      main=paste("rough level approx for Q=",Q),
      xlab="l (m)",ylab="h (m)",col="blue",lwd=4,type="l")
 lines(HR.domain,HR.zb(HR.domain),col="brown",lwd=4)
+grid()
+legend("bottomleft", inset=.05,
+       c("bottom","rough backwater"), col=c("brown","blue"),lwd=3,horiz=FALSE)
 ```
 </div>
 
@@ -508,11 +528,6 @@ HR.a = function(x,h)
 </div>
 
 
-<div class="comment">
-
-Gezien de bovenstaande functiedefinitie is *h* een logischerek euze dan *level*, denk ik.
-GB. In het werkdocument moet de student daar zelf iets invullen. De answer versie is meer voor ons.. maar je opmerking is terecht en heb het aangepast
-</div>
 
 ## The internal flux function
 
@@ -537,18 +552,18 @@ $$
 S_f = \mathrm{sign}(Q) \frac{n^2\; Q^2}{A^2\; R^{4/3}} 
 $$
 
-where the sign function is defined as in the R-language.
+where the `sign` function is defined as in the R-language.
 
 <div class="question">
-Use the help of R to give a definition of the sign function below:
+Use the help of R or simply try different values for x in sign(x) to understand the sign function.
 </div>
 
 <div class="answer">
 sign(x) =
 
--   1 if x>0 #--
--   0 if x=0 #--
--   -1 if x\<0 #--
+-   1 if x>0 
+-   0 if x=0 
+-   -1 if x<0
 </div>
 
 Using this result, the simplified St-Venant can be written as:
@@ -560,7 +575,8 @@ $$
  -\frac{\partial h}{\partial x}
 $$
 
-Rewriting this gives: $$Q  = -\frac{1}{n}\; \mathrm{sign}\Big(\frac{\partial h}{\partial x}\Big)\; \sqrt{ \Big| \frac{\partial h}{\partial x} \Big|}\; A\; R^{2/3}$$
+Rewriting this gives: 
+$$Q  = -\frac{1}{n}\; \mathrm{sign}\Big(\frac{\partial h}{\partial x}\Big)\; \sqrt{ \Big| \frac{\partial h}{\partial x} \Big|}\; A\; R^{2/3}$$
 
 As you can see, the choice of $h$ as state is convenient here.
 
@@ -621,7 +637,7 @@ In de </set.BC.fluxstate()/> function above </HR.weir.BC/> is not enclosed by br
 -   describe the acceptability condition of the model for the level in words:
 </div>    
 <div class="answer">
--   Water depths should be higher then 10 cm, or water levels #-- higher than 10 cm above bed #--
+-   Water depths should be larger than 10 cm
 </div>
 
 ```{r, eval=TRUE}
@@ -642,13 +658,14 @@ legend("bottomleft", inset=.05,
        c("bottom","raw backwater","true backwater"), 
        col=c("brown","green","blue"),lty=c(1,2,1),
        lwd=3,horiz=FALSE)
+grid()
 ```
 
 ## Model 2: adding drainage
 
-All the approaches only considered the Hooge Raam as a transport river: water coming in upstream had to be transported downstream. In reality input (in draining situations) of water does also occur along the trajectory. This is called *lateral inflow*. In terms of the FVFE1D package this is called *spatialflux*. In this example we will think of this flux coming from draining the arabel land where water collected in ditches and drain tubes ending up in the river. We will think of this drainage flux to be uniform over the length of the river. In this case this is called HR.lateraldrainage. The name lateral is a typical name for this type of fluxes in open water: lateral means "coming from the side", so external.
+All the approaches only considered the Hooge Raam as a transport river: water coming in upstream had to be transported downstream. In reality input (in draining situations) of water does also occur along the trajectory. This is called *lateral inflow*. In terms of the FVFE1D package this is called *spatialflux*. In this example we will think of this flux coming from draining the arabel land where water collected in ditches and drain tubes ending up in the river. We will think of this drainage flux to be uniform over the length of the river. In this case this is called `HR.lateraldrainage`. The name lateral is a typical name for this type of fluxes in open water: lateral means "coming from the side", so external.
 
-A proper value for this number should come from a groundwater model. For an example value here we just take 50% of the inflow upstream as a total, that has to be distributed over the length of the river.
+A proper value for this number will come from the groundwater model (see STEP 4 of this document). For an example value here we just take 50% of the inflow upstream as a total, that has to be distributed over the length of the river.
 
 ```{r, eval=TRUE}
 HR.lateraldrainage = 0.5*HR.Qin/HR.length
@@ -668,6 +685,8 @@ legend("bottomleft", inset=.05,
        lwd=3,horiz=FALSE)
 ```
 
+Although the addition of the drainage flux seems to have limited effect on the water level, one should however realize that the drainage flux is 50% of the influx.
+
 This concludes the first part and results in the basic open water model simulating flow in the Hooge Raam.  For the lateral inflow due to drainage in the surrounding area of the Hooge Raam we chose an arbitrary value. Starting from the next part (2), we will calculated this drainage and also will determine the surface runoff when applicable.
 
 
@@ -681,19 +700,30 @@ This model will calculate a head distribution between both ditches. The model de
 Since we will assume a one dimensional model and only horizontal flow (Dupuit) the basic flow equation is:
 
 $$
-Q_{gw} = -kD_{gw} * \frac {\partial H}{\partial x}
+Q_{gw} = -kD * \frac {\partial H}{\partial x}
 $$
+with $Q_{gw}$ the groundwater discharge, $k$ the hydraulic conductivity, $D$ the thickness of the aquifer and $H$ the head.  
 
-## Runoff Cauchy type top boundary condition
+## Cauchy type of boundary condition to simulate the ditch drainage
+
+$$
+Q_{drainage} = \frac{H_{ditch} - H}{C_{ditch}}
+$$
+with $H_{ditch}$ the average ditch level and $C_{ditch}$ the entrance resistance of the ditches.
+
+
+## Cauchy type op boundary condition to simulate surface runoff
 
 
 $$
-Q_{runoff}= \frac{H - H_{surface}}{C_{surface}}
+Q_{runoff}= \frac{H_{surface} - H}{C_{surface}}
 $$
+with $H_{surface}$ the average surface level area and $C_{surface}$ the vertical resistance of the upper soil.
+
 
 ## Dimensions and parameters groundwater model
 
-The average ditch distance is 125 m and the transmissivity in this area is estimated on 28 $m^2/d$ based on the hydraulic conductivity of the soil and the thickness.
+The average ditch distance is 125 m and the transmissivity ($kD$) in this area is estimated on 28 $m^2/d$ based on the hydraulic conductivity of the soil and the thickness.
 
 The average ditch level is given as the average river bottom level + 20 $cm$.
 
@@ -709,7 +739,9 @@ The stationary situation is based on the average yearly recharge; about 0.8 $mm/
 ## Required functions
 
 <div class="question">
-Finish the functions in the chunck below (replace XXXX, YYYY)
+Finish the functions in the chunck below (replace XXXX, YYYY). 
+These XXXX and YYYY only indicate that you have to fill in the correct values. 
+It does not mean that all XXXX or YYYY are the same.
 
 ```{r eval = FALSE}
 L = 125 # average ditch distance in m
@@ -853,16 +885,18 @@ knitr:: kable(wbal, caption = "water balance groundwater model")
 
 # Transient simulations
 
-The water balance for the transient groundwater model can be given as:
+The water balance for the transient groundwater model can be written as:
 
 $$
-Q_{storage}= Q_{internal} + Q_{external}\\
- S \frac{\partial H}{\partial t} = \frac {\partial}{\partial x}\left ( -kD \frac{\partial H}{\partial x} \right ) + \sum Q_i
+\begin{align*}
+Q_{storage} &= Q_{internal} + Q_{external}\\
+ S \frac{\partial H}{\partial t} &= \frac {\partial}{\partial x}\left ( -kD \frac{\partial H}{\partial x} \right ) + \sum Q_i
+ \end{align*}
 $$
 
 The Internal and External fluxes are already implemented and now we are going to include the transient part, see also the second assignment with FVFE in week two.
 
-The storage coefficient is estimated on 5%. For the storm events, the time step is set to 1 hour and the total simulation time is 10 days, starting with a stationary situation, followed by a storm event of a gradually increasing precipitation rate till 36 mm/hour and gradually decreasing again during 24 hours.  
+The storage coefficient is estimated on 5%. For the storm events, the time step is set to 1 hour and the total simulation time is 10 days, starting with a stationary situation, followed by a storm event of a gradually increasing precipitation rate till 36 cm/hour and gradually decreasing again during 24 hours.  
 
 A time loop is required for this simulation stepping through the hourly time steps.
 
@@ -959,35 +993,35 @@ while (current.time < end.time)
 }
   #storing and plotting results
   GW.Q.trans = data.frame(GW.Q.trans)
-  colnames(GW.Q.trans) = c("time", "surface_runoff","storage_2flow","storage_2storage","precip","boundary")
+  colnames(GW.Q.trans) = c("time", "surface_runoff","storage_2flow","flow_2storage","precip","boundary")
   
   #plot some results
-  Q.range = range(GW.Q.trans$surface_runoff,GW.Q.trans$storage_2flow,GW.Q.trans$storage_2storage,GW.Q.trans$precip,GW.Q.trans$boundary)
+  Q.range = range(GW.Q.trans$surface_runoff,GW.Q.trans$storage_2flow,GW.Q.trans$flow_2storage,GW.Q.trans$precip,GW.Q.trans$boundary)
   plot(GW.Q.trans$time,GW.Q.trans$surface_runoff,ylim = Q.range, type = "l", col = "red",lwd =2,
        ylab = "flux rates in m2/d", xlab = "time in days", main = "flux rates groundwater model")
   lines(GW.Q.trans$time,GW.Q.trans$storage_2flow,col="yellow4",lwd = 2)
-  lines(GW.Q.trans$time,GW.Q.trans$storage_2storage,col="orange",lwd = 2)
+  lines(GW.Q.trans$time,GW.Q.trans$flow_2storage,col="orange",lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$precip,col="blue", lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$boundary,col="green")
   legend("topright", inset=.05,
-       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
+       legend=c("runoff","storage_2flow","flow_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
        lwd=3,horiz=FALSE)
 #first 2 days 2*24 = 48 row
   plot(GW.Q.trans$time[1:48],GW.Q.trans$surface_runoff[1:48],ylim = Q.range, type = "o", col = "red",lwd =2,
        ylab = "flux rates in m2/d", xlab = "time in days", main = "flux rates groundwater model")
   lines(GW.Q.trans$time[1:48],GW.Q.trans$storage_2flow[1:48],col="yellow4",lwd = 2)
-  lines(GW.Q.trans$time[1:48],GW.Q.trans$storage_2storage[1:48],col="orange",lwd = 2)
+  lines(GW.Q.trans$time[1:48],GW.Q.trans$flow_2storage[1:48],col="orange",lwd = 2)
   lines(GW.Q.trans$time[1:48],GW.Q.trans$precip[1:48],col="blue", lwd = 2)
   lines(GW.Q.trans$time[1:48],GW.Q.trans$boundary[1:48],col="green", lwd = 2)
   legend("topright", inset=.05,
-       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
+       legend=c("runoff","storage_2flow","flow_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
        lwd=3,horiz=FALSE)
 grid()  
 
 GW.Q.data = summary(GW.Q.trans)  
 knitr::kable(GW.Q.data, caption = "summary flow budget groundwater model in m2/d", format = "simple")
 ```
-The term <code>storage_2flow</code> stands for storage which is released to flow and <code>storage_2storage</code> is the amount of water which will be stored.
+The term <code>storage_2flow</code> stands for storage which is released to flow and <code>flow_2storage</code> is the amount of water which will be stored.
 </div>
 
 <div class="answer">
@@ -1022,35 +1056,35 @@ while (current.time < end.time)
 }
   #storing and plotting results
   GW.Q.trans = data.frame(GW.Q.trans)
-  colnames(GW.Q.trans) = c("time", "surface_runoff","storage_2flow","storage_2storage","precip","boundary")
+  colnames(GW.Q.trans) = c("time", "surface_runoff","storage_2flow","flow_2storage","precip","boundary")
   
   #plot some results
-  Q.range = range(GW.Q.trans$surface_runoff,GW.Q.trans$storage_2flow,GW.Q.trans$storage_2storage,GW.Q.trans$precip,GW.Q.trans$boundary)
+  Q.range = range(GW.Q.trans$surface_runoff,GW.Q.trans$storage_2flow,GW.Q.trans$flow_2storage,GW.Q.trans$precip,GW.Q.trans$boundary)
   plot(GW.Q.trans$time,GW.Q.trans$surface_runoff,ylim = Q.range, type = "o", col = "red",lwd =2,
        ylab = "flux rates in m2/d", xlab = "time in days", main = "flux rates groundwater model")
   lines(GW.Q.trans$time,GW.Q.trans$storage_2flow,col="yellow4",lwd = 2)
-  lines(GW.Q.trans$time,GW.Q.trans$storage_2storage,col="orange",lwd = 2)
+  lines(GW.Q.trans$time,GW.Q.trans$flow_2storage,col="orange",lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$precip,col="blue", lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$boundary,col="green")
   legend("topright", inset=.05,
-       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
+       legend=c("runoff","storage_2flow","flow_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
        lwd=3,horiz=FALSE)
 #first 2 days 2*24 = 48 row
   plot(GW.Q.trans$time[1:48],GW.Q.trans$surface_runoff[1:48],ylim = Q.range, type = "l", col = "red",lwd =2,
        ylab = "flux rates in m2/d", xlab = "time in days", main = "flux rates groundwater model")
   lines(GW.Q.trans$time[1:48],GW.Q.trans$storage_2flow[1:48],col="yellow4",lwd = 2)
-  lines(GW.Q.trans$time[1:48],GW.Q.trans$storage_2storage[1:48],col="orange",lwd = 2)
+  lines(GW.Q.trans$time[1:48],GW.Q.trans$flow_2storage[1:48],col="orange",lwd = 2)
   lines(GW.Q.trans$time[1:48],GW.Q.trans$precip[1:48],col="blue", lwd = 2)
   lines(GW.Q.trans$time[1:48],GW.Q.trans$boundary[1:48],col="green", lwd = 2)
   legend("topright", inset=.05,
-       legend=c("runoff","storage_2flow","storage_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
+       legend=c("runoff","storage_2flow","flow_2storage","precipitation","drainage"), col=c("red","yellow4","orange","blue","green"),
        lwd=3,horiz=FALSE)
 grid()  
 
 GW.Q.data = summary(GW.Q.trans)  
 knitr::kable(GW.Q.data, caption = "summary flow budget groundwater model in m2/d", format = "simple")
 ```
-The term <code>storage_2flow</code> stands for storage which is released to flow and <code>storage_2storage</code> is the amount of water which will be stored.
+The term <code>storage_2flow</code> stands for storage which is released to flow and <code>flow_2storage</code> is the amount of water which will be stored.
 
 </div>
 
@@ -1064,11 +1098,15 @@ Later on, one may use the calculated open water level to adjust the drain depth 
 ### Scaling of Drainage and surface runoff
 
 The pre-calculated drainage and surface runoff of the groundwater model are used as input ("forcing") for the open water model `HR.backwatermodel` and need to be "scaled" to proper dimensions; $m^3/s$.  \
-The groundwater drainage and surface runoff fluxes are based on one typical parcel having an average ditch distance of 125 m. 
-There are many of these parcels in the catchment area of the Hooge Raam. These discharge rates have unit $m^2/d$ and need to be transformed to the total discharging area of the Hooge Raam into units of $m^3/s$. For this, you can imagine all parcels, with an average ditch distance of 125m, were set behind each other resulting in a, let's call it a *diffuse length* calculated as: $\frac {\text{total_drained_area}}{\text{ditch_distance}}$ .
-The figure below illustrates the determination of the total diffuse length = ${\sum\text{LocalPathLength}}=\frac{\text{Drained Area}}{\text{Ditch Distance}}$  \
-![illustration to indicate how the diffuse length is determined](Hooge_raam_diffuse_length.png)
- \
+The groundwater drainage and surface runoff fluxes are based on one typical "land parcel" enclosed by an average ditch distance of 125 m. 
+There are many of these parcels, surrounded by ditches, in the catchment area of the Hooge Raam. 
+The illustration below shows a hypothetical allocation of parcels and ditches surrounding them
+![illustration to indicate how the diffuse length is determined](Hooge_raam_diffuse_length.png) 
+
+The discharge of precipitation excess rates from these parcels/fields towards the ditches is calculated by the 1D groundwater model and has the unit $m^2/d$. This needs to be transformed to the total discharging area of the Hooge Raam into units of $m^3/s$ by multiplying the total ditch length surrounding the parcels in the Hooge Raam catchment.For this, one could actually digitize all ditches from a map of this area but here we use the simple generic method of calculating the area of a rectangle: $Area = Length *Width$."Length" is here the average ditch distance between parcels (here 125 m) and "Width" the distance or range you would have if you would put all parcels end to end. 
+Let's call this "Width" the *total diffuse ditch length* calculated as: $\frac {\text{total_drained_area}}{\text{average ditch_distance}}$ .
+
+
 Finally the groundwater drainage and surface runoff need to be transformed to a lateral inflow rate of $m^3/s/m_{HRcourse}$ for the Hooge Raam.\
 The total considered discharging area of the Hooge Raam is 500 ha.  
 
@@ -1080,17 +1118,17 @@ The total considered discharging area of the Hooge Raam is 500 ha.
 Determine the properly scaled drainage and runoff for the Hooge Raam model ; `HR.backwatermodel`.
 ```{r eval = FALSE}
 ## from groundwater discharge to lateral inflow into the Hooge Raam open water model
-HR.discharge.area =  #in m2
+HR.discharge.area =  XXXXX#in m2
 day2sec = 86400 #from day to seconds
-m2.day.to.m3.day =   HR.discharge.area/L #from m2/day to m3/day; a "diffuse length" based on the total drained area divided by the L(ditch distance)
+m2.day.to.m3.day =   HR.discharge.area/L #from m2/day to m3/day; a "total diffuse length" based on the total drained area divided by the L(ditch distance)
 
-Q.drainage.m3.d = #
-Q.drainage.m3.s = #
-Q.drainage.m2.s = #
+Q.drainage.m3.d = XXXXX#
+Q.drainage.m3.s = XXXXX#
+Q.drainage.m2.s = XXXXX#
 
-Q.runoff.m3.d = #
-Q.runoff.m3.s = #
-Q.runoff.m2.s = #
+Q.runoff.m3.d = XXXXX#
+Q.runoff.m3.s = XXXXX#
+Q.runoff.m2.s = XXXXX#
 
 ```
 </div>
@@ -1100,7 +1138,7 @@ Q.runoff.m2.s = #
 ## from groundwater discharge to lateral inflow into the Hooge Raam open water model
 HR.discharge.area = 500 * 10000 #in m2
 day2sec = 86400
-m2.day.to.m3.day = HR.discharge.area/L #multiply with "diffuse length"; i.e. Area/drain_distance
+m2.day.to.m3.day = HR.discharge.area/L #multiply with "total diffuse length"; i.e. Area/drain_distance
 
 Q.drainage.m3.d = GW.Q.trans$boundary * m2.day.to.m3.day
 Q.drainage.m3.s = Q.drainage.m3.d/day2sec
@@ -1195,13 +1233,13 @@ GW.volume.drainage = sum(GW.Q.trans$boundary) * m2.day.to.m3.day * delt.t
 GW.volume.runoff = sum(GW.Q.trans$surface_runoff) * m2.day.to.m3.day * delt.t
 
 GW.volume.storage_into = sum(GW.Q.trans$storage_2flow) * m2.day.to.m3.day * delt.t
-GW.volume.storage_outof = sum(GW.Q.trans$storage_2storage) * m2.day.to.m3.day * delt.t
+GW.volume.storage_outof = sum(GW.Q.trans$flow_2storage) * m2.day.to.m3.day * delt.t
 
 GW.volume.precipitation = sum(GW.Q.trans$precip) * m2.day.to.m3.day * delt.t
 
 GW.misfit = GW.volume.precipitation - GW.volume.drainage - GW.volume.runoff - GW.volume.storage_outof + GW.volume.storage_into
 
-volume.bal.GW = data.frame(Groundwater = c("precipitation","storage_2flow","drainage","runoff","storage_2storage","total"),
+volume.bal.GW = data.frame(Groundwater = c("precipitation","storage_2flow","drainage","runoff","flow_2storage","total"),
                         Volume_in = c(GW.volume.precipitation,GW.volume.storage_into,0,0,0,sum(GW.volume.precipitation,GW.volume.storage_into)),
                         Volume_out = c(0,0,GW.volume.drainage,GW.volume.runoff,GW.volume.storage_outof,sum(GW.volume.drainage,GW.volume.runoff,GW.volume.storage_outof)))#,
                         
@@ -1213,7 +1251,7 @@ knitr::kable(volume.bal.GW,format = "simple", caption = "Total volumes in m^3 gr
 
 $$
 Total_{in} = \sum_{t=0}^{t=T} boundary_{upstream}\Delta t + \sum_{t=0}^{t=T} runoff \Delta t + \sum_{t=0}^{t=T} drainage \Delta t\\
-Total_{out} = \sum_{t=0}^{t=T} boundary_{downstream}
+Total_{out} = \sum_{t=0}^{t=T} boundary_{downstream}\Delta t
 $$
 
 ```{r}
@@ -1269,7 +1307,7 @@ Zooming in for the first two days.
 
 ```{r}
 plot.time = GW.Q.trans$time[1:48]
-plot(plot.time, P.pattern(plot.time), col = "blue", lwd =2, ylab = "m/d",xlab = "days",type= "o", main = "Transient fluxes open water model in m/d", sub = "First two days simulation time")
+plot(plot.time, P.pattern(plot.time), col = "blue", lwd =2, ylab = "m/d",xlab = "days",type= "l", main = "Transient fluxes open water model in m/d", sub = "First two days simulation time")
 HR.discharge.m.d = HR.Q.trans$boundary_downstream * 86400 / HR.discharge.area
 lines(HR.Q.trans$time,HR.discharge.m.d,col = "red", lwd =2)
 HR.runoff.m.d = HR.Q.trans$runoff * 86400 / HR.discharge.area
@@ -1297,7 +1335,7 @@ The max. precipitation is at day `r time.max.precip` (blue vertical line) and th
 
 The moment when the maximum discharge at the weir of the Hooge Raam is reached coincides with the max. runoff.
 Why?
-ANSWER: Runoff and drainage both come from the same 1D groundwater model. Since this model is 1 dimensional, from ditch to ditch, it does not contain a spatial distribution with parcel far away and close by the Hooge Raam. Moreover the 1D transient groundwater model calculates the effect of precipitation on groundwater storage, drainage and surface runoff in the same time step. In other words, precipitation is distributed over these three groundwater sinks in the same time.  
+ANSWER: Runoff and drainage both come from the same 1D groundwater model. Since this model is 1 dimensional, from ditch to ditch, it does not contain a spatial distribution with parcel far away and close by the Hooge Raam. Moreover the 1D transient groundwater model calculates the effect of precipitation on groundwater storage, drainage and surface runoff in the same time step. In other words, precipitation is distributed over these three groundwater sinks in the same time step ($\Delta t$.  
 
 
 
@@ -1305,13 +1343,13 @@ ANSWER: Runoff and drainage both come from the same 1D groundwater model. Since 
 
 Here we will consider the local sensitivity analysis.
 
-The task is to determine what the uncertainty of a model (derived) result is due to the used the parameter values in the model.
+The task is to determine what the uncertainty of a model (predicted) result is due to the used parameter values in the model.
 
-For example; suppose one want's to determine the uncertainty of the max head in a groundwater model, due to the model parameters (like kD, boundary-conditions, precipitation, for which you not have exact, or good values.
+For example; suppose one wants to determine the uncertainty of the max head in a groundwater model, due to the model parameters (like kD, boundary-conditions, precipitation, for which you not have exact, or good values.
 
 For this the following aspects need to be considered/determined:
 
-1.  derived result, like the max discharge (in time) of the Hooge Raam
+1.  predictive result, like the max discharge (in time) of the Hooge Raam
 
 2.  list of parameters and it optimal (assumed) values
 
@@ -1321,7 +1359,7 @@ For this the following aspects need to be considered/determined:
 
 5.  scaled contributions to uncertainty of each parameter
 
-## Derived result
+## predictive result
 
 all results of the current coupled models:
 
@@ -1387,26 +1425,13 @@ All parameters can be used for analysis of the uncertainty of the model result, 
 6.  Side slopes `HR.m`
 
 
-## Scale of variation ($\sigma$)
+## Scale of variation
 
 The scale of variation could be based on literature, field experiments or for example on a model calibration.
 
 ## Calculation local sensitivities
 
 After we have determined the base model result, we will determine the local sensitivity of the base result w.r.t. parameter; $\frac{\partial Model_{result}}{\partial P_i}$.
-
-## Scaled contributions to result uncertainty
-
-
-<div class="comment">
-
-De invloed van HR.So is wellicht lastig: HR.So kan aangepast worden door river length, botelev upstream of botelev downs aan te passen. De river length is hierbij het meest onlogisch om aan te passen. Stel dat botelev upstream wordt aangepast, dan heeft dat invleod op HR.zb en H_drainage (gw model). Met name die laatste 'dependency' is onhandig, omdat deze ook als aparte parameter wordt meegenomen.
-GB Klopt Ik gooi deze er maar uit..
-
-Waarom staat Entrance resistance of the ditch een tab 'naar achteren'? Adners kan deze naar voren gezet worden.
-GB, Check
-
-</div>
 
 
 
@@ -1418,7 +1443,7 @@ Carry out a local sensitivity analysis for one of the model results, the groundw
 2.  Estimate the scale of variation of these parameters, based on your experience, what you have heard during courses or simply google it
 3.  Create chunks to determine the local sensitivities
 4.  Make use of the pre-programmed `sensitivity.loop()` executing time loops for each model and saving intermediate data
-5.  Create a chunk to calculate the derived uncertainties
+5.  Create a chunk to calculate the predictive uncertainties
 
 This <code>sensitivity.loop()</code> contains many lines of code but basically does the following:
 
@@ -1429,15 +1454,15 @@ This <code>sensitivity.loop()</code> contains many lines of code but basically d
 5. Store the open water flux rates and open water levels
 
 
-To set up a proper procedure, have close look at the Local Sensitivity Analysis assignment 1, Local sensitivity 1D.
+To set up a proper procedure, have close look at the Local Sensitivity Analysis assignment 1, Local sensitivity 1D of last week.
 
-### Derived uncertainty to analyse; the `MRESULT()`
+### predictive uncertainty to analyse; the `MRESULT()`
 
 For a waterboard it is important to have some insight in the way storm events are processed within the area they control. It is therefor important that the water managers can take measures beforehand, like lowering the weir of the Hooge Raam before the storm event arrives.
 
-In this example the derived uncertainty will be the the max. weir discharge (downstream of the Hooge Raam).
+In this example the predictive uncertainty will be the the max. weir discharge (downstream of the Hooge Raam).
 
-There are several interesting model results for close inspection w.r.t. their 'derived' uncertainties. To give some examples:
+There are several interesting model results for close inspection w.r.t. their 'predictive' uncertainties. To give some examples:
 
 *  Moment when the water levels of the Hooge Raam rises fastest
 *  The buffer capacity of the area, e.g. the moment when most of the precipitation is stored in the ground 
@@ -1758,11 +1783,11 @@ Recall the previous Local Sensitivity Assignment where you calculated the:
 *  variances for each parameter based on its scale of variance and the local sensitivity of that parameter w.r.t. `MRESULT()`
 *  calculate the sum of these variances
 *  calculate the relative contribution of each parameter to the total variance
-*  plot a pie chart to visualize the contributions to the derived uncertainty 
+*  plot a pie chart to visualize the contributions to the predictive uncertainty 
 *  a table of fractions, `knitr::kable()` is already implemented to inspect the procentual sensitivities
 
 <div class="question">
-Determine the derived uncertainty based on the aforementioned list
+Determine the predictive uncertainty based on the aforementioned list
 
 ```{r eval = FALSE}
 
@@ -1800,11 +1825,3 @@ knitr::kable(as.data.frame(relvarM)*100, caption = "percentage local sensitiviti
 
 </div>
 
-<div class="comment">
-## ASSIGNMENT Full coupling
-
-As a last assignment, when you have enough time, create a new `sensitivity.loop` in which you include both models in one time loop exchanging fluxes from groundwater to open water and drainage depths from the open water model to the groundwater model `H_draiange`.  
-How does this influence your results?
-
-GB: volgende keer maar
-</div>
