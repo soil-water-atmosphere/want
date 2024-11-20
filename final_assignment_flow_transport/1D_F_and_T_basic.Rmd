@@ -952,16 +952,15 @@ One can imagine that de highest concentration could be important when the solute
 The concentration is the actual calculated state of the transport model and can easily be derived through the `dataframe.state()` function.
 
 
-### Efficiency pump and treat  
+### Efficiency pump and treat (when engough time)
 
 The efficiency of the pump and treat scenario is determined by the amount of mass extracted by the extraction well.  
 This can be calculated by setting up the mass balance for the transport model for each time step and analyze the total amount of mass extracted by the well. This data is stored the mass balance and can be calculated by:
 This amount is tracked by the data frame `tot.pump.treat`
 
   
-
-
-#     AANPAK VANAF HIER 31-1-24
+<div class="comment">
+**[GB]**     AANPAK VANAF HIER 31-1-24
 
 het nodige moet nog worden geimplementeer:
 
@@ -970,6 +969,220 @@ het nodige moet nog worden geimplementeer:
 *  studenten moeten denk ik meer code gegeven krijgen denk ik omdat het anders veel te veel wordt. Immers zonder lsa zijn ze al vol bezig
 *  de plotten() functie moet netter zodat de assen een correcte naam krijgen.
 
+
+</div>
+
+## Local Sensitivity Analysis setup
+
+Like with the LSA of previous week, to set up the LSA procedure:
+
+1.    Create the **base** data to compare with  
+2.    Determine the prediction (the model output) which need to be investigated 
+3.    Determine/estimate/google for reasonable scale of variations of the parameters
+3.    Chose for an epsilon to determine the $\frac {\partial \mathsf{output}}{\partial \mathsf{P}}$  
+4.    Calculate all derivatives of the output (model prediction) w.r.t. parameters
+5.    Calculate the variances of all parameters w.r.t. predictions (output)
+
+
+### Base values of the model
+
+Since we determine the local sensitivities with a numerical approximation we require the base values to compare with. Moreover, it's convenient to have base parameter values to reset them each time another parameter is analysed.  
+Similar to week 3 of this course, we're going to set up a `list` for the base data.
+
+```{r}
+base = list(fix.H = fix.H,
+            k = k,
+            p_t.rate = p_t.rate,
+            precip = precip,
+            bot.slope = bot.slope,
+            M.load = M.load,
+            Disp = Disp,
+            por = por)
+str(base)
+```
+
+
+### Prediction of the model 
+
+For 1. the concentration distribution in calculated for every time step in the time loop of the transport model.
+To determine the highest concentration in the subsoil, the maximum concentration in the concentration distribution need determined for the last model run of the transport model.
+Simply create a data frame of the concentrations (`dataframe.state(Ctransmodel)`) and determine the maximum concentration in this data frame (use `max` for this in R).
+As with LSA last week, create a function `MRESULT()` which contains the max concentration of the current run. Put the base value in `M_base`.
+
+
+
+### Scale of variance of the parameters  
+
+Another important aspect is the scale of variance of the parameters. When a specific site is involved, field data (drillings, lab analysis) could be of great help to quantify this scale of the parameters. If field or calibration data is not available, educated guesses, references (books), Google search, could help out here.
+
+Below just some "silly" values to start with;
+Please adjust to your own guesses/info/refs.
+
+```{r}
+scale = list(fix.H = 0.05,
+             k = 2.5,
+             p_t.rate = 0.01,
+             precip = 0.00025,
+             bot.slope = 1E-5,
+             M.load = 0.05,
+             Disp = 2,
+             por = 0.1)
+
+str(scale)
+```
+
+### Choice of the epsilon $\epsilon$
+
+At this stage the base data; parameter values and the scale of variation (i.e. $\sigma$). 
+Identical to the assignments of week 3, the LSA is set up by calculating the derivatives of the output w.r.t. the parameters.
+Use a fixed values for the $\epsilon$ for example 0.01 or a 'relative' $\epsilon$; e.g. 1% of the parameter value.
+
+
+### Calculation of the derivatives  
+
+To determine these derivatives not only the tansport model need to be each time but also the flow model because many parameters are related to the flow model (`fix.H, k, p_rate, precip, bot.slope`).
+This means that `Qflow()`, `D.sat`and Vflow()` need to be recalculated each time the flow model is run.
+
+<div class="question">
+Create a sequence of commands to calculate the derivatives one by one. 
+You could of course also create a function for this. That's up to you.
+This sequence should look like this:  
+
+*  Adjust the base parameter increasing in with the $\epsilon$  
+*  Adjust bottom slope of the flow model when `bot.slope` is adjusted
+*  Run the flow model  
+*  Re-calculate Qflow(), D.sat() and Vflow(), do not forget `rule = 2`!
+*  Calculate the new time step `delta.t` 
+*  Run the transport model  
+*  Determine the MRESULT(), i.e. the max concentration at the end of the transport simulation
+*  Calculate the derivative of the output w.r.t. the parameter  
+*  Reset the parameter to the base value
+
+</div>
+
+<div class="question">
+Setup the LSA procedure in the code chunk below. Do not forget to creat the MRESULT() function and this base value to e.g. `M_base`.
+
+```{r}
+```
+</div>
+
+<div class="answer">
+
+```{r}
+
+## create the MRESULT function here the max. C at the end of the time simulation.
+MRESULT = function()
+{
+  df.states = dataframe.states(Ctransmodel)
+  return(max(df.states$state))
+}
+## save the base MRESULT value in M_base
+M_base = MRESULT()
+
+
+rel.eps = 0.01
+
+fix.H = (1+rel.eps)*base$fix.H
+
+solve.steps(Fmodel)
+D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
+Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
+
+#calculate new time step delta.t
+v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+max_delta_t = delta.x/abs(v)
+delta.t = floor(min(max_delta_t))
+print(paste("current time step: ",delta.t))
+
+#time loop for the transport model
+initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
+do.initialize(Ctransmodel,init = initial.C)
+current.time = 0.0
+while (current.time < end.time)
+{
+  solve.steps(Ctransmodel)
+  prev.C = state.fun(Ctransmodel)
+  current.time = current.time + delta.t
+}
+MRESULT()
+#calculate the derivative
+dM_dfix.H = (MRESULT() - M_base)/(fix.H - base$fix.H)
+print(paste("dM_dfix.H: ",dM_dfix.H))
+
+#Do not forget to set the parameter back to the base value
+fix.H = base$fix.H
+```
+The next parameter k: 
+
+```{r}
+k = (1+rel.eps)*base$k
+
+solve.steps(Fmodel)
+D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
+Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
+
+#calculate new time step delta.t
+v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+max_delta_t = delta.x/abs(v)
+delta.t = floor(min(max_delta_t))
+print(paste("current time step: ",delta.t))
+
+#time loop for the transport model
+initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
+do.initialize(Ctransmodel,init = initial.C)
+current.time = 0.0
+while (current.time < end.time)
+{
+  solve.steps(Ctransmodel)
+  prev.C = state.fun(Ctransmodel)
+  current.time = current.time + delta.t
+}
+print(paste("current MRESULT ",MRESULT()))
+#calculate the derivative of this parameter
+dM_dk = (MRESULT() - M_base)/(k - base$k)
+print(paste("dM_dk: ",dM_dk))
+
+k = base$k
+
+```
+```{r}
+p_t.rate = (1+rel.eps)*base$p_t.rate
+
+solve.steps(Fmodel)
+D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
+Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
+
+#calculate new time step delta.t
+v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+max_delta_t = delta.x/abs(v)
+delta.t = floor(min(max_delta_t))
+print(paste("current time step: ",delta.t))
+
+#time loop for the transport model
+initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
+do.initialize(Ctransmodel,init = initial.C)
+current.time = 0.0
+while (current.time < end.time)
+{
+  solve.steps(Ctransmodel)
+  prev.C = state.fun(Ctransmodel)
+  current.time = current.time + delta.t
+}
+print(paste("current MRESULT ",MRESULT()))
+#calculate the derivative of this parameter
+dM_dp_t_rate = (MRESULT() - M_base)/(p_t.rate - base$p_t.rate)
+print(paste("dM_dp_t_rate: ",dM_dp_t_rate))
+
+p_t.rate = base$p_t.rate
+
+```
+
+
+</div>
 
 
 ```{r}
@@ -1128,121 +1341,7 @@ mass.balance <<- data.frame(time.step,bnd.out,storage.in,storage.out,pump.treat)
 }
 ```
 
-## Local Sensitivity Analysis setup
 
-Like with the LSA of previous week, to set up the LSA procedure:
-
-1.    Create the **base** data to compare with  
-2.    Determine the prediction (the model output) which need to be investigated 
-3.    Determine/estimate/google for reasonable scale of variations of the parameters
-3.    Chose for an epsilon to determine the $\frac {\partial \mathsf{output}}{\partial \mathsf{P}}$  
-4.    Calculate all derivatives of the output (model prediction) w.r.t. parameters
-5.    Calculate the variances (standard deviations) of all parameters w.r.t. predictions (output)
-
-
-### Base values of the model
-
-Since we determine the local sensitivities with a numerical approximation we require the base values to compare with. Moreover, it's convenient to have base parameter values to reset them each time another parameter is analysed.  
-Similar to week 3 of this course, we're going to set up a `list` for the base data.
-
-```{r}
-base = list(fix.H = fix.H,
-            k = k,
-            p_t.rate = p_t.rate,
-            precip = precip,
-            bot.slope = bot.slope,
-            M.load = M.load,
-            Disp = Disp,
-            por = por)
-str(base)
-```
-
-Another important aspect is the scale of variance of the parameters. When a specific site is involved, field data (drillings, lab analysis) could be of great help to quantify this scale of the parameters. If field or calibration data is not available, educated guesses, references (books), Google search, could help out here.
-
-Below just some "silly" values to start with;
-Please adjust to your own guesses/info/refs.
-
-```{r}
-scale = list(fix.H = 0.05,
-             k = 2.5,
-             p_t.rate = 0.01,
-             precip = 0.00025,
-             bot.slope = 1E-5,
-             M.load = 0.05,
-             Disp = 2,
-             por = 0.1)
-
-str(scale)
-```
-
-
-For 1. the concentration distribution in time and space in tracked in `C_trans`.  
-So the max. concentration at `end.time` can be found by using `max` and `tail` R functions
-
-```{r}
-# M.extracted = tot.pump.treat
-# last_C_row = tail(C_trans,n=1)
-# max.C = max(last_C_row[2:length(last_C_row)])
-# base.prediction = list(M.extracted = M.extracted,
-#                        max.C = max.C)
-```
-
-
-<div class="comment">
-**[GB]** Ik denk dat onderstaande vraag er wel uit kan
-<div class="question">
-Do you still know what the "statistical" term for this "scales of variation" mean?
-</div>
-
-<div class="answer">
-It's the standard deviation $\sigma$ when calculating the impact of this parameter on the uncertainty of the prediction it is squared resulting in the variance $\mathsf{VAR}$.  
-</div>
-
-</div>
-
-
-### Epsilon
-
-Since we use a numerical derivative, we need to calculate the difference of the prediction (output), based on the difference in $\epsilon$ difference in the parameter value: $\frac{\partial \left(\mathsf{output}(P_i+\epsilon)-\mathsf{output}(P_i) \right )} {\epsilon}$  
-One can simply use a small value like $\epsilon = 0.001$ but it could get sensitive for numerical rounding/converging errors. Also this value is even larger than e.g. the precipitation and bottom slope.  
-One could also opt for a relative, say a small fraction (1%?) of the parameter value.  
-So $\frac{\partial \left(\mathsf{output}(1+\epsilon) P_i)-\mathsf{output}(P_i) \right )} {(1+\epsilon)P_i}$  with an epsilon of say 1%.
-
-
-### Local Sensitivity Calculations
-
-Now we are at the start of calculating the local sensitivities using the function `sensitivity()`. This function is purely for convenience handling all the details of running both the flow and transport models and saving relevant information.
-
-<div class="question">
-Continue setting up the LSA procedure in the code chunk below.
-
-```{r}
-#set base$P_i to base$P_i+eps
-#run the model with P_i+eps or (1+eps)*eps
-#calc.derivative: (output(P_i+eps) - output(P_i))/eps using "sensitivity()
-#save this derivative
-#set P_i back to base$P_i
-```
-
-
-</div>
-
-<div class="answer">
-
-```{r}
-rel.eps = 0.01
-fix.H = (1+rel.eps)*base$fix.H
-sensitivity()
-
-#tot.pump.treat heb ik nog niet in de sensitivity() routine staan..
-# dp_tdfix.H = (sum(mass.balance$pump.treat) - base.prediction$M.extracted)/(rel.eps*base$fix.H)
-# fix.H = base$fix.H
-
-
-```
-
-
-</div>
 
 
 
