@@ -519,21 +519,22 @@ Calculate for both parts(convective and dispersive) for two distinctive volumes 
 Some tips:
 
 *  Put the concentrations in a dataframe, e.g. `conc = dataframe.states(your_C_model)`
-*  Calculate concentrations at the borders of the volumes/elements
-*  Calculate the concentration gradients at the borders of the volumes/elements
+*  Calculate concentrations at the borders of the volumes/elements (for convective part)
+*  Calculate the concentration gradients at the borders of the volumes/elements (for dispersive part)
 *  Determine both terms and sum them
 *  Compare your results with the mass balance of the volumes/elements. They should match.
 
 ```{r}
 # mass flux for volume 30 right hand side
 concentration = dataframe.states(Cmodel)
+# convection part calculated as Qflow * C
 convection_part_30_31 = Qflow((nodes[31]+nodes[30])/2) * (concentration[31,2] + concentration[30,2])/2
-
+# dispersion part calculated as -Vflow * Disp * grad_C
 grad_C_30_31 = (concentration[31,2] - concentration[30,2])/(nodes[31] - nodes[30])
 dispersion_part_30_31 = -Vflow((nodes[31]+nodes[30])/2) * Disp * grad_C_30_31
-
+# both mass fluxes together
 mass_flux_30_31 = convection_part_30_31 + dispersion_part_30_31
-
+# mass flux calculated by the model
 mass.balance_30 = dataframe.balance(Cmodel,c(30))
 
 print(paste("convection part mass flux 30-31: ",convection_part_30_31))
@@ -543,15 +544,17 @@ print(paste("mass balance 30 calculate by the model: "))
 mass.balance_30
 
 # mass flux for volume 10
+# convective part calculated as Qflow * C
 convection_part_10_11 = Qflow((nodes[11]+nodes[10])/2) * (concentration[11,2] + concentration[10,2])/2
-
+# dispersion part calculated as -Vflow * Disp * grad_C
 grad_C_10_11 = (concentration[11,2] - concentration[10,2])/(nodes[11] - nodes[10])
 dispersion_part_10_11 = -Vflow((nodes[11]+nodes[10])/2) * Disp * grad_C_10_11
-
+# both mass fluxes together
 mass_flux_10_11 = convection_part_10_11 + dispersion_part_10_11
+# mass flux calculated by the model
 mass_balance_10 = dataframe.balance(Cmodel,c(10))
 
-print(paste("convection part mass flux 10-11: ",convection_part_10_11))
+print(paste("convection part mass flux volume 10-11: ",convection_part_10_11))
 print(paste("dispersion part mass flux 10-11: ",dispersion_part_10_11))
 print(paste("both 10-11: ",convection_part_10_11 + dispersion_part_10_11))
 print(paste("mass balance 10 calculate by the model: "))
@@ -596,7 +599,7 @@ To see whether numerical problems occur one need to determine the Peclet and Cou
 
 <div class="question">
 Set up a transient solute transport model based on the stationary model. 
-At the start of the transient simulation the initial concentration of the solute is the final concentration distribution of the stationary solute transport model.
+At the start of the transient simulation the initial concentration of the solute is the calculated concentration distribution of the stationary solute transport model.
 Consider the following aspects of this model:  
 
 * make a copy of the stationary transport model to develop the transient one  
@@ -638,11 +641,11 @@ current.time= beg.time
 v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
 #calculation of reasonable time step
 #V*delta.t/delta.x < 1 so delta.t < delta.x/v
-bound.delta = delta.x/abs(v)
-plot(nodes,bound.delta,type =  "o",col="green", main = "bound.delta at nodes")
+max_delta_t = delta.x/abs(v)
+plot(nodes,max_delta_t,type =  "o",col="green", main = "max_delta_t at nodes")
 
-#largest time step should be smallest of bound.delta. Since delta.x is constant it is at the location where velocity is highest
-delta.t = floor(min(bound.delta))
+#largest time step should be smallest of max_delta_t. Since delta.x is constant it is at the location where velocity is highest
+delta.t = floor(min(max_delta_t))
 
 Peclet = abs(v) * delta.x/Disp
 Courant = abs(v) * delta.t/delta.x 
@@ -686,12 +689,12 @@ grid()
 
 ## Transient solute transport model with pump & treat  
  As can be seen from the results of the transient model, the solute disappears slowly at the left boundary. To speed up this process an extraction well is implemented at the location of the original source and will have an extraction rate equal to 50% of the recharge of the model.   
-If the solute was some sort op pollutant this way of removing is called pump & treat, where the solute is removed/processed from the extracted groundwater. Pump & treat systems may also inject this cleaned water upstream but could be discarded here.
+If the solute was some sort op pollutant this way of removing is called "pump & treat", where the solute is removed/processed from the extracted groundwater. Pump & treat systems may also inject this cleaned water upstream but could be discarded here.
  
 <div class="question">  
 
-* Adjust the groundwater flow model accordingly.
-* Run the adjusted flow model and recalculate D.sat, internal flux and Volume functions.
+* Adjust the groundwater flow model by adding the extraction well.
+* Run the adjusted flow model and recalculate D.sat(), the internal flux (Qflow) and Volume (Vflow) functions.
 </div>
 
 <div class="answer">  
@@ -754,7 +757,7 @@ add.spatialflux(Ctransmodel,C.sto,name = "mass_storage")
 
 <div class="question">  
 
-* calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$.
+* Calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$.
 </div>
 
 <div class="answer">
@@ -765,9 +768,9 @@ v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
 
 #calculation of reasonable time step (using Courant)
 #abs(V)*delta.t/delta.x < 1 so delta.t < delta.x/abs(V)
-bound.delta = delta.x/abs(v)
-plot(nodes,bound.delta,type =  "o",col="green", main = "bound.delta at nodes")
-delta.t = floor(min(bound.delta))
+max_delta_t = delta.x/abs(v)
+plot(nodes,max_delta_t,type =  "o",col="green", main = "max_delta_t at nodes")
+delta.t = floor(min(max_delta_t))
 
 Peclet = abs(v) * delta.x/Disp
 Courant = abs(v) * delta.t/delta.x 
@@ -780,8 +783,8 @@ plot(nodes,Courant,type="o",col="red", main = c("Courant at nodes; with delta t 
 
 <div class="question">  
 
-* create a time stepping loop running for at least one year.
-* plot the transient steps in one graph in the time stepping loop.
+* Create a time stepping loop running for at least one year with daily time steps.
+* Plot the transient steps in one graph in the time stepping loop.
 * Store the mass balance terms into different arrays to plot these afterwards. See assignment 2 for details.
 </div>
 
@@ -843,9 +846,9 @@ dataframe.balance(Ctransmodel)
 Calculate the following total amounts of solute mass ($kg$):  
 
 * How much mass did the model contain at the start of the remediation?  
-* what is left out of the boundary?  
-* what is extracted with the pump & treat?  
-* what is still stored?  
+* What is left out of the boundary?  
+* What is extracted with the pump & treat?  
+* What is still stored?  
 * Do they balance?
 </div>  
 
@@ -856,14 +859,15 @@ What still is stored/left in the model requires nodal cell "area's" which are le
 
 ```{r}
 
-##to calculate much mass is stored in the model, cell lengths are required
+##to calculate how much mass is stored in the model, cell lengths are required
 dx.node = diff(nodes)
 dx.node[1]=2.5
 dx.node = c(dx.node,2.5)
 
 #mass at the beginning of the remediation
 mass.begin = Cmodel$states*dx.node*D.sat(nodes)*por
-plot(mass.begin,type="o")
+plot(mass.begin,type="o", main = "mass at the beginning of the remediation kg/m")
+grid()
 tot.begin = sum(mass.begin)
 
 #mass which is removed by the boundary and pump & treat
@@ -872,10 +876,12 @@ tot.pump.treat = sum(mass.balance$pump.treat*delta.t)
 
 #mass what is left in the model
 mass.left = Ctransmodel$states*dx.node*D.sat(nodes)*por
-plot(mass.left,type="o")
+plot(mass.left,type="o", main = "mass left in the model kg/m")
+grid()
 tot.left = sum(mass.left)
 #to check if it all balances;
 error = tot.bnd.out + tot.pump.treat + tot.left -tot.begin
+print(paste("mass balance error: ",error, "kg/m"))
 ```
 
 To finally check if all is in balance in $kg/m$ which is the mass per unit length $\Delta y$:
@@ -914,14 +920,14 @@ The most important parameters impacting the aforementioned outputs are:
 ### Efficiency pump and treat  
 
 The efficiency of the pump and treat scenario is determined by the amount mass extracted by the extraction well.  
-This can be calculated by setting up the mass balance for the model for each time step and analyze the total amount of mass extracted by the well. This amount is tracked by the data frame `tot.pump.treat`
+This can be calculated by setting up the mass balance for the transport model for each time step and analyze the total amount of mass extracted by the well. This amount is tracked by the data frame `tot.pump.treat`
 
   
 
 ### Highest concentration in the subsoil
 
 One can imagine that de highest concentration could be important when the solute is (very) toxic.  
-The concentration is the actual calculated state and can easily be derived through the `dataframe.state()` function.
+The concentration is the actual calculated state of the transport model and can easily be derived through the `dataframe.state()` function.
 
 #     AANPAK VANAF HIER 31-1-24
 
@@ -1152,11 +1158,11 @@ For 2. the concentration distribution in time and space in tracked in `C_trans`.
 So the max. concentration at `end.time` can be found by using `max` and `tail` R functions
 
 ```{r}
-M.extracted = tot.pump.treat
-last_C_row = tail(C_trans,n=1)
-max.C = max(last_C_row[2:length(last_C_row)])
-base.prediction = list(M.extracted = M.extracted,
-                       max.C = max.C)
+# M.extracted = tot.pump.treat
+# last_C_row = tail(C_trans,n=1)
+# max.C = max(last_C_row[2:length(last_C_row)])
+# base.prediction = list(M.extracted = M.extracted,
+#                        max.C = max.C)
 ```
 
 
@@ -1207,8 +1213,8 @@ fix.H = (1+rel.eps)*base$fix.H
 sensitivity()
 
 #tot.pump.treat heb ik nog niet in de sensitivity() routine staan..
-dp_tdfix.H = (sum(mass.balance$pump.treat) - base.prediction$M.extracted)/(rel.eps*base$fix.H)
-fix.H = base$fix.H
+# dp_tdfix.H = (sum(mass.balance$pump.treat) - base.prediction$M.extracted)/(rel.eps*base$fix.H)
+# fix.H = base$fix.H
 
 
 ```
