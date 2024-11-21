@@ -1011,7 +1011,7 @@ As with LSA last week, create a function `MRESULT()` which contains the max conc
 
 
 
-### Scale of variance of the parameters  
+### Scale of variation of the parameters  
 
 Another important aspect is the scale of variance of the parameters. When a specific site is involved, field data (drillings, lab analysis) could be of great help to quantify this scale of the parameters. If field or calibration data is not available, educated guesses, references (books), Google search, could help out here.
 
@@ -1019,14 +1019,14 @@ Below just some "silly" values to start with;
 Please adjust to your own guesses/info/refs.
 
 ```{r}
-scale = list(fix.H = 0.05,
-             k = 2.5,
-             p_t.rate = 0.01,
-             precip = 0.00025,
-             bot.slope = 1E-5,
-             M.load = 0.05,
-             Disp = 2,
-             por = 0.1)
+scale = list(fix.H = 0.1,#*base$fix.H, #0.05,
+             k = 0.1*base$k, #2.5,
+             p_t.rate = 0.1*base$p_t.rate,# 0.01,
+             precip = 0.1*base$precip,#0.00025,
+             bot.slope = 0.1*base$bot.slope, #1E-5,
+             M.load = 0.1*base$M.load, #0.05,
+             Disp = 0.1*base$Disp, #2,
+             por = 0.1*base$por0.1)
 
 str(scale)
 ```
@@ -1069,8 +1069,9 @@ Setup the LSA procedure in the code chunk below. Do not forget to creat the MRES
 
 <div class="answer">
 
-```{r}
+#### Calculation of the considered prediction
 
+```{r}
 ## create the MRESULT function here the max. C at the end of the time simulation.
 MRESULT = function()
 {
@@ -1080,6 +1081,12 @@ MRESULT = function()
 ## save the base MRESULT value in M_base
 M_base = MRESULT()
 
+```
+
+
+#### Sensitivity on the prescribed head of the river
+
+```{r}
 
 rel.eps = 0.01
 
@@ -1099,6 +1106,7 @@ print(paste("current time step: ",delta.t))
 #time loop for the transport model
 initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
 do.initialize(Ctransmodel,init = initial.C)
+prev.C = initial.C
 current.time = 0.0
 while (current.time < end.time)
 {
@@ -1114,7 +1122,7 @@ print(paste("dM_dfix.H: ",dM_dfix.H))
 #Do not forget to set the parameter back to the base value
 fix.H = base$fix.H
 ```
-The next parameter k: 
+#### Sensitivity on hydraulic conductivity
 
 ```{r}
 k = (1+rel.eps)*base$k
@@ -1133,6 +1141,7 @@ print(paste("current time step: ",delta.t))
 #time loop for the transport model
 initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
 do.initialize(Ctransmodel,init = initial.C)
+prev.C = initial.C
 current.time = 0.0
 while (current.time < end.time)
 {
@@ -1148,6 +1157,8 @@ print(paste("dM_dk: ",dM_dk))
 k = base$k
 
 ```
+#### Sensitivity on extraction rate
+
 ```{r}
 p_t.rate = (1+rel.eps)*base$p_t.rate
 
@@ -1165,6 +1176,7 @@ print(paste("current time step: ",delta.t))
 #time loop for the transport model
 initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
 do.initialize(Ctransmodel,init = initial.C)
+prev.C = initial.C
 current.time = 0.0
 while (current.time < end.time)
 {
@@ -1180,9 +1192,250 @@ print(paste("dM_dp_t_rate: ",dM_dp_t_rate))
 p_t.rate = base$p_t.rate
 
 ```
+#### Sensitivity on precipitation
+
+```{r}
+precip = (1+rel.eps)*base$precip
+
+solve.steps(Fmodel)
+D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
+Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
+
+#calculate new time step delta.t
+v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+max_delta_t = delta.x/abs(v)
+delta.t = floor(min(max_delta_t))
+print(paste("current time step: ",delta.t))
+
+#time loop for the transport model
+initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
+do.initialize(Ctransmodel,init = initial.C)
+prev.C = initial.C
+current.time = 0.0
+while (current.time < end.time)
+{
+  solve.steps(Ctransmodel)
+  prev.C = state.fun(Ctransmodel)
+  current.time = current.time + delta.t
+}
+print(paste("current MRESULT ",MRESULT()))
+#calculate the derivative of this parameter
+dM_dprecip = (MRESULT() - M_base)/(precip - base$precip)
+print(paste("dM_dprecip: ",dM_dprecip))
+
+precip = base$precip
+```
+#### Sensitivity on bottom slope
+
+```{r}
+bot.slope = (1+rel.eps)*base$bot.slope
+bot.right = bot.left - bot.slope*bnd.right #since the bot.slope can change
+bottom = approxfun(x = domain,y = c(bot.left,bot.right)) #bottom changes 
+solve.steps(Fmodel)
+D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
+Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
+
+#calculate new time step delta.t
+v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+max_delta_t = delta.x/abs(v)
+delta.t = floor(min(max_delta_t))
+print(paste("current time step: ",delta.t))
+
+#time loop for the transport model
+initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
+do.initialize(Ctransmodel,init = initial.C)
+prev.C = initial.C
+current.time = 0.0
+while (current.time < end.time)
+{
+  solve.steps(Ctransmodel)
+  # dataframe.balance(Ctransmodel)
+  # plot(Ctransmodel,fluxplot = T)
+  prev.C = state.fun(Ctransmodel)
+  current.time = current.time + delta.t
+}
+print(paste("current MRESULT ",MRESULT()))
+#calculate the derivative of this parameter
+dM_dbot.slope = (MRESULT() - M_base)/(bot.slope - base$bot.slope)
+print(paste("dM_dbot.slope: ",dM_dbot.slope))
+
+bot.slope = base$bot.slope
+
+
+```
+
+#### Sensitivity on Mass load
+
+```{r}
+M.load = (1+rel.eps)*base$M.load
+
+#this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
+solve.steps(Fmodel)
+D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
+Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
+
+#calculate new time step delta.t
+v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+max_delta_t = delta.x/abs(v)
+delta.t = floor(min(max_delta_t))
+print(paste("current time step: ",delta.t))
+
+#time loop for the transport model
+initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
+do.initialize(Ctransmodel,init = initial.C)
+prev.C = initial.C
+current.time = 0.0
+while (current.time < end.time)
+{
+  solve.steps(Ctransmodel)
+  prev.C = state.fun(Ctransmodel)
+  current.time = current.time + delta.t
+}
+print(paste("current MRESULT ",MRESULT()))
+#calculate the derivative of this parameter
+dM_dM.load = (MRESULT() - M_base)/(M.load - base$M.load)
+print(paste("dM_dM.load: ",dM_dM.load))
+
+M.load = base$M.load
+```
+
+#### Sensitivity on Dispersion
+
+```{r}
+Disp = (1+rel.eps)*base$Disp
+
+#this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
+M.load = (1+rel.eps)*base$M.load
+
+#this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
+# solve.steps(Fmodel)
+# D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+# Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
+# Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
+
+#calculate new time step delta.t
+v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+max_delta_t = delta.x/abs(v)
+delta.t = floor(min(max_delta_t))
+print(paste("current time step: ",delta.t))
+
+#time loop for the transport model
+initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
+do.initialize(Ctransmodel,init = initial.C)
+prev.C = initial.C
+current.time = 0.0
+while (current.time < end.time)
+{
+  solve.steps(Ctransmodel)
+  prev.C = state.fun(Ctransmodel)
+  current.time = current.time + delta.t
+}
+print(paste("current MRESULT ",MRESULT()))
+#calculate the derivative of this parameter
+dM_dM.load = (MRESULT() - M_base)/(M.load - base$M.load)
+print(paste("dM_dM.load: ",dM_dM.load))
+
+M.load = base$M.load
+
+#calculate new time step delta.t
+v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+max_delta_t = delta.x/abs(v)
+delta.t = floor(min(max_delta_t))
+print(paste("current time step: ",delta.t))
+
+#time loop for the transport model
+initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
+do.initialize(Ctransmodel,init = initial.C)
+prev.C = initial.C
+current.time = 0.0
+while (current.time < end.time)
+{
+  solve.steps(Ctransmodel)
+  prev.C = state.fun(Ctransmodel)
+  current.time = current.time + delta.t
+}
+print(paste("current MRESULT ",MRESULT()))
+#calculate the derivative of this parameter
+dM_dDisp = (MRESULT() - M_base)/(Disp - base$Disp)
+print(paste("dM_dDisp: ",dM_dDisp))
+
+Disp = base$Disp
+
+```
+
+The last parameter is the porosity:
+
+```{r}
+por = (1+rel.eps)*base$por
+
+#this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
+# solve.steps(Fmodel)
+# D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+# Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
+# Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
+
+#calculate new time step delta.t
+v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+max_delta_t = delta.x/abs(v)
+delta.t = floor(min(max_delta_t))
+print(paste("current time step: ",delta.t))
+
+#time loop for the transport model
+initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
+do.initialize(Ctransmodel,init = initial.C)
+prev.C = initial.C
+current.time = 0.0
+while (current.time < end.time)
+{
+  solve.steps(Ctransmodel)
+  prev.C = state.fun(Ctransmodel)
+  current.time = current.time + delta.t
+}
+print(paste("current MRESULT ",MRESULT()))
+#calculate the derivative of this parameter
+dM_dpor = (MRESULT() - M_base)/(por - base$por)
+print(paste("dM_dpor: ",dM_dpor))
+
+por = base$por
+
+```
 
 
 </div>
+
+
+# Calculation of the variances  
+To calculate the LSA variances, the derivatives need to be squared and multiplied with the variance of the parameters and summarized; 
+
+$$\text{VAR(MRESULT)} = \sum_{i=1}^{nrP} \left ( \frac{dM_{result}}{dP_i}\sigma  P_i\right)^2$$
+```{r}
+variance = list(fix.H = scale$fix.H^2*dM_dfix.H^2,
+                k = scale$k^2*dM_dk^2,
+                p_t.rate = scale$p_t.rate^2*dM_dp_t_rate^2,
+                precip = scale$precip^2*dM_dprecip^2,
+                bot.slope = scale$bot.slope^2*dM_dbot.slope^2,
+                M.load = scale$M.load^2*dM_dM.load^2,
+                Disp = scale$Disp^2*dM_dDisp^2,
+                por = scale$por^2*dM_dpor^2)
+
+Total_variance = sum(unlist(variance))
+rel_variance= list(fix.H = variance$fix.H/Total_variance,
+                    k = variance$k/Total_variance,
+                    p_t.rate = variance$p_t.rate/Total_variance,
+                    precip = variance$precip/Total_variance,
+                    bot.slope = variance$bot.slope/Total_variance,
+                    M.load = variance$M.load/Total_variance,
+                    Disp = variance$Disp/Total_variance,
+                    por = variance$por/Total_variance)
+
+pie(as.numeric(unlist(rel_variance)),labels = paste(names(rel_variance),round(unlist(rel_variance)*100,1), "%", sep=" "),main = paste("Contrib P's on uncert of the predic max.C,with st.dev:", round(sqrt(Total_variance),5),"kg/m3"), sub = paste("relative variation w.r.t. Cmax",round(sqrt(Total_variance)/M_base*100,3), '%'))
+
+scale_variation = data.frame(scale = unlist(scale),variance = unlist(variance),rel_variance = unlist(rel_variance))
+```
+
 
 
 ```{r}
