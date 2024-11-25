@@ -955,8 +955,8 @@ The concentration is the actual calculated state of the transport model and can 
 ### Efficiency pump and treat (when engough time)
 
 The efficiency of the pump and treat scenario is determined by the amount of mass extracted by the extraction well.  
-This can be calculated by setting up the mass balance for the transport model for each time step and analyze the total amount of mass extracted by the well. This data is stored the mass balance and can be calculated by:
-This amount is tracked by the data frame `tot.pump.treat`
+This can be calculated by setting up the mass balance for the transport model for each time step and analyze the total amount of mass extracted by the well. This data is stored in the mass balance. Retreiving this data per time step gains insight in the effectiveness of the pump & treat scenario.
+
 
   
 <div class="comment">
@@ -1081,12 +1081,28 @@ MRESULT = function()
 ## save the base MRESULT value in M_base
 M_base = MRESULT()
 
+
+## create the function to sum the total mass extracted by the pump&treat
+
+##above the container used for this data is called pump.treat
+mass.pt = pump.treat
+
+MRESULT_pump = function()
+{
+  return(sum(mass.pt))
+}
+
+M_base_pump = MRESULT_pump()
+
 ```
 
 
 #### Sensitivity on the prescribed head of the river
 
 ```{r}
+#a container to keep track of the amount of mass extracted by the extraction well
+mass.pt = c()
+
 
 rel.eps = 0.01
 
@@ -1113,11 +1129,19 @@ while (current.time < end.time)
   solve.steps(Ctransmodel)
   prev.C = state.fun(Ctransmodel)
   current.time = current.time + delta.t
+  ## keep track of the mass extracted by the extraction well
+  df.mass = dataframe.balance(Ctransmodel)
+  mass.pt = c(mass.pt,df.mass[3,3])
+  
 }
 MRESULT()
 #calculate the derivative
 dM_dfix.H = (MRESULT() - M_base)/(fix.H - base$fix.H)
 print(paste("dM_dfix.H: ",dM_dfix.H))
+MRESULT_pump()
+dM_dfix.H_pump = (MRESULT_pump() - M_base_pump)/(fix.H - base$fix.H)
+print(paste("dM_dfix.H_pump: ",dM_dfix.H_pump))
+
 
 #Do not forget to set the parameter back to the base value
 fix.H = base$fix.H
@@ -1125,6 +1149,8 @@ fix.H = base$fix.H
 #### Sensitivity on hydraulic conductivity
 
 ```{r}
+mass.pt = c()
+
 k = (1+rel.eps)*base$k
 
 solve.steps(Fmodel)
@@ -1148,11 +1174,18 @@ while (current.time < end.time)
   solve.steps(Ctransmodel)
   prev.C = state.fun(Ctransmodel)
   current.time = current.time + delta.t
+    ## keep track of the mass extracted by the extraction well
+  df.mass = dataframe.balance(Ctransmodel)
+  mass.pt = c(mass.pt,df.mass[3,3])
+
 }
 print(paste("current MRESULT ",MRESULT()))
 #calculate the derivative of this parameter
 dM_dk = (MRESULT() - M_base)/(k - base$k)
 print(paste("dM_dk: ",dM_dk))
+MRESULT_pump()
+dM_dk_pump = (MRESULT_pump() - M_base_pump)/(k - base$k)
+print(paste("dM_dk_pump: ",dM_dk_pump))
 
 k = base$k
 
@@ -1160,6 +1193,9 @@ k = base$k
 #### Sensitivity on extraction rate
 
 ```{r}
+
+mass.pt = c()
+
 p_t.rate = (1+rel.eps)*base$p_t.rate
 
 solve.steps(Fmodel)
@@ -1183,11 +1219,18 @@ while (current.time < end.time)
   solve.steps(Ctransmodel)
   prev.C = state.fun(Ctransmodel)
   current.time = current.time + delta.t
+    ## keep track of the mass extracted by the extraction well
+  df.mass = dataframe.balance(Ctransmodel)
+  mass.pt = c(mass.pt,df.mass[3,3])
+
 }
 print(paste("current MRESULT ",MRESULT()))
 #calculate the derivative of this parameter
 dM_dp_t_rate = (MRESULT() - M_base)/(p_t.rate - base$p_t.rate)
 print(paste("dM_dp_t_rate: ",dM_dp_t_rate))
+MRESULT_pump()
+dM_dp_t_rate_pump = (MRESULT_pump() - M_base_pump)/(p_t.rate - base$p_t.rate)
+print(paste("dM_dp_t_rate_pump: ",dM_dp_t_rate_pump))
 
 p_t.rate = base$p_t.rate
 
@@ -1195,6 +1238,8 @@ p_t.rate = base$p_t.rate
 #### Sensitivity on precipitation
 
 ```{r}
+mass.pt = c()
+
 precip = (1+rel.eps)*base$precip
 
 solve.steps(Fmodel)
@@ -1218,17 +1263,26 @@ while (current.time < end.time)
   solve.steps(Ctransmodel)
   prev.C = state.fun(Ctransmodel)
   current.time = current.time + delta.t
+    ## keep track of the mass extracted by the extraction well
+  df.mass = dataframe.balance(Ctransmodel)
+  mass.pt = c(mass.pt,df.mass[3,3])
+
 }
 print(paste("current MRESULT ",MRESULT()))
 #calculate the derivative of this parameter
 dM_dprecip = (MRESULT() - M_base)/(precip - base$precip)
 print(paste("dM_dprecip: ",dM_dprecip))
+MRESULT_pump()
+dM_dprecip_pump = (MRESULT_pump() - M_base_pump)/(precip - base$precip)
+print(paste("dM_dprecip_pump: ",dM_dprecip_pump))
 
 precip = base$precip
 ```
 #### Sensitivity on bottom slope
 
 ```{r}
+mass.pt = c()
+
 bot.slope = (1+rel.eps)*base$bot.slope
 bot.right = bot.left - bot.slope*bnd.right #since the bot.slope can change
 bottom = approxfun(x = domain,y = c(bot.left,bot.right)) #bottom changes 
@@ -1255,11 +1309,18 @@ while (current.time < end.time)
   # plot(Ctransmodel,fluxplot = T)
   prev.C = state.fun(Ctransmodel)
   current.time = current.time + delta.t
+    ## keep track of the mass extracted by the extraction well
+  df.mass = dataframe.balance(Ctransmodel)
+  mass.pt = c(mass.pt,df.mass[3,3])
+
 }
 print(paste("current MRESULT ",MRESULT()))
 #calculate the derivative of this parameter
 dM_dbot.slope = (MRESULT() - M_base)/(bot.slope - base$bot.slope)
 print(paste("dM_dbot.slope: ",dM_dbot.slope))
+MRESULT_pump()
+dM_dbot.slope_pump = (MRESULT_pump() - M_base_pump)/(bot.slope - base$bot.slope)
+print(paste("dM_dbot.slope_pump: ",dM_dbot.slope_pump))
 
 bot.slope = base$bot.slope
 
@@ -1269,6 +1330,9 @@ bot.slope = base$bot.slope
 #### Sensitivity on Mass load
 
 ```{r}
+
+mass.pt = c()
+
 M.load = (1+rel.eps)*base$M.load
 
 #this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
@@ -1293,11 +1357,18 @@ while (current.time < end.time)
   solve.steps(Ctransmodel)
   prev.C = state.fun(Ctransmodel)
   current.time = current.time + delta.t
+    ## keep track of the mass extracted by the extraction well
+  df.mass = dataframe.balance(Ctransmodel)
+  mass.pt = c(mass.pt,df.mass[3,3])
+
 }
 print(paste("current MRESULT ",MRESULT()))
 #calculate the derivative of this parameter
 dM_dM.load = (MRESULT() - M_base)/(M.load - base$M.load)
 print(paste("dM_dM.load: ",dM_dM.load))
+MRESULT_pump()
+dM_dM.load_pump = (MRESULT_pump() - M_base_pump)/(M.load - base$M.load)
+print(paste("dM_dM.load_pump: ",dM_dM.load_pump))
 
 M.load = base$M.load
 ```
@@ -1305,10 +1376,11 @@ M.load = base$M.load
 #### Sensitivity on Dispersion
 
 ```{r}
+
+mass.pt = c()
+
 Disp = (1+rel.eps)*base$Disp
 
-#this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
-M.load = (1+rel.eps)*base$M.load
 
 #this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
 # solve.steps(Fmodel)
@@ -1332,43 +1404,26 @@ while (current.time < end.time)
   solve.steps(Ctransmodel)
   prev.C = state.fun(Ctransmodel)
   current.time = current.time + delta.t
-}
-print(paste("current MRESULT ",MRESULT()))
-#calculate the derivative of this parameter
-dM_dM.load = (MRESULT() - M_base)/(M.load - base$M.load)
-print(paste("dM_dM.load: ",dM_dM.load))
+    ## keep track of the mass extracted by the extraction well
+  df.mass = dataframe.balance(Ctransmodel)
+  mass.pt = c(mass.pt,df.mass[3,3])
 
-M.load = base$M.load
-
-#calculate new time step delta.t
-v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
-max_delta_t = delta.x/abs(v)
-delta.t = floor(min(max_delta_t))
-print(paste("current time step: ",delta.t))
-
-#time loop for the transport model
-initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
-do.initialize(Ctransmodel,init = initial.C)
-prev.C = initial.C
-current.time = 0.0
-while (current.time < end.time)
-{
-  solve.steps(Ctransmodel)
-  prev.C = state.fun(Ctransmodel)
-  current.time = current.time + delta.t
 }
 print(paste("current MRESULT ",MRESULT()))
 #calculate the derivative of this parameter
 dM_dDisp = (MRESULT() - M_base)/(Disp - base$Disp)
 print(paste("dM_dDisp: ",dM_dDisp))
-
-Disp = base$Disp
+MRESULT_pump()
+dM_dDisp_pump = (MRESULT_pump() - M_base_pump)/(Disp - base$Dsip)
+print(paste("dM_dDisp: ",dM_dDisp_pump))
 
 ```
 
-The last parameter is the porosity:
+#### Sensitivity on  porosity
 
 ```{r}
+mass.pt = c()
+
 por = (1+rel.eps)*base$por
 
 #this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
@@ -1393,11 +1448,17 @@ while (current.time < end.time)
   solve.steps(Ctransmodel)
   prev.C = state.fun(Ctransmodel)
   current.time = current.time + delta.t
+    ## keep track of the mass extracted by the extraction well
+  df.mass = dataframe.balance(Ctransmodel)
+  mass.pt = c(mass.pt,df.mass[3,3])
 }
 print(paste("current MRESULT ",MRESULT()))
 #calculate the derivative of this parameter
 dM_dpor = (MRESULT() - M_base)/(por - base$por)
 print(paste("dM_dpor: ",dM_dpor))
+MRESULT_pump()
+dM_dpor_pump = (MRESULT_pump() - M_base_pump)/(por - base$por)
+print(paste("dM_dpor_pump: ",dM_dpor_pump))
 
 por = base$por
 
@@ -1437,225 +1498,34 @@ scale_variation = data.frame(scale = unlist(scale),variance = unlist(variance),r
 ```
 
 
+plots for the effectiveness of the pump & treat scenario
 
 ```{r}
-
-#save(list = c(grep(pattern = "Ctrans",x=ls(),value = TRUE),"mass.balance.old","max.C.old","C_trans.old"),file = "testCtransdata.Rdata")
-bewaar = function()
-{
-  D.sat.old <<- D.sat
-  Vflow.old <<- Vflow
-  Qflow.old <<- Qflow
-  mb.Ctrans.old <<- dataframe.balance(Ctransmodel)
-  wb.Fmodel.old <<- dataframe.balance(Fmodel)
-  max.C.old <<- max.C
-  mass.balance.old <<- mass.balance
-  ext.q.Ctrans.old = dataframe.externalfluxes(Ctransmodel)
-  int.q.Ctrans.old = dataframe.internalfluxes(Ctransmodel)
-  bnd.q.Ctrans.old = dataframe.boundaries(Ctransmodel)
-  C_trans.old <<- C_trans
-}
-
-plotten = function()
-{
-  
-old.par = par(no.readonly=TRUE)#storing current canvas parameters
-
-#par(mar=c(5,1,4,1))
-#layout_plots = layout(matrix(c(1,2,3,4,5,6,7,0), ncol = 2,nrow = 4, byrow=TRUE), 
-#                      widths = rep.int(1,2),heights = rep.int(1,4))
-# layout_plots = c(matrix(c(1,2,3,4,5,6,7,0), ncol = 2,nrow = 4, byrow=TRUE), 
-#                       widths = rep.int(1,2),heights = rep.int(1,4))
-# tst = layout(matrix(c(1,2,3,4,5,6,7,0), ncol = 2,nrow = 4, byrow=TRUE), 
-#                       widths = rep.int(1,2),heights = rep.int(1,4))
-# layout.show(tst)
-#layout(matrix(c(1,2,3,4,5,6,7,0), ncol = 2, byrow=TRUE), widths = rep.int(1,2),heights = rep.int(1,4))
-# layout(matrix(c(1,2,3,4,5,6,7,0), ncol = 2, byrow=TRUE), widths = c(lcm(9),lcm(9)),heights = c(lcm(5),lcm(5),lcm(5),lcm(8)),respect = TRUE)
-par(mfrow=c(1,2))
-  plot(mass.balance.old$time.step,mass.balance.old$bnd.out,main = "bnd.out",type = "o")
-  lines(mass.balance$time.step,mass.balance$bnd.out, col="red",type ="o",pch = 20)
-  grid()
-  plot(mass.balance.old$time.step,mass.balance.old$storage.in,main = "storage.in",type = "o")
-  lines(mass.balance$time.step,mass.balance$storage.in, col="blue",type ="o",pch = 20)
-  grid()
-par(mfrow=c(1,2))  
-  plot(mass.balance.old$time.step,mass.balance.old$storage.out,main = "storage.out",type = "o")
-  lines(mass.balance$time.step,mass.balance$storage.out, col="green",type ="o",pch = 20)
-  grid()
-  plot(mass.balance.old$time.step,mass.balance.old$pump.treat,main = "pump.treat",type = "o")
-  lines(mass.balance$time.step,mass.balance$pump.treat, col="cyan",type ="o",pch = 20)
-  grid()
-par(mfrow=c(1,2))
-  plot(max.C.old$time,max.C.old$max.conc,main = "max C in time",type = "o")
-  lines(max.C$time,max.C$max.conc, col = "orange",type ="o",pch = 20)
-  grid()
-  plot(max.C.old$"position.x",max.C.old$max.conc,main = "max C in time",type = "o")
-  lines(max.C$"position.x",max.C$max.conc, col = "magenta",type ="o",pch = 20)
-  grid()
-par(mfrow=c(1,1))  
-  #plotting some concentration distributions
-  grijs = grey(level = 0:length(C_trans.old[,1])/length(C_trans.old[,1]))
-  kleur = heat.colors(n =length(C_trans[,1])+5, alpha = 1 )
-  c_range = c(min(C_trans.old[,2:length(C_trans.old[1,])],C_trans[,2:length(C_trans[1,])]),
-              max(C_trans.old[,2:length(C_trans.old[1,])],C_trans[,2:length(C_trans[1,])]))
-  plot(nodes,C_trans.old[1,2:(length(nodes)+1)],type = "l",lwd = 2, 
-       col = grijs[1], main = "C(x,t) ",ylim = c_range, xlab = 'Time',ylab = "Concentration")
-  for (i in 2:length(C_trans.old[,1]))
-  {
-    lines(nodes,C_trans.old[i,2:(length(nodes)+1)],col = grijs[i], lwd = 2)
-    
-  }
-  for (i in 1:length(C_trans[,1]))
-  {
-    lines(nodes,C_trans[i,2:(length(nodes)+1)],col = kleur[i], lwd = 2)
-  }
-    
-  grid()
-  legend(x = "topright", legend = c(paste0("time:",C_trans.old[,1]),paste0("time:",C_trans[,1]))
-         ,lty = 1,lwd = 2,col = c(grijs[1:length(C_trans.old[,1])],kleur[1:length(C_trans[,1])]),cex=0.5)
-  
-  par(old.par)# setting previous canvas parameters back
-}
-
-#since the transient Ctransmodel is transient, it needs to be reset with the initial concentration of the 
-#stationary Cmodel.
-initial.C = state.fun(Cmodel)
-
-Cevery.delta.t = 5 #modulo for delta t 's days to write C(x,t)
-
-sensitivity = function()
-{
-####run current stationary flow model
-
-#calculate new Qflow and new Vflow functions
-
-bot.right = bot.left - bot.slope*bnd.right #since the bot.slope can change
-bottom = approxfun(x = domain,y = c(bot.left,bot.right)) #bottom changes because of bot.slope
-
-solve.steps(Fmodel)
-#first the folume per m delta_y
-D.sat = approxfun(nodes,Fmodel$states - bottom(nodes),rule = 2)
-Vflow = approxfun(nodes,D.sat(nodes)*por,rule = 2)
-#now the flux function to determine the local groundwater velocities
-Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
-#calculate a new delta.t in case delta.x, v is adjusted
-v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
-#calculation of reasonable time step (using Courant)
-#abs(V)*delta.t/delta.x < 1 so delta.t < delta.x/abs(V)
-max.delta.t = delta.x/abs(v)
-delta.t <<- floor(min(max.delta.t))
-
-####run the transient transport model
-
-#create some data containers for the results
-bnd.out = c()
-storage.in = c()
-storage.out = c()
-time.step = c()
-max.C = c()
-pump.treat = c()
-current.time = 0.0
-C_trans = c()
-
-#reset the current transient transport model
-do.initialize(Ctransmodel,init = initial.C)
-while (current.time < end.time)
-{
-  prev.C <<- state.fun(Ctransmodel)
-  solve.steps(Ctransmodel)
-  #write mass balance data 
-  df.mass = dataframe.balance(Ctransmodel)
-  bnd.out = c(bnd.out,df.mass[3,3])
-  storage.in = c(storage.in,df.mass[2,2])
-  storage.out = c(storage.out,df.mass[2,3])
-  pump.treat = c(pump.treat,df.mass[3,3])
-  current.time = current.time + delta.t
-  time.step = c(time.step,current.time)
-  #write max concentration(x,t) to max.C
-  df.conc = dataframe.states(Ctransmodel)
-  cur.maxC = which(df.conc$state == max(df.conc$state)) #which node contains the highest C now
-  cur.result = c(current.time,nodes[cur.maxC],df.conc$state[cur.maxC])
- # max.C = cbind(max.C, cur.time,nodes[cur.maxC],df.conc$state[cur.maxC])
-  max.C = rbind(max.C,cur.result)
-  if (current.time %% (Cevery.delta.t * delta.t) == 0 )
-  {
-    C_trans = rbind(C_trans,c(current.time,df.conc$state))
-  }
-  # print(current.time)
-}
-#write results to different data frames
-max.C <<- data.frame(max.C)
-rownames(max.C) <<- c()
-colnames(max.C) <<-c("time","position.x","max.conc")
-C_trans <<- data.frame(C_trans)
-colnames(C_trans) <<- c("time",as.character(nodes))
-mass.balance <<- data.frame(time.step,bnd.out,storage.in,storage.out,pump.treat)
-
-}
+variance_pump = list(fix.H = scale$fix.H^2*dM_dfix.H_pump^2,
+                k = scale$k^2*dM_dk_pump^2,
+                p_t.rate = scale$p_t.rate^2*dM_dp_t_rate_pump^2,
+                precip = scale$precip^2*dM_dprecip_pump^2,
+                bot.slope = scale$bot.slope^2*dM_dbot.slope_pump^2,
+                M.load = scale$M.load^2*dM_dM.load_pump^2,
+                Disp = scale$Disp^2*dM_dDisp_pump^2,
+                por = scale$por^2*dM_dpor_pump^2)
+Total_variance_pump = sum(unlist(variance_pump))
+rel_variance_pump= list(fix.H = variance_pump$fix.H/Total_variance_pump,
+                    k = variance_pump$k/Total_variance_pump,
+                    p_t.rate = variance_pump$p_t.rate/Total_variance_pump,
+                    precip = variance_pump$precip/Total_variance_pump,
+                    bot.slope = variance_pump$bot.slope/Total_variance_pump,
+                    M.load = variance_pump$M.load/Total_variance_pump,
+                    Disp = variance_pump$Disp/Total_variance_pump,
+                    por = variance_pump$por/Total_variance_pump)
+pie(as.numeric(unlist(rel_variance_pump)),labels = paste(names(rel_variance_pump),round(unlist(rel_variance_pump)*100,1), "%", sep=" "),main = paste("Contrib P's on uncert of the predic max.C,with st.dev:", round(sqrt(Total_variance_pump),5),"kg/m3"), sub = paste("relative variation w.r.t. Cmax",round(sqrt(Total_variance_pump)/M_base_pump*100,3), '%'))
 ```
 
 
 
 
 
-```{r}
-load(file = "testCtransdata.Rdata")# loading save base data
-
-#reducing the pumping rate show at the start(t=0) less mass ouflow, a bit less coming for storage, less mass removed by p-treat, and the end of time a bit higher concentration in time, the C(x,t) time serie indicate a higher concentration mainly left of the p-t
-#increasing teh pumping rate show linear response except for the C(x,t)time series where you can clearly see a large reduction at the p-t location.
-
-p_t.rate = 2*p_t.rate
-sensitivity()
-p_t.rate = p_t.rate/2
-plotten()
-
-#increasing the Dispersion (more spreading) shows hardly any differences w.r.t. mass fluxes. Only with the C(x,t) time series one can clearly see lower C(x,t) distributions with larger Disp en higer C(x,t) distributions with lower Disp
-
-Disp = 2*Disp
-sensitivity()
-Disp = Disp/2
-plotten()
-
-Disp = Disp/2
-sensitivity()
-Disp = 2* Disp
-plotten()
-
-#increasing the precipitation hardly results in difference in massfluxes, also niet in decreasing. The C(x,t) distributions show a strong increase in C(x,t) in de beginning, as if the "wave" is higher.
-#With decreasing the precipitations the C(x,t) distributions shows a much lower C(x,t)series in the beginning
-
-precip = 2*precip
-sensitivity()
-precip = precip/2
-plotten()
-
-precip = precip/2
-sensitivity()
-precip = 2*precip
-plotten()
-
-bot.slope = 2*bot.slope
-D.sat(nodes)
-sensitivity()
-D.sat(nodes)
-bot.slope = bot.slope/2
-plotten()
-
-bot.slope = bot.slope/2
-sensitivity()
-bot.slope = 2*bot.slope
-plotten()
-
-fix.H = fix.H + 1.0
-sensitivity()
-fix.H = fix.H - 1.0
-plotten()
-
-fix.H = fix.H - 1.0
-sensitivity()
-fix.H = fix.H + 1.0
-plotten()
 
 
-```
+
 
