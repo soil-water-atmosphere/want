@@ -1518,14 +1518,80 @@ rel_variance_pump= list(fix.H = variance_pump$fix.H/Total_variance_pump,
                     M.load = variance_pump$M.load/Total_variance_pump,
                     Disp = variance_pump$Disp/Total_variance_pump,
                     por = variance_pump$por/Total_variance_pump)
-pie(as.numeric(unlist(rel_variance_pump)),labels = paste(names(rel_variance_pump),round(unlist(rel_variance_pump)*100,1), "%", sep=" "),main = paste("Contrib P's on uncert of the predic max.C,with st.dev:", round(sqrt(Total_variance_pump),5),"kg/m3"), sub = paste("relative variation w.r.t. Cmax",round(sqrt(Total_variance_pump)/M_base_pump*100,3), '%'))
+pie(as.numeric(unlist(rel_variance_pump)),labels = paste(names(rel_variance_pump),round(unlist(rel_variance_pump)*100,1), "%", sep=" "),main = paste("Contrib P's on uncert of the predic mass extract.,with st.dev:", round(sqrt(Total_variance_pump),5),"kg/d"), sub = paste("relative variation w.r.t. mass extract",round(sqrt(Total_variance_pump)/M_base_pump*100,3), '%'))
 ```
 
 
+# Global Sensitivity Analysis (GSA) using SOBOL
+
+The Sobol method is a global sensitivity analysis method which
+decomposes the variance of the output of a model into fractions which can be attributed to the input factors.
 
 
+## Setup of the Sobol analysis
+
+The Sobol analysis requires a bit more work than the LSA.
+The Sobol analysis requires a number of runs of the model, each time with a different combination of the parameters.
+The Sobol analysis is based on the variance of the output of the model, which is decomposed into fractions which can be attributed to the input factors.
+
+The same parameters and predictive outputs will be used for the GSA.
+However, some additional values are required for the Sobol analysis:
 
 
+*  The number of runs of the model, $N$
+*  The range of the parameters
+    * as a first guess the range could be set to 2 time the scale of variation below and above the average/estimated value  
+    
+It is convenient to use the following structure. Using this structure means that very easily the analysis can be carried with the aid of the **GSOBOL** package developed by former lecturer and colleague Paul Torfs.
 
+```{r}
+library(GSOBOL)
+parnames = names(base) # this creates a vector with the names of the parameters
+parmeans = unlist(base) # this creates a vector with the means of the parameters
+parsd = abs(unlist(scale)) # this creates a vector with the standard deviations of the parameters
+parlower = parmeans - 2*abs(parsd) # this creates a vector with the lower bounds of the parameters
+parupper = parmeans + 2*abs(parsd) # this creates a vector with the upper bounds of the parameters
+samplesize = 100
+parsample = GaussianLHS(samplesize,mean = parmeans, sd = parsd, varnames = parnames, lower = parlower, upper = parupper)
 
+```
+
+### Inspecting the sample
+
+```{r}
+head(parsample)
+plot(parsample)
+
+old.par = par(no.readonly = T)
+par(mfrow = c(2,3))
+par(mar=c(5,5,1,1)) 
+
+hist(parsample[,fix.H],main = "Histogram of the sample",xlab = "fix.H",col = "lightblue",prob = T)
+rug(parsample[,fix.H],col = "red")
+lines(density(parsample[,fix.H]),col = "red")
+hist(parsample[,k],main = "Histogram of the sample",xlab = "k",col = "lightblue",prob = T)
+rug(parsample[,k],col = "red")
+lines(density(parsample[,k]),col = "red")
+hist(parsample[,p_t.rate],main = "Histogram of the sample",xlab = "p_t.rate",col = "lightblue",prob = T)
+rug(parsample[,p_t.rate],col = "red")
+lines(density(parsample[,p_t.rate]),col = "red")
+hist(parsample[,precip],main = "Histogram of the sample",xlab = "precip",col = "lightblue",prob = T)
+rug(parsample[,precip],col = "red")
+lines(density(parsample[,precip]),col = "red")
+hist(parsample[,bot.slope],main = "Histogram of the sample",xlab = "bot.slope",col = "lightblue",prob = T)
+rug(parsample[,bot.slope],col = "red")
+lines(density(parsample[,bot.slope]),col = "red")
+hist(parsample[,M.load],main = "Histogram of the sample",xlab = "M.load",col = "lightblue",prob = T)
+rug(parsample[,M.load],col = "red")
+lines(density(parsample[,M.load]),col = "red")
+hist(parsample[,Disp],main = "Histogram of the sample",xlab = "Disp",col = "lightblue",prob = T)
+rug(parsample[,Disp],col = "red")
+lines(density(parsample[,Disp]),col = "red")
+hist(parsample[,por],main = "Histogram of the sample",xlab = "por",col = "lightblue",prob = T)
+rug(parsample[,por],col = "red")
+lines(density(parsample[,por]),col = "red")
+
+par(old.par)
+
+```
 
