@@ -977,11 +977,11 @@ het nodige moet nog worden geimplementeer:
 Like with the LSA of previous week, to set up the LSA procedure:
 
 1.    Create the **base** data to compare with  
-2.    Determine the prediction (the model output) which need to be investigated 
+2.    Determine the type of model output which need to be investigated 
 3.    Determine/estimate/google for reasonable scale of variations of the parameters
 3.    Chose for an epsilon to determine the $\frac {\partial \mathsf{output}}{\partial \mathsf{P}}$  
-4.    Calculate all derivatives of the output (model prediction) w.r.t. parameters
-5.    Calculate the variances of all parameters w.r.t. predictions (output)
+4.    Calculate all derivatives of the output (model output) w.r.t. parameters
+5.    Calculate the variances of all parameters w.r.t. output
 
 
 ### Base values of the model
@@ -1002,7 +1002,7 @@ str(base)
 ```
 
 
-### Prediction of the model 
+### Type of model output to investigate
 
 For 1. the concentration distribution in calculated for every time step in the time loop of the transport model.
 To determine the highest concentration in the subsoil, the maximum concentration in the concentration distribution need determined for the last model run of the transport model.
@@ -1011,7 +1011,7 @@ As with LSA last week, create a function `MRESULT()` which contains the max conc
 
 
 
-### Scale of variation of the parameters  
+### Scale of variation of the selected parameters  
 
 Another important aspect is the scale of variance of the parameters. When a specific site is involved, field data (drillings, lab analysis) could be of great help to quantify this scale of the parameters. If field or calibration data is not available, educated guesses, references (books), Google search, could help out here.
 
@@ -1026,7 +1026,7 @@ scale = list(fix.H = 0.1,#*base$fix.H, #0.05,
              bot.slope = 0.1*base$bot.slope, #1E-5,
              M.load = 0.1*base$M.load, #0.05,
              Disp = 0.1*base$Disp, #2,
-             por = 0.1*base$por0.1)
+             por = 0.05*base$por)
 
 str(scale)
 ```
@@ -1069,7 +1069,7 @@ Setup the LSA procedure in the code chunk below. Do not forget to creat the MRES
 
 <div class="answer">
 
-#### Calculation of the considered prediction
+#### Calculation of the considered model output
 
 ```{r}
 ## create the MRESULT function here the max. C at the end of the time simulation.
@@ -1089,7 +1089,7 @@ mass.pt = pump.treat
 
 MRESULT_pump = function()
 {
-  return(sum(mass.pt))
+  return(sum(mass.pt)*delta.t)
 }
 
 M_base_pump = MRESULT_pump()
@@ -1521,7 +1521,7 @@ rel_variance_pump= list(fix.H = variance_pump$fix.H/Total_variance_pump,
 pie(as.numeric(unlist(rel_variance_pump)),labels = paste(names(rel_variance_pump),round(unlist(rel_variance_pump)*100,1), "%", sep=" "),main = paste("Contrib P's on uncert of the predic mass extract.,with st.dev:", round(sqrt(Total_variance_pump),5),"kg/d"), sub = paste("relative variation w.r.t. mass extract",round(sqrt(Total_variance_pump)/M_base_pump*100,3), '%'))
 ```
 
-
+# ****EXTRA****
 # Global Sensitivity Analysis (GSA) using SOBOL
 
 The Sobol method is a global sensitivity analysis method which
@@ -1534,7 +1534,7 @@ The Sobol analysis requires a bit more work than the LSA.
 The Sobol analysis requires a number of runs of the model, each time with a different combination of the parameters.
 The Sobol analysis is based on the variance of the output of the model, which is decomposed into fractions which can be attributed to the input factors.
 
-The same parameters and predictive outputs will be used for the GSA.
+The same parameters and outputs will be used for the GSA.
 However, some additional values are required for the Sobol analysis:
 
 
@@ -1542,7 +1542,8 @@ However, some additional values are required for the Sobol analysis:
 *  The range of the parameters
     * as a first guess the range could be set to 2 time the scale of variation below and above the average/estimated value  
     
-It is convenient to use the following structure. Using this structure means that very easily the analysis can be carried with the aid of the **GSOBOL** package developed by former lecturer and colleague Paul Torfs.
+It is convenient to use the following structure. Using this structure means that very easily the analysis can be carried with the aid of the **GSOBOL** package developed by former lecturer and colleague Paul Torfs. 
+This package depends on the following two packages: **lhs** and **truncnorm**. These packages can be installed from CRAN and need to be installed prior to GSOBOL.
 
 ```{r}
 library(GSOBOL)
@@ -1552,11 +1553,12 @@ parsd = abs(unlist(scale)) # this creates a vector with the standard deviations 
 parlower = parmeans - 2*abs(parsd) # this creates a vector with the lower bounds of the parameters
 parupper = parmeans + 2*abs(parsd) # this creates a vector with the upper bounds of the parameters
 samplesize = 100
+set.seed(234)  # setting a seed to see if this drastically changes the results
 parsample = GaussianLHS(samplesize,mean = parmeans, sd = parsd, varnames = parnames, lower = parlower, upper = parupper)
 
 ```
 
-### Inspecting the sample
+### Inspecting the sample data
 
 ```{r}
 head(parsample)
@@ -1572,26 +1574,117 @@ lines(density(parsample[,fix.H]),col = "red")
 hist(parsample[,k],main = "Histogram of the sample",xlab = "k",col = "lightblue",prob = T)
 rug(parsample[,k],col = "red")
 lines(density(parsample[,k]),col = "red")
-hist(parsample[,p_t.rate],main = "Histogram of the sample",xlab = "p_t.rate",col = "lightblue",prob = T)
-rug(parsample[,p_t.rate],col = "red")
-lines(density(parsample[,p_t.rate]),col = "red")
-hist(parsample[,precip],main = "Histogram of the sample",xlab = "precip",col = "lightblue",prob = T)
-rug(parsample[,precip],col = "red")
-lines(density(parsample[,precip]),col = "red")
-hist(parsample[,bot.slope],main = "Histogram of the sample",xlab = "bot.slope",col = "lightblue",prob = T)
-rug(parsample[,bot.slope],col = "red")
-lines(density(parsample[,bot.slope]),col = "red")
-hist(parsample[,M.load],main = "Histogram of the sample",xlab = "M.load",col = "lightblue",prob = T)
-rug(parsample[,M.load],col = "red")
-lines(density(parsample[,M.load]),col = "red")
+hist(parsample$p_t.rate,main = "Histogram of the sample",xlab = "p_t.rate",col = "lightblue",prob = T)
+rug(parsample$p_t.rate,col = "red")
+lines(density(parsample$p_t.rate),col = "red")
+hist(parsample$precip,main = "Histogram of the sample",xlab = "precip",col = "lightblue",prob = T)
+rug(parsample$precip,col = "red")
+lines(density(parsample$precip),col = "red")
+hist(parsample$bot.slope,main = "Histogram of the sample",xlab = "bot.slope",col = "lightblue",prob = T)
+rug(parsample$bot.slope,col = "red")
+lines(density(parsample$bot.slope),col = "red")
+hist(parsample$M.load,main = "Histogram of the sample",xlab = "M.load",col = "lightblue",prob = T)
+rug(parsample$M.load,col = "red")
+lines(density(parsample$M.load),col = "red")
 hist(parsample[,Disp],main = "Histogram of the sample",xlab = "Disp",col = "lightblue",prob = T)
 rug(parsample[,Disp],col = "red")
 lines(density(parsample[,Disp]),col = "red")
-hist(parsample[,por],main = "Histogram of the sample",xlab = "por",col = "lightblue",prob = T)
-rug(parsample[,por],col = "red")
-lines(density(parsample[,por]),col = "red")
+hist(parsample$por,main = "Histogram of the sample",xlab = "por",col = "lightblue",prob = T)
+rug(parsample$por,col = "red")
+lines(density(parsample$por),col = "red")
 
 par(old.par)
 
+```
+### Creating a function to run the model-train (flow and transport) for each sample
+
+Since both model need to be run for each sample, it is convenient to create a loop calculating flow and transport and iterating through the `parsample` set.
+
+```{r}
+Mresult.data = c()
+for (i in 1:nrow(parsample))
+{
+  fix.H = parsample[i,1]
+  k = parsample[i,2]
+  p_t.rate = parsample[i,3]
+  precip = parsample[i,4]
+  bot.slope = parsample[i,5]
+  M.load = parsample[i,6]
+  Disp = parsample[i,7]
+  por = parsample[i,8]
+  
+  #run the flow model
+  solve.steps(Fmodel)
+  D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+  Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
+  Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
+  
+  #calculate new time step delta.t
+  v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+  max_delta_t = delta.x/abs(v)
+  delta.t = floor(min(max_delta_t))
+  print(paste("current time step: ",delta.t))
+  
+  #run the transport model
+  initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
+  do.initialize(Ctransmodel,init = initial.C)
+  prev.C = initial.C
+  current.time = 0.0
+  while (current.time < end.time)
+  {
+    solve.steps(Ctransmodel)
+    prev.C = state.fun(Ctransmodel)
+    current.time = current.time + delta.t
+  }
+  Mresult.data = c(Mresult.data,MRESULT())
+}
+```
+
+### adding the MRESULT data to the `parsample` data frame
+
+The output from the  model(s) can now easily be analyzed through the function `Sobol()`.
+See the help of the **GSOBOL** package for more information on the function `Sobol()`.
+
+```{r}
+output.ensemble = cbind(Modresult=Mresult.data,parsample)
+```
+
+### Some basic statistical analysis on the calculated output.
+
+We now can have a look at some basic statistics of the calculated output, like the average, the standard deviation, the minimum and the maximum, the Coefficient of Variance and plot a histogram of the calculated output.
+
+```{r}
+summary(output.ensemble$Modresult)
+hist(output.ensemble$Modresult)
+rug(output.ensemble$Modresult,col = "red")
+lines(density(output.ensemble$Modresult),col = "red")
+Modresult.sd = sd(output.ensemble$Modresult)
+Modresult.mean = mean(output.ensemble$Modresult)
+print(paste("The standard deviation of the model output is: ",Modresult.sd))
+print(paste("The mean of the model output is: ",Modresult.mean))
+#boxplot(scale(parsample))
+#coefficient of variation
+CV = sapply(parsample,sd)/colMeans(parsample)*100
+barplot(CV,main = "Coefficient of variation of the prediction",xlab = "parameters",ylab = "CV (%)")
+```
+
+### Running the Sobol analysis
+
+The Sobol analysis can now be run with the function `Sobol()`.
+Here we wil have a look at the first order decomposition of the variance of the output.
+
+```{r}
+Sob1 = Sobol(output.ensemble)
+pie(Sob1$var)
+kable(Sob1$var, format = "markdown",main = "First order decomposition of the variance of the output")
+print(paste("The sum of the variances is,: ",sum(Sob1$var)))
+
+```
+Now we  will do the decompostion of the second order as well, indicating interactions between the parameters.
+
+```{r}
+Sob2 = Sobol(output.ensemble,order = 2)
+pie(Sob2$var)
+kable(Sob2$var, format = "markdown")
 ```
 
