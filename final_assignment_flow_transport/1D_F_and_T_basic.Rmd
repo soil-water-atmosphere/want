@@ -1623,7 +1623,7 @@ for (i in 1:nrow(parsample))
   v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
   max_delta_t = delta.x/abs(v)
   delta.t = floor(min(max_delta_t))
-  print(paste("current time step: ",delta.t))
+  print(paste("current run nr: " ,i, " max. time step: ",delta.t))
   
   #run the transport model
   initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
@@ -1687,4 +1687,44 @@ Sob2 = Sobol(output.ensemble,order = 2)
 pie(Sob2$var)
 kable(Sob2$var, format = "markdown")
 ```
+
+### Visualizing the 'fit' of the parameters w.r.t. model output
+
+Looking at the results of the Sobol analysis, we can see that the parameters `fix.H`, `k`, `p_t.rate`, `precip`, `bot.slope`, `M.load`, `Disp` and `por` have a different impact on the output of the model. The sum of the first order and second order variances is equal to the total variance of the output of the model. The first order variances indicate the impact of the parameters on the output of the model, while the second order variances indicate the interactions between the parameters.
+
+```{r}
+condexp.fix.H =  condexp1(Modresult,fix.H,data = output.ensemble)
+condexp.k =  condexp1(Modresult,k,data = output.ensemble)
+condexp.p_t.rate =  condexp1(Modresult,p_t.rate,data = output.ensemble)
+condexp.precip =  condexp1(Modresult,precip,data = output.ensemble)
+condexp.bot.slope =  condexp1(Modresult,bot.slope,data = output.ensemble)
+condexp.M.load =  condexp1(Modresult,M.load,data = output.ensemble)
+condexp.Disp =  condexp1(Modresult,Disp,data = output.ensemble)
+condexp.por =  condexp1(Modresult,por,data = output.ensemble)
+old.par = par(no.readonly = T)
+par(mfrow = c(2,4))
+par(mar=c(5,5,1,1))
+
+with(output.ensemble, {
+plot(fix.H,Modresult)
+points(fix.H,condexp.fix.H$predictions,col = "red")
+plot(k,Modresult)
+points(k,condexp.k$predictions,col = "red")
+plot(p_t.rate,Modresult)
+points(p_t.rate,condexp.p_t.rate$predictions,col = "red")
+plot(precip,Modresult)
+points(precip,condexp.precip$predictions,col = "red")
+plot(bot.slope,Modresult)
+points(bot.slope,condexp.bot.slope$predictions,col = "red")
+plot(M.load,Modresult)
+points(M.load,condexp.M.load$predictions,col = "red")
+plot(Disp,Modresult)
+points(Disp,condexp.Disp$predictions,col = "red")
+plot(por,Modresult)
+points(por,condexp.por$predictions,col = "red")
+})
+
+
+```
+
 
