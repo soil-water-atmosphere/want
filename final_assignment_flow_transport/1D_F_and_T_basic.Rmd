@@ -1601,7 +1601,8 @@ par(old.par)
 Since both model need to be run for each sample, it is convenient to create a loop calculating flow and transport and iterating through the `parsample` set.
 
 ```{r}
-Mresult.data = c()
+Mresult.data = c()  #container for storing the max. C data
+Mresult.pump.data = c()  #container for storing the mass extracted by the pump&treat data
 for (i in 1:nrow(parsample))
 {
   fix.H = parsample[i,1]
@@ -1637,6 +1638,7 @@ for (i in 1:nrow(parsample))
     current.time = current.time + delta.t
   }
   Mresult.data = c(Mresult.data,MRESULT())
+  Mresult.pump.data = c(Mresult.pump.data,MRESULT_pump())
 }
 ```
 
@@ -1647,11 +1649,14 @@ See the help of the **GSOBOL** package for more information on the function `Sob
 
 ```{r}
 output.ensemble = cbind(Modresult=Mresult.data,parsample)
+output.ensemble.pump = cbind(Modresult=Mresult.pump.data,parsample)
 ```
 
 ### Some basic statistical analysis on the calculated output.
 
 We now can have a look at some basic statistics of the calculated output, like the average, the standard deviation, the minimum and the maximum, the Coefficient of Variance and plot a histogram of the calculated output.
+
+#### For the max. concentration at the end of the transient simulation
 
 ```{r}
 summary(output.ensemble$Modresult)
@@ -1668,7 +1673,7 @@ CV = sapply(parsample,sd)/colMeans(parsample)*100
 barplot(CV,main = "Coefficient of variation of the prediction",xlab = "parameters",ylab = "CV (%)")
 ```
 
-### Running the Sobol analysis
+### Running the Sobol analysis for the max. concentration at the end of the transient simulation
 
 The Sobol analysis can now be run with the function `Sobol()`.
 Here we wil have a look at the first order decomposition of the variance of the output.
@@ -1725,6 +1730,75 @@ points(por,condexp.por$predictions,col = "red")
 })
 
 
+```
+
+#### For the mass extracted by the pump&treat
+
+```{r}
+summary(output.ensemble.pump$Modresult)
+hist(output.ensemble.pump$Modresult)
+rug(output.ensemble.pump$Modresult,col = "red")
+lines(density(output.ensemble.pump$Modresult),col = "red")
+Modresult.pump.sd = sd(output.ensemble.pump$Modresult)
+Modresult.pump.mean = mean(output.ensemble.pump$Modresult)
+print(paste("The standard deviation of the model output (mass extracted) is: ",Modresult.pump.sd))
+print(paste("The mean of the model output (mass extracted) is: ",Modresult.pump.mean))
+
+```
+
+### Running the Sobol analysis for the mass extracted by the extraction well
+
+```{r}
+Sob1.pump = Sobol(output.ensemble.pump)
+pie(Sob1.pump$var)
+kable(Sob1.pump$var, format = "markdown",main = "First order decomposition of the variance of the output")
+print(paste("The sum of the variances is,: ",sum(Sob1.pump$var)))
+
+```
+
+Now we  will do the decompostion of the second order as well, indicating interactions between the parameters.
+
+```{r}
+Sob2.pump = Sobol(output.ensemble.pump,order = 2)
+pie(Sob2.pump$var)
+kable(Sob2.pump$var, format = "markdown")
+```
+
+### Visualizing the 'fit' of the parameters w.r.t. model output
+
+Looking at the results of the Sobol analysis, we can see that the parameters `fix.H`, `k`, `p_t.rate`, `precip`, `bot.slope`, `M.load`, `Disp` and `por` have a different impact on the output of the model. The sum of the first order and second order variances is equal to the total variance of the output of the model. The first order variances indicate the impact of the parameters on the output of the model, while the second order variances indicate the interactions between the parameters.
+
+```{r}
+condexp.fix.H =  condexp1(Modresult,fix.H,data = output.ensemble.pump)
+condexp.k =  condexp1(Modresult,k,data = output.ensemble.pump)
+condexp.p_t.rate =  condexp1(Modresult,p_t.rate,data = output.ensemble.pump)
+condexp.precip =  condexp1(Modresult,precip,data = output.ensemble.pump)
+condexp.bot.slope =  condexp1(Modresult,bot.slope,data = output.ensemble.pump)
+condexp.M.load =  condexp1(Modresult,M.load,data = output.ensemble.pump)
+condexp.Disp =  condexp1(Modresult,Disp,data = output.ensemble.pump)
+condexp.por =  condexp1(Modresult,por,data = output.ensemble.pump)
+old.par = par(no.readonly = T)
+par(mfrow = c(2,4))
+par(mar=c(5,5,1,1))
+
+with(output.ensemble.pump, {
+plot(fix.H,Modresult)
+points(fix.H,condexp.fix.H$predictions,col = "red")
+plot(k,Modresult)
+points(k,condexp.k$predictions,col = "red")
+plot(p_t.rate,Modresult)
+points(p_t.rate,condexp.p_t.rate$predictions,col = "red")
+plot(precip,Modresult)
+points(precip,condexp.precip$predictions,col = "red")
+plot(bot.slope,Modresult)
+points(bot.slope,condexp.bot.slope$predictions,col = "red")
+plot(M.load,Modresult)
+points(M.load,condexp.M.load$predictions,col = "red")
+plot(Disp,Modresult)
+points(Disp,condexp.Disp$predictions,col = "red")
+plot(por,Modresult)
+points(por,condexp.por$predictions,col = "red")
+})
 ```
 
 
