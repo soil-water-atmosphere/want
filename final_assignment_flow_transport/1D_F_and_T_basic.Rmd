@@ -1560,6 +1560,12 @@ parsample = GaussianLHS(samplesize,mean = parmeans, sd = parsd, varnames = parna
 
 ### Inspecting the sample data
 
+quickly inspect the sample data by looking at the first few rows and plotting the data.
+<div class="answer">
+
+
+
+
 ```{r}
 head(parsample)
 plot(parsample)
@@ -1800,5 +1806,5 @@ plot(por,Modresult)
 points(por,condexp.por$predictions,col = "red")
 })
 ```
-
+</div>
 
