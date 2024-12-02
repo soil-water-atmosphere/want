@@ -531,6 +531,7 @@ Some tips:
 *  Determine both terms and sum them
 *  Compare your results with the mass balance of the volumes/elements. They should match.
 
+
 <div class="answer"> 
 
 ```{r}
@@ -573,6 +574,8 @@ mass_balance_10
 Due to dispersion, which is determined by the concentration gradient, the solute will flow from a higher concentration to a lower one and therefor will migrate opposite the groundwater flow.  
 Convection carries the solute with the flow.
 The convective/advective term and the dispersive term of the mass flux cancel each other on the right hand side of the vessel.
+
+
 </div>
 
 ## Model setup transient  
@@ -987,8 +990,9 @@ Like with the LSA of previous week, to set up the LSA procedure:
 
 Since we determine the local sensitivities with a numerical approximation we require the base values to compare with. Moreover, it's convenient to have base parameter values to reset them each time another parameter is analysed.  
 Similar to week 3 of this course, we're going to set up a `list` for the base data.
+Do not forget to remove `eval = FALSE` from the code chunk below.
 
-```{r}
+```{r eval = FALSE}
 base = list(fix.H = fix.H,
             k = k,
             p_t.rate = p_t.rate,
@@ -1000,6 +1004,19 @@ base = list(fix.H = fix.H,
 str(base)
 ```
 
+<div class="answer">
+```{r }
+base = list(fix.H = fix.H,
+            k = k,
+            p_t.rate = p_t.rate,
+            precip = precip,
+            bot.slope = bot.slope,
+            M.load = M.load,
+            Disp = Disp,
+            por = por)
+str(base)
+```
+</div>
 
 ### Type of model output to investigate
 
@@ -1016,19 +1033,36 @@ Another important aspect is the scale of variance of the parameters. When a spec
 
 Below just some "silly" values to start with;
 Please adjust to your own guesses/info/refs.
+Do not forget to remove `eval = FALSE` from the code chunk below.
 
-```{r}
-scale = list(fix.H = 0.1,#*base$fix.H, #0.05,
-             k = 0.1*base$k, #2.5,
-             p_t.rate = 0.1*base$p_t.rate,# 0.01,
-             precip = 0.1*base$precip,#0.00025,
-             bot.slope = 0.1*base$bot.slope, #1E-5,
-             M.load = 0.1*base$M.load, #0.05,
-             Disp = 0.1*base$Disp, #2,
+```{r eval = FALSE}
+scale = list(fix.H = 0.1,
+             k = 0.1*base$k, 
+             p_t.rate = 0.1*base$p_t.rate,
+             precip = 0.1*base$precip,
+             bot.slope = 0.1*base$bot.slope, 
+             M.load = 0.1*base$M.load,
+             Disp = 0.1*base$Disp,
              por = 0.05*base$por)
 
 str(scale)
 ```
+
+<div class="answer">
+```{r }
+scale = list(fix.H = 0.1,
+             k = 0.1*base$k, 
+             p_t.rate = 0.1*base$p_t.rate,
+             precip = 0.1*base$precip,
+             bot.slope = 0.1*base$bot.slope, 
+             M.load = 0.1*base$M.load,
+             Disp = 0.1*base$Disp,
+             por = 0.05*base$por)
+
+str(scale)
+```
+
+</div>
 
 ### Choice of the epsilon $\epsilon$
 
@@ -1471,6 +1505,11 @@ por = base$por
 To calculate the LSA variances, the derivatives need to be squared and multiplied with the variance of the parameters and summarized; 
 
 $$\text{VAR(MRESULT)} = \sum_{i=1}^{nrP} \left ( \frac{dM_{result}}{dP_i}\sigma  P_i\right)^2$$
+
+<div class="answer">
+
+
+
 ```{r}
 variance = list(fix.H = scale$fix.H^2*dM_dfix.H^2,
                 k = scale$k^2*dM_dk^2,
@@ -1519,6 +1558,8 @@ rel_variance_pump= list(fix.H = variance_pump$fix.H/Total_variance_pump,
                     por = variance_pump$por/Total_variance_pump)
 pie(as.numeric(unlist(rel_variance_pump)),labels = paste(names(rel_variance_pump),round(unlist(rel_variance_pump)*100,1), "%", sep=" "),main = paste("Contrib P's on uncert of the predic mass extract.,with st.dev:", round(sqrt(Total_variance_pump),5),"kg/d"), sub = paste("relative variation w.r.t. mass extract",round(sqrt(Total_variance_pump)/M_base_pump*100,3), '%'))
 ```
+</div>
+
 
 # ****EXTRA****
 # Global Sensitivity Analysis (GSA) using SOBOL
