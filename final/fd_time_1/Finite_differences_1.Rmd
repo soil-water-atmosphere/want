@@ -132,10 +132,15 @@ grid()
 </span>
 
 <span class="question">
-1.5 Vary the `dt` parameter between 0.001 and 25. Are there any numerical problems arising beyond a certain value for `dt`? What are the problems when choosing a value for `dt` close to or on the high/low end of this range? Can you interpret your results in terms of convergence, oscillations and stability?
-</span>
+1.5 Vary the `dt` parameter between 0.001 and 25. Are there any numerical problems arising beyond a certain value for `dt`? What are the problems when choosing a value for `dt` close to or on the high/low end of this range? Can you interpret your results in terms of convergence, oscillations, and stability?
 
-<span class="comment"> **[LM]** @Chiel every year there are issues here because convergence, oscillation and stability are not yet treated in the lecture. How about adding a definition here? also nice for them to learn..</span>
+Reminder of definitions:
+<ul>
+<li>**convergence** is the property of a solution that each time the time step (or spatial grid spacing) is reduced, the error reduces as well and a fixed value is approached. 
+<li>**oscillations** are fluctuations around the true solution that do not grow in time.
+<li>**stability** is a property that tells you something about the growth of errors over time. A stable solution have errors that do not grow in time, whereas an unstable solution has an error that grows (often exponentially) in time.
+</ul>
+</span>
 
 <span class="answer">
 For small values of `dt` run-time will be significantly higher and can become impractically slow (although the result is very accurate). High values for `dt`; first you will notice that already in the first step the state of the reservoir will be lower than 0, which is physically incorrect. Secondly, when choosing a `dt` that is even higher, the numerical approximation does not converge, oscillates and can even go to positive/negative infinity.
