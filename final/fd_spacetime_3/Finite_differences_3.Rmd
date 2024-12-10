@@ -397,9 +397,6 @@ while(time < endtime)
 If the step size is too large, numerical diffusion can occur: the peak of the pulse declines, even though no physical diffusion takes place.  
 </div>
 
-<span class="comment"> **[LM]** @Chiel I thought it would be nice to add this here. Do you think it works like this?</span>
-
-
 ## 2.3. Stability of the solution
 The advection-diffusion equation is an equation that tends to get unstable pretty fast. To examine this behavior, two different parameters are used; the Von Neumann and the Courant number. These are defined in the following way:
 
