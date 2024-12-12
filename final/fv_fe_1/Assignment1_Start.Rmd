@@ -225,10 +225,11 @@ Assume for now that we will discretize our domain into two equally spaced volume
 </div>
 
 <div class="answer">
-External flux: $precipitation*0.5*dx$
-Left: $dx \cdot dy \cdot leftflux$ 
-Right: $dx \cdot dy \cdot rightflux$
-0 = left - right + external
+Subscript 1 refers to control volume:<br>
+External flux: $P \left( \Delta x \right)_{1}$<br>
+Left: $-kD \dfrac{H_1 - H_\textrm{left}}{x_1 - x_\textrm{left}}$ <br>
+Right: Left: $-kD \dfrac{H_2 - H_1}{x_2 - x_1}$<br>
+0 = right - left + external flux
 </div>
 <span class="comment"> **[LM]** @Chiel Pff, ik dacht even een makkelijk vraagje hierin te zetten maar volgens mij is hij helemaal niet zo makkelijk :')... zie jij mogelijkheden tot herformuleren of een goed antwoord formuleren? .</span>
 
