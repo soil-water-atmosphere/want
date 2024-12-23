@@ -264,6 +264,7 @@ solve.steps(GWModel2D)
 # Plot states
 new_dev = open3d()
 plot(GWModel2D,fill="state", fill.3D=TRUE, main.title = "2D groundwater model - FV")
+rglwidget()
 
 # This adds a title to the 3D plot
 bgplot3d({
@@ -648,6 +649,7 @@ plot(TwoDModelWellFV, fill="random")
 # 3D plot
 new_dev = open3d()
 plot(TwoDModelWellFV, fill="state", fill.3D=TRUE)
+rglwidget()
 
 # This adds a title to the 3D plot
 bgplot3d({
@@ -688,6 +690,7 @@ plot(TwoDModelWellFE, fill="random")
 # 3D plot
 new_dev = open3d()
 plot(TwoDModelWellFE, fill="state", fill.3D=TRUE)
+rglwidget()
 
 # This adds a title to the 3D plot
 bgplot3d({
@@ -727,6 +730,7 @@ plot(TwoDModelWellFE, fill="random")
 # 3D plot
 new_dev = open3d()
 plot(TwoDModelWellFE, fill="state", fill.3D=TRUE, main.title="TwoDModelWell - decreased nodal distance")
+rglwidget()
 
 # This adds a title to the 3D plot
 bgplot3d({
@@ -771,6 +775,7 @@ plot(TwoDModelRiver, fill="random")
 # 3D plot
 new_dev = open3d()
 plot(TwoDModelRiver, fill="state", fill.3D=TRUE)
+rglwidget()
 
 # This adds a title to the 3D plot
 bgplot3d({
@@ -817,6 +822,7 @@ plot(TwoDModelRiverFine, fill="random")
 # 3D plot
 new_dev = open3d()
 plot(TwoDModelRiverFine, fill="state", fill.3D=TRUE)
+rglwidget()
 
 # This adds a title to the 3D plot
 bgplot3d({
