@@ -98,13 +98,13 @@ CheckInstallPackages(c("fields","FVFE2D"))
 
 ```
 
-# 1. Construct the mathematical part of the two dimensional model
+## Construct the mathematical part of the 2D model
 The first step in making a two dimensional model is defining the domain. In figure 1 below an example of such a domain is given on a Cartesian grid.
 
 ![Figure 1: Two dimensional model domain.](domain2D.png)
 
 <div class="exercise">
-1. Edit the R-code chunk below such that the model domain is defined as illustrated in figure 1.
+Edit the R-code chunk below such that the model domain is defined as illustrated in figure 1.
 ```{r, eval=FALSE}
 domain = XXXX
 print(domain)
@@ -141,7 +141,7 @@ To complete the mathematical part of the model, the internal flux, the boundary 
 * An external flux simulating a precipitation rate of 1 $mm/day$, uniform in space.
 
 <div class="exercise">
-2. Complete the mathematical part of the two dimensional model by editing the R-code chunk below.
+Complete the mathematical part of the two dimensional model by editing the R-code chunk below.
 ```{r, eval=FALSE}
 # Define the internal flux.
 grad.flux = function(x, y, state, grad)
@@ -196,11 +196,11 @@ summary(GWModel2D)
 ```
 </div>
 
-# 2. Construct the numerical part of the two dimensional model
+## Construct the numerical part of the 2D model
 The next step in the two dimensional model construction is to make the model discrete by choosing nodes and a numerical technique, either FV or FE. In a separate file called 'geogendemo.R' the function geogendemo() is defined. This function illustrates some techniques built in the FVFE2D package to generate nodes. If you run the script you will see a first example being plotted. The plot shows the resulting Voronoi cells randomly colored. Changing the argument of the geogendem() function in the last line and running the script again shows a second example. There are 10 different examples defined.
 
-<div class="question">
-3. The descriptions for example 3-10 in the geodendemo() function are missing. Give for each case the proper description, suggestions are given above the first if-statement of the geodendemo() function. Choose the correct description from the commented list above the geogendemo function and add these to the "descr[]" vector.
+<div class="exercise">
+The descriptions for example 3-10 in the geodendemo() function are missing. Give for each case the proper description, suggestions are given above the first if-statement of the geodendemo() function. Choose the correct description from the commented list above the geogendemo function and add these to the "descr[]" vector.
 </div>
 
 <div class="student_answer">
@@ -208,8 +208,6 @@ Fill in your answer here...
 </div>
 
 <div class="answer">  
-Answer to 3; descriptions
-
 1. descr[1] = "distance order of 1, graph-verbose"
 2. descr[2] = "distance order of 1, non-graph-verbose"
 3. descr[3] = "distance order of 1, some prefixed node at lower center"
@@ -222,8 +220,8 @@ Answer to 3; descriptions
 10. descr[10] = "distance smaller near line"
 </div>
 
-<div class="question">
-4. Change the geodendemo() function such that it generates nodes for the Finite Elements method. Observe the differences with the Finite Volumes method. What are the main differences observed between these methods?
+<div class="exercise">
+Change the geodendemo() function such that it generates nodes for the Finite Elements method. Observe the differences with the Finite Volumes method. What are the main differences observed between these methods?
 </div>
 
 <div class="student_answer">
@@ -231,7 +229,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-4. The shapes of the control volumes are clearly different. The control volumes from the finite volume method have a variable amount of vertices, in contrary to the control volumes produced by the finite elements method which are all triangles.
+The shapes of the control volumes are clearly different. The control volumes from the finite volume method have a variable amount of vertices, in contrary to the control volumes produced by the finite elements method which are all triangles.
 Besides, the control volumes at the boundaries of the domain look differently. The control volumes from the finite volume method are cut in half, while the control volumes from the finite elements method are not and look equal to those generated anywhere else in the domain. Finally, there exists only one descretization solution to a given nodal configuration if one applies the finite volume method. Using the finite elements method there exist at least two different configuration solutions to a certain nodal configuration (the triangles can be drawn mirrored in this case). 
 </div>
 
@@ -242,7 +240,7 @@ Now, we will construct our two dimensional model. The following information is g
 * To view the result, a plotting line: `plot(GWModel2D, fill="state", fill.3D=True)` has to be added, which produces both a 2D and 3D plot.
 
 <div class="exercise">
-5. Create a new R-code chunk. Finalize the numerical part, solve the model and create a plot in both 2D and 3D. To make sure that each three dimensional plot is created in a new window, add: 'new_dev = open3d()' before the 3D plotting command.
+Create a new R-code chunk. Finalize the numerical part, solve the model and create a plot in both 2D and 3D. To make sure that each three dimensional plot is created in a new window, add: 'new_dev = open3d()' before the 3D plotting command.
 </div>
 
 <button type="button" onclick="showHint(4003)">Show Hint</button>
@@ -282,7 +280,7 @@ There are many other post processing and plotting possibilities built in the FVF
 * Creating a 1D plot of a cross section through the domain
 
 <div class="exercise">
-6. Use the help function to carry out the post processing and plotting suggestions, as given above. Describe the results of the plots.
+Use the help function to carry out the post processing and plotting suggestions, as given above. Describe the results of the plots.
 </div>
 
 <div class="student_answer">
@@ -305,7 +303,7 @@ plot(GWModel2D, fill="state", linesection=c(500,500,1500,1500))
 Now that it is clear how the two dimensional model looks if it is solved using the Finite Volumes method, we will investigate the model solution when the Finite Elements method is used.
 
 <div class="exercise">
-7. Change the numerical part of the two dimensional model, such that it solves using the Finite Elements method. Also, make a contour plot of the new situation.
+Change the numerical part of the two dimensional model, such that it solves using the Finite Elements method. Also, make a contour plot of the new situation.
 </div>
 
 <div class="student_answer">
@@ -313,14 +311,14 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-7. In the Finite Elements method, contours can intersect through the segments because of linear interpolation between the nodes of the two dimensional system. This results in a smooth contour line. In the Finite Volume method each Voronoi cell is assigned a value and this value is constant for the complete segment. Therefore, a contour line can be located at the boundary of the segment only. This results in the blocky behavior of the contour line.
+In the Finite Elements method, contours can intersect through the segments because of linear interpolation between the nodes of the two dimensional system. This results in a smooth contour line. In the Finite Volume method each Voronoi cell is assigned a value and this value is constant for the complete segment. Therefore, a contour line can be located at the boundary of the segment only. This results in the blocky behavior of the contour line.
 </div>
 
-# 3. Several interpolation functions
-In the one dimensional models, `approxfun()` was used to interpolate the kD parameter. In the transient models, we used the built-in `state.fun()` to interpolate the states at a certain time step for use in the next time step. A two dimensional equivalent of the interpolation functions is useful for two dimensional modelling. Several different functions will be discussed in this part.
+# Interpolation functions
+In the one dimensional models, `approxfun()` was used to interpolate the kD parameter. In the transient models, we used the built-in `state.fun()` to interpolate the states at a certain time step for use in the next time step. A two dimensional equivalent of the interpolation functions is useful for two dimensional modelling. Different functions will be discussed in this part.
 
 <div class="exercise">
-8. The two dimensional interpolation functions are not built into the standard library of R. Therefore, three of these functions are built into the FVFE2D package. Use the help to find them.
+The 2D interpolation functions are not built into the standard library of R. Therefore, three of these functions are built into the FVFE2D package. Use the help to find them.
 </div>
 
 <div class="student_answer">
@@ -328,10 +326,6 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-
-8. 
-
-
 * invdist.fun():          Inverse distance interpolator
 * lininterpol.fun():      Linear interpolator
 * nearestneighbour.fun(): Nearest neighbour interpolator
@@ -384,8 +378,7 @@ bgplot3d({
 ```
 
 <div class="exercise">
-9.Observe the 2D and 3D plots produced by the constructed interpolation function. Choose between the following two lines:
-
+Observe the 2D and 3D plots produced by the constructed interpolation function. Choose between the following two lines:
 * This reminds me of the plots made with the FE principle
 * This reminds me of the plots made with the FV principle
 </div>
@@ -395,11 +388,11 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-9. This should remind you of the FV principle. The same state is assigned to all positions within the volume. A blocky behavior is found. 
+This should remind you of the FV principle. The same state is assigned to all positions within the volume, which results in blocky behavior. 
 </div>
 
 <div class="exercise">
-10.Change the nearestneigbour.fun() to the lininterpol.fun() and create the 2D an 3D plots again. choose:
+Change the nearestneigbour.fun() to the lininterpol.fun() and create the 2D an 3D plots again. choose:
 
 * This reminds me of the plots made with the FE principle
 * This reminds me of the plots made with the FV principle
@@ -412,7 +405,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-10. This should remind you of the FE principle because of the gradual change of states between the nodes. If the Finite Elements method is used, triangles between the nodes are constructed. Outside of these triangles triangular-linear-interpolation is not possible.
+This should remind you of the FE principle because of the gradual change of states between the nodes. If the Finite Elements method is used, triangles between the nodes are constructed. Outside of these triangles triangular-linear-interpolation is not possible.
 ```{r}
 # Construct the interpolation function using the lininterpol.fun(). This is a 2D generalisation of the 1D approxfun() with method=linear.
 lif = lininterpol.fun(tointerp, zname="T")
@@ -438,7 +431,7 @@ bgplot3d({
 </div>
 
 <div class="exercise">
-11. Change the `lininterpol.fun()` to the `invdist.fun()` and create the 2D an 3D plots again. Find an explanation of the inverse distance function on the Internet. What is your conclusion if you compare the result with the results from the previous two interpolation functions?
+Change the `lininterpol.fun()` to the `invdist.fun()` and create the 2D an 3D plots again. Find an explanation of the inverse distance function on the Internet. What is your conclusion if you compare the result with the results from the previous two interpolation functions?
 </div>
 
 <div class="student_answer">
@@ -446,7 +439,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-11. Inverse distance weighted (IDW) interpolation explicitly makes the assumption that things that are close to one another are more alike than those that are farther apart. To predict a value for any unmeasured location, IDW uses the measured values surrounding the prediction location. The measured values closest to the prediction location have more influence on the predicted value than those farther away. IDW assumes that each measured point has a local influence that diminishes with distance. It gives greater weights to points closest to the prediction location, and the weights diminish as a function of distance, hence the name inverse distance weighted. Taken from:
+Inverse distance weighted (IDW) interpolation explicitly makes the assumption that things that are close to one another are more alike than those that are farther apart. To predict a value for any unmeasured location, IDW uses the measured values surrounding the prediction location. The measured values closest to the prediction location have more influence on the predicted value than those farther away. IDW assumes that each measured point has a local influence that diminishes with distance. It gives greater weights to points closest to the prediction location, and the weights diminish as a function of distance, hence the name inverse distance weighted. Taken from:
 http://pro.arcgis.com/en/pro-app/help/analysis/geostatistical-analyst/how-inverse-distance-weighted-interpolation-works.htm
 
 The result of the invdist.fun() in comparison with the other two interpolation functions is that the result is now smooth and space filling.
@@ -477,7 +470,7 @@ bgplot3d({
 The invdist.fun() has an extra parameter called power. The default value of this parameter is 2, so that is the value that we have used in the previous construction of the invdist.fun(). 
 
 <div class="exercise">
-12. Construct new interpolation functions called e.g., "idf0.5" and "idf4", using 0.5 and 4 as value for the argument power. Discuss the differences and similarities with all the previously used interpolation functions.
+Construct new interpolation functions called e.g., "idf0.5" and "idf4", using 0.5 and 4 as value for the argument power. Discuss the differences and similarities with all the previously used interpolation functions.
 </div>
 
 <div class="student_answer">
@@ -485,7 +478,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-12. Since the influence of the individual observations is based on the *inverse* of the distance powered, a lower value of 0.5 makes the influence of the observations large in the whole domain. In the extreme case of a power value of 0.0 the interpolated value will be the average of the observations in the whole domain.  
+Since the influence of the individual observations is based on the *inverse* of the distance powered, a lower value of 0.5 makes the influence of the observations large in the whole domain. In the extreme case of a power value of 0.0 the interpolated value will be the average of the observations in the whole domain.  
 With a value of 4 for the power influence of each observation will be fairly local and resembles the nearest neighbour interpolation.  
 
 ```{r}
@@ -543,7 +536,7 @@ kD.Data = data.frame(
 ```
 
 <div class="exercise">
-13.Choose, from the interpolation functions available, the smoothest interpolator that still respects the data and plot the two dimensional model domain of TwoDModel with the interpolated transmissivity values. For this use one of the previous interpolation chunks.  
+Choose, from the interpolation functions available, the smoothest interpolator that still respects the data and plot the two dimensional model domain of TwoDModel with the interpolated transmissivity values. For this use one of the previous interpolation chunks.  
 </div>
 
 <button type="button" onclick="showHint(4004)">Show Hint</button>
@@ -554,8 +547,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-
-13. This will be the inverse distance method: `invdist.fun`
+This will be the inverse distance method: `invdist.fun`
 
 ```{r}
 # The interpolation function.
@@ -583,7 +575,7 @@ In the `GWModel2D` the constant value of $kD=60m^2/d$ was used as value for the 
 * Create a contour plot of the result
 
 <div class="exercise">
-14. Use the bullets above to construct a new model that uses an interpolation function of your choice in the internal flux function of the new model. Can you observe differences between the two models? Use the Finite Volume solver. 
+Use the bullets above to construct a new model that uses an interpolation function of your choice in the internal flux function of the new model. Can you observe differences between the two models? Use the Finite Volume solver. 
 </div>
 
 <div class="student_answer">
@@ -591,7 +583,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-14. If the interpolation function is implemented correctly, a change of the contour line positions in the model domain should be noticed.
+If the interpolation function is implemented correctly, a change of the contour line positions in the model domain should be noticed.
 ```{r}
 # Interpolation function.
 kD.field  = invdist.fun(kD.Data, zname="kD")
@@ -626,11 +618,11 @@ plot(GWModel2D, fill="state", fill.contours = c(5,6))
 ```
 </div>
 
-# 4. Effect of nodal distances
+# Effect of nodal distances
 One of the selling points of the Finite Volumes and Finite Elements method is that more nodes can be chosen near points of interest, and by that higher precision can be obtained. Use in this section the Finite Elements discretization technique, except when explicitly stated otherwise.
 
 <div class="exercise">
-15. Create a new chunk below. Copy the `GWModel2D` model, call it `TwoDModelWellFV` and implement a well at location x=1000 and y = 1000 with an extraction rate of 1000 $m^3/d$. Solve the model (use Finite Volumes) and create a 2D and 3D plot. You can use the `summary(modelname)` function to check what is implemented in the model.
+Create a new chunk below. Copy the `GWModel2D` model, call it `TwoDModelWellFV` and implement a well at location x=1000 and y = 1000 with an extraction rate of 1000 $m^3/d$. Solve the model (use Finite Volumes) and create a 2D and 3D plot. You can use the `summary(modelname)` function to check what is implemented in the model.
 </div>
 
 <div class="student_answer">
@@ -638,9 +630,6 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-
-15. see the code chunk below;  
-
 ```{r}
 # Copy and assign new name to the model.
 TwoDModelWellFV = copy.model(model=GWModel2D)
@@ -669,7 +658,7 @@ bgplot3d({
 </div>
 
 <div class="exercise">
-16. Create a copy af the previous chunk and replace the Finite Volume FV with the Finite Element FE technique. Call this model `TwoDmodelWellFE`. Compare the Finite Volumes discretisation with the Finite Elements discretisation in the TwoDModelWell visually. Does the result look as you expected?
+Create a copy af the previous chunk and replace the Finite Volume FV with the Finite Element FE technique. Call this model `TwoDmodelWellFE`. Compare the Finite Volumes discretisation with the Finite Elements discretisation in the TwoDModelWell visually. Does the result look as you expected?
 </div>
 
 <div class="student_answer">
@@ -677,7 +666,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-16. The blocky, basalt like structure, should be found for the Finite Volumes method. The Finite Elements method should produce a continuous surface.
+The blocky, basalt like structure, should be found for the Finite Volumes method. The Finite Elements method should produce a continuous surface.
 ```{r}
 # Copy and assign new name to the model.
 
@@ -710,8 +699,8 @@ bgplot3d({
 
 </div>
 
-<div class="question">
-17. Decrease the nodal distance in a diameter of 200 $m$ around the location of the well to 25 $m$. Use a nodal distance of 100 $m$ outside of this area. Are the results indeed better/more realistic?
+<div class="exercise">
+Decrease the nodal distance in a diameter of 200 $m$ around the location of the well to 25 $m$. Use a nodal distance of 100 $m$ outside of this area. Are the results indeed better/more realistic?
 </div>
 
 <button type="button" onclick="showHint(4005)">Show Hint</button>
@@ -722,7 +711,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-17. The deepest point in the well is calculated more precisely.
+The deepest point in the well is calculated more precisely.
 ```{r}
 # Decrease nodal distances near the location of the well.
 welldist = func.dist.to.point(c(1000, 1000), 200, 25, 100)
@@ -750,7 +739,7 @@ bgplot3d({
 Another type of external flux is a line flux. A river in a groundwater model can be considered to be a line flux, that 'extracts' water by draining the groundwater. In the FVFE2D package a specific function is included to define a line flux in the model.
 
 <div class="exercise">
-18. Copy the `TwoDmodeWellFE`, remove the extraction well (see the help on this) and call it TwoDModelRiver. Implement a canal (straight line) between the points (400, 500) and (1500, 1000) and assign it an extraction rate of 1 $m^2/d$. Finally, solve the model and create a 2D and 3D plot.
+Copy the `TwoDmodeWellFE`, remove the extraction well (see the help on this) and call it TwoDModelRiver. Implement a canal (straight line) between the points (400, 500) and (1500, 1000) and assign it an extraction rate of 1 $m^2/d$. Finally, solve the model and create a 2D and 3D plot.
 </div>
 
 <div class="student_answer">
@@ -758,7 +747,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-18. Model with a canal;  
+Model with a canal:  
 
 ```{r}
 # Copy and assign new name to the model.
@@ -792,7 +781,7 @@ bgplot3d({
 </div>
 
 <div class="exercise">
-19. Decrease the nodal distance in the neighbourhood of the river and solve the model again. Decrease the nodal distance in an area of 200 $m$ around the river to a distance of 25 $m$; use a nodal distance of 100 $m$ outside this area. How does this change the new solution? 
+Decrease the nodal distance in the neighbourhood of the river and solve the model again. Decrease the nodal distance in an area of 200 $m$ around the river to a distance of 25 $m$; use a nodal distance of 100 $m$ outside this area. How does this change the new solution? 
 </div>
 
 <button type="button" onclick="showHint(4006)">Show Hint</button>
@@ -803,7 +792,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-19. The solution is more precise and realistic in the neighbourhood of the river, due to the change in discretisation.  
+The solution is more precise and realistic in the neighbourhood of the river, due to the change in discretisation.  
 
 ```{r}
 # Copy and assign new name to the model.
@@ -837,7 +826,7 @@ bgplot3d({
 ```
 </div>
 
-# 5. Flow through a dike
+# Flow through a dike
 
 In the last part of this assignment, (simplified) flow through a dike will be modeled, in a situation similar to figure 2.
 
@@ -854,7 +843,7 @@ In figure 3 a schematized vertical cross section of a dike is presented. Note th
 
 
 <div class="exercise">
-20. Define the model domain in a new R-code chunk, as illustrated in figure 3, and plot the new domain. Firstly, clear the defined objects from the work space to prevent unwanted interference with previous model simulations. What is the y-to-x-ratio in this example?
+Define the model domain in a new R-code chunk, as illustrated in figure 3, and plot the new domain. Firstly, clear the defined objects from the work space to prevent unwanted interference with previous model simulations. What is the y-to-x-ratio in this example?
 </div>
 
 <button type="button" onclick="showHint(4007)">Show Hint</button>
@@ -865,7 +854,7 @@ Fill in your answer here...
 </div>
 
 <div class=answer>
-20. The y-to-x-ratio in this example is 5.
+The y-to-x-ratio in this example is 5.
 ```{r}
 rm(list=ls())
 
@@ -898,7 +887,7 @@ grad.flux = function(x, y, state, grad)
 ```
 
 <div class="exercise">
-21. The internal flux function is acceptable for the saturated part of the dike. For the unsaturated part of the dike this is less the case. Why? Does this overestimate or underestimate the fluxes there?
+The internal flux function is acceptable for the saturated part of the dike. For the unsaturated part of the dike this is less the case. Why? Does this overestimate or underestimate the fluxes there?
 </div>
 
 <div class="student_answer">
@@ -906,7 +895,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-22. The hydraulic conductivity is a constant $k_{sat}$ for saturated conditions but a function of pressure $\psi$ and highly non-linear for unsaturated conditions, see FVFE assignment 3 for details on this.  
+The hydraulic conductivity is a constant $k_{sat}$ for saturated conditions but a function of pressure $\psi$ and highly non-linear for unsaturated conditions, see FVFE assignment 3 for details on this.  
 As pressure gets more negative with increasing distance from the saturated zone, the hydraulic conductivity strongly decreases too. Therefore, the flow in the unsaturated part is overestimated using the current internal flux function.
 </div>
 
@@ -917,7 +906,7 @@ Next, several boundary conditions have to be defined. The boundaries should be i
 * The horizontal top of the dike receives a recharge flux of 0.001 $mm/day$
 
 <div class="exercise">
-22. Create a new model and add the boundary conditions described above. Give an interpretation for each of these boundary conditions. What boundary condition is used on the remaining boundary segments?
+Create a new model and add the boundary conditions described above. Give an interpretation for each of these boundary conditions. What boundary condition is used on the remaining boundary segments?
 </div>
 
 <button type="button" onclick="showHint(4008)">Show Hint</button>
@@ -928,9 +917,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-
-22. Boundary conditions:  
-
+Boundary conditions:  
 * East & west:  A hydrostatic water depth on both sides of the dike
 * Top:          Rainfall infiltrating into the dike
 * Unspecified:  No-flux boundaries, so impermeable surface
@@ -948,7 +935,7 @@ set.BC.fixedflux(DikeFlow, 4, 0.001)
 </div>
 
 <div class="exercise">
-23. Add a proper discretisation in the model. Use for this the geomden method, with an opdist of 0.5 and the proper y-to-x-ratio. Use the Finite Elements discretisation method. Add a randomly filled plot of the discretised domain.
+Add a proper discretisation in the model. Use for this the geomden method, with an opdist of 0.5 and the proper y-to-x-ratio. Use the Finite Elements discretisation method. Add a randomly filled plot of the discretised domain.
 </div>
 
 <div class="student_answer">
@@ -956,8 +943,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-
-23. Using the ratio gives an evenly distribution of nodes in the domain although length and height scale are different.
+ Using the ratio gives an evenly distribution of nodes in the domain although length and height scale are different.
 ```{r}
 # Set the discretisation.
 set.discretisation(DikeFlow, nodes=list(type="geomgen", optdist=0.5, ytoxratio=5, verbose=FALSE), method="FE")
@@ -968,7 +954,7 @@ plot(DikeFlow, fill="random", fill.border="black")
 </div>
 
 <div class="exercise">
-24. Solve and run the model. Make a plot with 10 contour lines between 0 and 1 and add flux vectors. Where do you observe the largest fluxes?
+Solve and run the model. Make a plot with 10 contour lines between 0 and 1 and add flux vectors. Where do you observe the largest fluxes?
 </div>
 
 <div class="student_answer">
@@ -976,7 +962,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-24. The largest flux is observed at the lower west boundary, where all the water is forced through a relatively small surface. The highest flux density is observed here. The length of these vectors represent the magnitude of the flux. The arrows point in the direction of the flow.
+The largest flux is observed at the lower west boundary, where all the water is forced through a relatively small surface. The highest flux density is observed here. The length of these vectors represent the magnitude of the flux. The arrows point in the direction of the flow.
 ```{r}
 # Solve
 solve.steps(DikeFlow)
@@ -989,7 +975,7 @@ plot(DikeFlow, fill="state", fill.contours=seq(0, 1, length=10), fill.name="head
 Apart from flow velocities, the distribution of water pressure in the dike is also important in order to investigate the stability of the dike. The standard use of the plot function as implemented in the FVFE2D package is with `fill= "state"`. This will in this case show the head distribution and not the pressure distribution. However, one can assign a function as fill argument for the plotting function. 
 
 <div class="exercise">
-25. Define the pressure function and create a contour plot of the pressure distribution in the dike. Note that the zero contour line of the pressure head represents the border between the saturated and unsaturated zone (the groundwater level). 
+Define the pressure function and create a contour plot of the pressure distribution in the dike. Note that the zero contour line of the pressure head represents the border between the saturated and unsaturated zone (the groundwater level). 
 </div>
 
 <button type="button" onclick="showHint(4009)">Show Hint</button>
@@ -1000,8 +986,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-
-25. Since $H=\psi + z \rightarrow \psi = H-z$  
+Since $H=\psi + z \rightarrow \psi = H-z$  
 
 ```{r}
 # The pressure function.
@@ -1016,7 +1001,7 @@ plot(DikeFlow, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, len
 </div>
 
 <div class="exercise">
-26. Last exercise; play around with the dike model. Investigate how you, with the help of the model that you have built, can investigate the flow through a dike for the following examples:
+Last exercise; play around with the dike model. Investigate how you, with the help of the model that you have built, can investigate the flow through a dike for the following examples:
 
 * How do the water levels left and right of the dike influence the flow?
 * How do heterogeneities (e.g. a very conductive layer) influence the flow?
@@ -1024,7 +1009,6 @@ plot(DikeFlow, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, len
 </div>
 
 <div class="answer">
-26.a  
 The following chunk contains results with an equal water level on the left and right side:  
 However, the right/eastern boundary is 1.0 m high for which only the lower 0.5 m should contain the prescribed head (H). Now the model simulates a prescribed head of 0.5 m AMSL over the total height and therefor also the not saturated upper part, which is not correct.
 To adjust for this, segment with ID= 2 need to be cut into a lower and upper part and the model need to be recreated with this.
@@ -1045,7 +1029,6 @@ plot(Dike_equal_levels, fill=pres.fun, fill.name="pressure", fill.contours=seq(1
 
 ```
 
-26.b  
 To include an extra layer with high conductivity hydraulic conductivity the "k" of the internal flux (here 0.1 m/d) need to be transformed into a function based on interpolation.
 Suppose there would be a gravel layer of 0.25 m starting 0.20 m above the bottom.
 To mimic this gravel layer nearestneighbour interpelation seems to fit best.  
@@ -1081,8 +1064,7 @@ plot(Dike_gravel, fill=pres.fun, fill.name="pressure", fill.contours=seq(1, -1, 
 
 The results clearly shows preferential flow through the gravel layer
 
-26.c  
-This is simply accomplished by increasing the amount of recharge on top of the dike.  
+Studying how the rainfall intensity influences the flow can be accomplished by increasing the amount of recharge on top of the dike.  
 To make it a bit more practical the 'rate' will be replaced by a variable. See the code:  
 
 ```{r}
