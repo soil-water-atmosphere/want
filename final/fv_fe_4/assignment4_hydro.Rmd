@@ -1,11 +1,12 @@
 ---
-title: "Assignment 4 - Exercises on two dimensional modelling"
-subtitle: "Finite volumes & elements, 2D"
-author: "G. Bier, R. Ronda, P.J.J.F. Torfs & edited by The Want Team"
-date: "December 2019"
+title: "Assignment 3: Finite Volumes and Elements in 2D"
+author: "The WANT team"
+date: "Updated on 23/12/2024"
 output:
+  bookdown::html_document2:
+    css: want_n.css
+    toc: yes
   html_document:
-    code_folding: show
     css: want_n.css
     toc: yes
   html_notebook:
@@ -13,19 +14,19 @@ output:
     toc: yes
 ---
 
-
 Note: If you want all the generated 3D-plots to remain open, run the complete Rmd before knitting the document to html.
 
 
 # Learning Goals
-* Understand how one dimensional groundwater models differ from 2 dimensional groundwater models.
-* Understand how the model solution differs between the Finite Volume and Finite Elements method.
-* Know why interpolation functions are needed, which are implemented in the FVFE2D package and how they differ.
-* Understand the effect of changing the nodal distances near points of interest on the model solution.
-* Understand why unsaturated groundwater flow complicates the model and know which state variable would be more useful for this situation.
+* Understanding how 1D groundwater models differ from 2D groundwater models.
+* Understanding how the model solution differs between the Finite Volume and Finite Elements method.
+* Understanding why interpolation functions are needed and how they differ.
+* Understanding the effect of changing the nodal distances near points of interest on the model solution.
 
-# Introduction
-In these exercises the basic steps of two dimensional groundwater flow models will be reviewed with the Finite Volume method and Finite Element method as implemented in the FVFE2D package. These exercises do not provide a complete overview of the functionality of the package, but several important functionalities will be discussed. You can use the built-in help for more information on this package. In many exercises an R-code chunk is given and needs to be edited by adding your answers. Editing is only necessary at locations indicated with 'XXXX', unless explicitly stated otherwise. After completing the R-code chunk, remove the `eval=FALSE` statement in the header of it so it will be included in the final document.
+# Groundwater flow 
+
+## Introduction 
+In these exercises the basic steps of two dimensional groundwater flow models will be reviewed with the Finite Volume method and the Finite Element method as implemented in the FVFE2D package. These exercises do not provide a complete overview of the functionality of the package, neither of all the opportunities that these numerical methods offer, but several important functionalities will be discussed. You can use the built-in help for more information on this package. In many exercises an R-code chunk is given and needs to be edited by adding your answers. Editing is only necessary at locations indicated with 'XXXX', unless explicitly stated otherwise. After completing the R-code chunk, remove the `eval=FALSE` statement in the header of it so it will be included in the final document.
 
 ```{r, include=FALSE}
 # Clear the environment.
