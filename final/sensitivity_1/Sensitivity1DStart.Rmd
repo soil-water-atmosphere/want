@@ -1,25 +1,49 @@
 ---
-title: "Sensitivity Assignment 1 - Local sensitivity analysis "
-subtitle: "Determining scales of variation and sensitivities"
-author: "EB,LM"
-date: "29/10/2019"
+title: "Assignment 1: Local sensitivity analysis in 1D"
+author: "The WANT team"
+date: "Updated on 24/12/2024"
 output:
-   html_document:
-    css: want.css
+  bookdown::html_document2:
+    css: want_n.css
+    toc: yes
+  html_document:
+    css: want_n.css
+    toc: yes
+  html_notebook:
+    css: want_n.css
     toc: yes
 ---
+
 <!-- include the hint.js -->
 <script src="hintsSens1.js"></script>
 
 # Learning goals
-*  Performing local sensitivity analysis on a simple model *(Exercise 2)*
-*  Understanding that sensitivity can vary over a domain *(Exercise 2)*
-*  Understanding the influence of the epsilon value on the results of the sensitivity analysis *(Exercise 3)*
-*  Understanding the influence of the scale of variation on the results of the sensitivity analysis *(Exercise 3)*
-*  Understanding the influence of the base value on the results of the sensitivity analysis *(Exercise 3)*
+*  Performing local sensitivity analysis on a simple model 
+*  Understanding that sensitivity can vary over a domain 
+*  Understanding the influence of the epsilon value on the results of the sensitivity analysis
+*  Understanding the influence of the scale of variation on the results of the sensitivity analysis 
+*  Understanding the influence of the base value on the results of the sensitivity analysis
 
-# Introduction
-In this assignment you will conduct your own sensitivity analysis on the parametrs of a groundwater model. The model you will study simulates a groundwater extraction well that is located next to a nature reserve (depicted by the reed vegetation), as shown in the figure below. A river is situated on the left side of the nature reserve. We want to investigate which parameter of our 1D groundwater model has most influence on the groundwaterlevel in the nature reserve. Therefore, we will conduct a local sensitivity analysis.   
+# Important: Varying external fluxes or boundary conditions 
+So far, when we defined external input or a boundary condition, they were either fixed or we had to redefine our model. 
+For example, we would define precipitation in our model in the following way:
+```{r,eval=FALSE}
+P = 0.001
+add.spatialflux(GWmodel,P,"recharge")
+```
+Whenever we would call our model, it would take 0.001 for P, even if we had redefined P already in our memory. This makes it quite demanding to sample the value of P, because then we would first have to remove the first spatial flux, and add the new one, each time when we want to adapt the value of P. Therefore, the package has a trick to resolve this. If you define P between quotations when you add the spatial flux: 
+```{r,eval=FALSE}
+P = 0.001
+add.spatialflux(GWmodel,"P","recharge")
+```
+it will read the last value of P from memory, in stead of the value of P it had at the moment that the spatial flux was added to the model. So, whenever you plan to vary spatial fluxes or boundary conditions, you could use this. 
+
+
+# Setting up a stationary groundwater model
+
+## Introduction
+In this assignment you will conduct your own sensitivity analysis on the parameters of a groundwater model. The model you will study simulates a groundwater extraction well that is located next to a nature reserve (depicted by the reed vegetation), as shown in the figure below. A river is situated on the left side of the nature reserve. We want to investigate which parameter of our 1D groundwater model has most influence on the groundwater level in the nature reserve. Therefore, we will conduct a local sensitivity analysis.\
+
 
 ![1D saturated stationary groundwater model](1Dsensmodel.png)   
 
@@ -28,17 +52,15 @@ rm(list=ls())
 library(FVFE1D)
 ```
 
-# 1. Building the model
-
 ## The mathematical setup
 First, build the 1D groundwater model in the same way as the ones you built in earlier assignments. 
 These are the specifics for the model:
 
 - Domain from 0 to 500
-- The system interal flux is a Dupuit flux with transmissivity $kD$ 
+- The system internal flux is a Dupuit flux with transmissivity $kD$ 
 - The $kD$ changes linearly between the left and the right side of the domain
 - Take these values for transmissivity: kDl = 55 (left), kDr = 35 (right)
-- There are two external fluxes: There is a constant spatial recharge flux (rainfall) of 0.001, and there is an extraction well, extracting -0.35 at point 275.   
+- There are two external fluxes: There is a constant spatial recharge flux (rainfall) of 0.001, and there is an extraction well, extracting 0.35 at point 275 (extracting implies that this appears as -0.35 on the balance).   
 - The right hand side is a water divide, implying a zero flux boundary, which is automatically applied as the default in the FVFE1D package.
 
 ## The numerical setup
@@ -143,7 +165,7 @@ Write your answer here...
 The `MRESULT` function calculates the mean groundwater level in the nature area. We are interested in the effect of the extraction well on the nature reserve. The groundwater level at the location of the reserve is therefore an important model output.
 </div>
 
-# 2. Sensitivity analysis
+# Sensitivity analysis
 You will now conduct your own local sensitivity analysis on the model we just created.
 
 <div class="exercise">
@@ -489,7 +511,7 @@ The contributions differ between parts of the domain:
 The *local sensitivity analysis* shows that the variation of the groundwater extraction rate has a large influence on the uncertainty in M. When looking at the groundwater levels over the whole domain, the rainfall, river level and right-side transmissivity are also important sources of uncertainty, depending on the location in the domain.
 </div>
 
-# 3. Influence of base value, epsilon value *eps*, and scale of variation
+# Influence of base value, epsilon value *eps*, and scale of variation
 The results of local sensitivity analysis depend on several "choices". 
 First of all, the base value has to be determined. The base value is often identified through a calibration procedure. Secondly, we have to choose a 'disturbance' `eps` that is added to the parameters one by one, and lastly, we have to determine the scale of variation, which can be a challenging task.  
 
