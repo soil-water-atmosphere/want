@@ -1,21 +1,27 @@
 ---
-title: "Sensitivity Assignment 2 - 2D systems"
-subtitle: "Sensitivity in a 2D model"
-author: "EB/LM"
-date: "06/12/2019"
+title: "Assignment 2: Local and global sensitivity analysis in 2D"
+author: "The WANT team"
+date: "Updated on 28/12/2024"
 output:
-   html_document:
-    css: want.css
+  bookdown::html_document2:
+    css: want_n.css
+    toc: yes
+  html_document:
+    css: want_n.css
+    toc: yes
+  html_notebook:
+    css: want_n.css
     toc: yes
 ---
+
 **Note that knitting this document can be time-consuming! Time to take a coffee or tea and contemplate about the beautiful world of numerics**
 
 ## Learning goals
-*  Applying local and global sensitivity analysis in a more complex, 2D system *(Section 2,3)*
-*  Understanding why sensitivity can vary within a domain *(Section 2,3)*
-*  Understanding the effect of a changed base value on the sensitivity analysis *(Section 4)*
-*  Understanding why the results from local sensitivity analysis may differ from those of global sensitivity analysis *(Section 5)*
-*  Understanding the role of the sample size for global sensitivity analysis *(Section 5)*
+*  Applying local and global sensitivity analysis in a more complex, 2D system 
+*  Understanding why sensitivity can vary within a domain
+*  Understanding the effect of a changed base value on the sensitivity analysis
+*  Understanding why the results from local sensitivity analysis differ from those of global sensitivity analysis 
+*  Understanding the role of the sample size for global sensitivity analysis
 
 ```{r message=FALSE}
 rm(list=ls())
@@ -23,7 +29,7 @@ library(FVFE2D)
 ```
 
 <div class="exercise">
-If you don't have them yet, install the following packages from CRAN:   
+If you haven't done so yet, install the following packages from CRAN:   
 * lhs   
 * truncnorm   
 * matrixStats   
