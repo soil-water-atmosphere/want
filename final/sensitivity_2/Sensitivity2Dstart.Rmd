@@ -883,7 +883,7 @@ print(sd(MsampleTest))
 The histogram of M values (groundwater level in the housing area) more or less centers around what we defined as base value (M_base) for local sensitivity analysis, but it is not a nice well-shaped normal distribution. This sample size probably does not give an accurate estimate of the standard deviation (uncertainty) in M.
 </div>
 
-## 5.2 GSA with a larger parameter sample
+## GSA with a larger parameter sample
 For calculation-time reasons, we already run the model with a sample size of 50:
 ```{r}
 rm(MsampleTest,parsampleTest)
@@ -894,7 +894,6 @@ head(Mpsample)
 ```
 
 **Analysis of the M-sample**
-
 First we determine the basic statistics of the M-sample:
 ```{r}
 VARM = var(Msample)
@@ -913,7 +912,7 @@ rug(Msample,col="red")
 lines(smoothdens,col="red",lwd=3)
 ```
 
-## 5.4 Conditional expectation of M with relation to parameters
+## Conditional expectation of M with relation to parameters
 <div class="exercise">
 Plot and analyse the conditional expectation of M with relation to each of the parameters (you can have a look at the first global sensitivity analysis assignment for inspiration).
 </div>
@@ -923,7 +922,6 @@ Plot and analyse the conditional expectation of M with relation to each of the p
 # Add your code here...
 ```
 </div>
-
 <div class="answer">
 We approximate the conditional expectation of M given the parameters:
 ```{r}
@@ -969,7 +967,7 @@ points(Mpsample[,"north.bnd"],Mcondnorth.bnd,pch=20,col="red")
 ```
 </div>
 
-## 5.5 Contributions of the parameters to the M-variance
+## Contributions of the parameters to the variance in MRESULT
 <div class="exercise">
 Finish the global sensitivity analysis by determining the relative contribution of each of the parameters to the total variance in M.
 </div>
@@ -992,9 +990,8 @@ print(sqrt(ANOVA1))
 ```
 </div>
 
-## 5.6 Discussion
 <div class="exercise">
-Finally, describe your conclusions of the GSA analysis in section 5. Do the results differ from the local sensitivity analysis? What is the effect of the parameter sample size? Do you think the parameter set of 50 is large enough? Can you check if there is parameter interaction? 
+Describe your conclusions of the GSA. Do the results differ from the Local Sensitivity Analysis? What is the effect of the parameter sample size? Do you think the parameter set of 50 is large enough? Can you check if there is parameter interaction? 
 </div>
 
 <div class="student_answer">
@@ -1002,11 +999,11 @@ Type your answer here...
 </div>
 
 <div class="answer">
-The standard deviation of M is slightly lower in the global sensitivity analysis than found with the local sensitivity analysis. Of course, this can be different if you chose different upper and lower boundaries for the global sensitivity analysis, or different scales of variation in the local sensitivity analysis (or, a different base value in the local sensitivity analysis).
+The standard deviation of M is slightly lower in the global sensitivity analysis than found with the local sensitivity analysis. Of course, this can be different if you chose different upper and lower boundaries for the parameters in the global sensitivity analysis, or different scales of variation in the local sensitivity analysis (or, a different base value in the local sensitivity analysis).
 
-In global sensitivity analysis, the conditional expectation curves show that especially the recharge contains a lot of information on M, and also the river resistance and drainage resistance contain some information. Looking at the relative contributions of the parameters, Qrch turns out to be dominant, just like before in the local sensitivity analysis. However, the kD now dominates over the river resistance and drainage resistance, while in the local sensitivity they had about equal contributions. Local and global sensitivity analysis are different methods, that lead to different results. Think for yourself when which method would be appropriate. 
+In global sensitivity analysis, the conditional expectation curves show that especially the recharge contains a lot of information on M, and also the river resistance and drainage resistance contain some information. Looking at the relative contributions of the parameters, Qrch turns out to be dominant, just like before in the local sensitivity analysis. However, the kD now dominates over the river resistance and drainage resistance, while in the local sensitivity they had about equal contributions. Local and global sensitivity analysis are different methods, that lead to different results. These methods also serve different purposes: Global sensitivity analysis provides more insights in how processes interact and which ones dominate, and is therefore usually done before a model is calibrated, to determine which parameters require calibration. Local sensitivity analysis is often done after calibration, to evaluate variation in the results due to uncertainty.
 
-The sample size (50) is probably way too small. A way of testing whether your sample size is sufficient, is by means of a Kolmogorov-Smirnov test (beyond the scope of this course). With this test, it can be tested if the distribution of M significantly changes when the sample size is increased. If the distribution no longer significantly changes with increased sample size, the sample size can be considered sufficiently large. 
+The sample size (50) is probably too small. A way of testing whether your sample size is sufficient, is by means of a Kolmogorov-Smirnov test (beyond the scope of this course). With this test, it can be tested if the distribution of M significantly changes when the sample size is increased. If the distribution no longer significantly changes with increased sample size, the sample size can be considered sufficiently large. 
 
 In the global sensitivity analysis we can indeed see that there is some parameter interaction; not all variance is explained by the parameters. 
 </div>
