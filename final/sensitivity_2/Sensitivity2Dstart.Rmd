@@ -16,7 +16,7 @@ output:
 
 **Note that knitting this document can be time-consuming! Time to take a coffee or tea and contemplate about the beautiful world of numerics**
 
-## Learning goals
+# Learning goals
 *  Applying local and global sensitivity analysis in a more complex, 2D system 
 *  Understanding why sensitivity can vary within a domain
 *  Understanding the effect of a changed base value on the sensitivity analysis
@@ -43,7 +43,9 @@ library(matrixStats)
 library(fields)
 ```
 
-# Introduction
+# The 2D groundwater model
+
+## Introduction
 In this assignment, you will investigate the sensitivity of a 2D groundwater flow model for an area around the IJssel river (see Figure 1). In the east and west of the area, there are sandy, more elevated parts (Veluwe and Sallandse Heuvelrug). The middle part, around the river, is more low-lying and is drained by ditches (shaded rectangle). A well is present near Raalte. In the south, the city of Deventer is urban area (indicated in the map with 'housing').  
 
 ![](ijssel.png)
@@ -69,9 +71,7 @@ plot(IJsselmodel,fill="state",fill.contours=seq(0,8,by=1),
 The groundwater heads in the north and south of the domain are fixed; on the east and west there are zero-flow boundaries (water divides).
 The model contains the spatial fluxes *recharge* (over the whole domain) and *drainage* (only in the draining zone, shaded rectangle); a well; and flow into or from the river. The river course and level are given. The housing area is shown in the map.
 
-# 1. First investigation of the 2D model
-
-## 1.1 Investigating the water balance
+## Exploring the model
 
 <div class="exercise">
 Calculate the water balance of the whole model region. Discuss the relative contribution of the different fluxes in the system.
@@ -81,7 +81,6 @@ Calculate the water balance of the whole model region. Discuss the relative cont
 ```{r eval=FALSE}
 # calculate balance
 ```
-Discussion:
 </div>
 
 <div class="answer">
@@ -95,7 +94,6 @@ pie(Net,labels=A$name)
 The water input from rainfall (recharge) is mainly discharged through the river, followed by drainage and groundwater flow over the boundaries. The well also removes a small part.
 </div>
 
-## 1.2 Investigating the drainage fluxes
 <div class="exercise">
 In the chunk below, replace the XXXX by the proper function (consult the FVFE2D help if needed), so that the plot that follows shows the spatial distribution of the
 drainage flux. What patterns do you see?
@@ -107,7 +105,6 @@ EF = XXXX
 plot(IJsselmodel,fill=EF$drainage,
      addpolygons = list(list(drainage,col=rgb(0,1,0,0.15))))
 ```
-Discussion:
 </div>
 
 <div class="answer">
@@ -115,13 +112,9 @@ Discussion:
 EF = dataframe.externalfluxes(IJsselmodel)
 plot(IJsselmodel,fill=EF$drainage,addpolygons = list(list(drainage,col=rgb(0,1,0,0.15))),main="Drainage fluxes")
 
-#,
 ```
-
 There is more drainage closer to the river, probably because of the lower elevation there.
 </div>
-
-## 1.3 Investigating the river seepage fluxes
 
 The chunk below gives a histogram of the river flux values of all points in the domain. Most of the domain loses water to the river (displayed with a negative flux). There are some places where this flux is rather high.
 
@@ -138,7 +131,6 @@ Replace the XXXX in the following chunk by three values to draw contour lines, s
 plot(IJsselmodel,fill=EF$river,fill.contour=c(XXXX,XXXX,XXXX),
      addlines = list(list(river.xy,col="blue",lwd=1)))
 ```
-Discussion:
 </div>
 
 <div class="answer">
@@ -146,13 +138,10 @@ Discussion:
 plot(IJsselmodel,fill=EF$river,fill.contour=c(-0.5,-1,-2), main="River fluxes",
      addlines = list(list(river.xy,col="blue",lwd=1)))
 ```
-
 Most of the domain loses water to the river, although the fluxes are generally small. One spot in the upstream part of the river has very high drainage to the river; possibly the boundary condition is not accurate at that place.
 </div>
 
-## 1.4 Investigating the mean groundwater depth in the housing area
-
-In what follows, we want to investigate groundwater level in the housing area (which will be our objective, `MRESULT`). For that, we need a node that falls within this area. Node number 353 falls withing the housing area, as you can check with the following plot (zoom if needed).
+In what follows, we want to investigate groundwater level in the housing area (which will be the objective for our sensitivity analysis, `MRESULT`). For that, we need a node that falls within this area. Node number 353 falls withing the housing area, as you can check with the following plot (zoom if needed).
 ```{r}
 plot(IJsselmodel,nodenumbersize=1,
      addpolygons = list(list(housing,col=rgb(0,0,1,0.25))))
@@ -168,43 +157,46 @@ MRESULT = function()
 }
 ```
 
+
 <div class="exercise">
-The state that `MRESULT` now returns is groundwater level. To get a feeling for the local impact of groundwater, we also want to know what the groundwater depth is - that is, the depth of the groundwater below the surface. The code below ('surface[180,]') provides the x, y, and z-coordinate of the housing area. Use this information to convert groundwater level to groundwater depth. What can you say about the groundwater depth?
+The state that `MRESULT` now returns is groundwater level. To get a feeling for the local impact of groundwater, we also want to know what the groundwater depth is - that is, the depth of the groundwater below the surface. The code below uses the `surface.fun(x,y)` function to determine the surface level at node 353. Use this information to convert groundwater level to groundwater depth. What can you say about the groundwater depth? To derive the coordinates of nodes 353 simply create a data frame with `dataframe.states(IJSSELmodel)` 
 </div>
 
 <div class="student_answer">
 ```{r eval=FALSE}
-#Convert to groundwater depth below the surface
-print(surface[180,]) # this shows the surface level at the housing area: select the column that shows elevation
-print(XXXX) #use previous line and MRESULT to obtain the depth of groundwater below the surface
+#derive the surface level for node 353
+df = dataframe.states(IJsselmodel)
+surface_at_Iselect = surface.fun(df$x[Iselect],df$y[Iselect])
+
+#calculate groundwater depth
+
+
 ```
 </div>
 
 <div class="answer">
 ```{r}
-Iselect = 353
-MRESULT = function()
-{
-  NS = dataframe.states(IJsselmodel)
-  return(NS$state[Iselect])
-}
-#Convert to groundwater depth below the surface
-print(surface[180,]) #this shows the surface level at the housing area
-print(surface[180,3]-MRESULT()) #depth of grw below surface
+#derive the surface level for node 353
+df = dataframe.states(IJsselmodel)
+surface_at_353 = surface.fun(df$x[353],df$y[353])
+
+#calculate groundwater depth
+print(surface_at_353) #this shows the surface level at the housing area (node 353)
+print(surface_at_353-MRESULT()) #depth of groundwater below surface
 ```
-The depth of the groundwater below the surface is about 24 centimeters; these are pretty wet conditions! To put the results into perspective; generally, farmers prefer a groundwater depth of about minimum 40 cm for grass lands and 60 cm for agricultural fields. 
+The depth of the groundwater table is about 76 centimeters. Current Dutch regulations indicate a range between 0.50 and 1.50 m for built-up area, depending on the local situation (https://www.rijksoverheid.nl/onderwerpen/water/waterbeheer-in-nederland).
+A too shallow groundwater table may result in wet or flooded cellars but a too low groundwater table may result in drought and consequences for the foundation of houses (e.g subsidence, dry rot). It is therefore an important aspect when developing built-up area.
 </div>
 
-## 1.5 Store base for sensitivity analysis
 
-We save the base results, both for `MRESULT` and for all states.
+## Store base run and define scale of variation for sensitivity analysis
+
+We save the base run results, both for `MRESULT` (groundwater level at our selected location) and for all states (groundwater level in the whole domain).
 ```{r}
 M_base = MRESULT()
 print(M_base)
 state_base = dataframe.states(IJsselmodel)$state
 ```
-
-## 1.6 Parameters and scales
 
 There are seven parameters in this model:   
 *  Recharge flux (net rainfall) [m/d]   
@@ -217,9 +209,6 @@ There are seven parameters in this model:
 *  Resistance to drainage through ditches [d]:   
    $q_{drainage}=mean(H_{groundwater}-H{drains})/resistance$   
 
-<div class="comment">
-I put in these units, are they correct? 
-</div>
 
 ```{r}
 base= list(Qrch=Qrch,Qwell=Qwell,kD=kD,river.resist=river.resist,
@@ -234,9 +223,9 @@ scale= list(Qrch=0.00025,Qwell=500,kD=50,river.resist=2.5,
 str(scale)
 ```
 
-# 2. LSA basic calculations
+# Local sensitivity analysis in 2D
 
-## 2.1 Sensitivity with respect to recharge flux Qrch
+## Calculate the sensitivity 
 <div class="exercise">
 In the chunk below, we start with the sensitivity to the recharge flux `Qrch`. A different `eps` is used than before. Why is `eps` defined this way? 
 </div>
@@ -274,11 +263,10 @@ The plot shows how sensitivity of the states throughout the domain varies for pa
 </div>
 
 <div class="exercise">
-In section 2.2 to 2.7, calculate the local sensitivities to the other six parameters. Do this both for MRESULT and for all the states. For each of the parameters, add a short discussion of the results.
+Now calculate the local sensitivities to the other six parameters: Qwell, kD, river.resist, south.bnd, north.bnd, drainage.resist. Do this both for MRESULT and for all the states. For each of the parameters, add a short discussion of the results.
 </div>
 
-## 2.2 Sensitivity with respect to the extraction well - Qwell
-
+_Qwell_
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -305,8 +293,7 @@ plot(IJsselmodel,fill=varState.Qwell)
 Only the immediate neighbourhood of the well is sensitive to the variation in extraction rates.
 </div>
 
-## 2.3 Sensitivity with respect to the transmissivity kD
-
+_kD_
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -333,8 +320,7 @@ plot(IJsselmodel,fill=varState.kD)
 The sensitivity with respect to the kD is highest near the no-flux boundaries. Closer to the river, drainage and seepage limit the sensitivity to kD. The influence of kD is also visible around the well.
 </div>
 
-## 2.4 Sensitivity with respect to river.resist
-
+_river.resist_
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -361,35 +347,9 @@ plot(IJsselmodel,fill=varState.river.resist)
 The sensitivity to the river resistance is only visible in a small corner at the upstream part of the river. This is also where we saw the possible error in the boundary conditions.
 </div>
 
-## 2.5 Sensitivity with respect to drainage.resist
 
-<div class="student_answer">
-```{r}
-# Type your code here...
-```
-</div>
 
-<div class="answer">
-```{r,fig.height=4}
-eps = scale$drainage.resist * 1e-2
-drainage.resist = base$drainage.resist+eps
-control = solve.steps(IJsselmodel,verbose=FALSE)
-drainage.resist=base$drainage.resist
-# For the MRESULT
-dMddrainage.resist  = (MRESULT()-M_base)/eps
-varM.drainage.resist = (scale$drainage.resist*dMddrainage.resist)^2 #the variance in M due to the drainage resistance
-print(paste("Variance in M due to drainage.resist=",varM.drainage.resist))
-# For all states
-dstateddrainage.resist = (dataframe.states(IJsselmodel)$state-state_base)/eps
-varState.drainage.resist = (scale$drainage.resist*dstateddrainage.resist)^2
-set.name(IJsselmodel,"Variance due to drainage.resist")
-plot(IJsselmodel,fill=varState.drainage.resist)
-```
-
-The sensitivity with respect to the drainage resistance is restricted to the drained area, with the exception of the river path. There the river controls the groundwater levels.
-</div>
-
-## 2.6 Sensitivity with respect to south.bnd
+_south.bnd_
 <div class="exercise">
 Note: when you adapt the `south.bnd` and `north.bnd` values, the model **will not automatically adapt the boundary conditions**. Make sure you do this yourself after you have adapted the south.bnd or north.bnd value. For the south boundary, this can be done by:  
 `for (i in c(1,2,13,14,15,16)) {set.BC.fixedstate(IJsselmodel,i,south.bnd)}`
@@ -424,7 +384,9 @@ plot(IJsselmodel,fill=varState.south.bnd)
 The influence of the boundary condition is limited to about 1 km from the boundary. In the middle, where the river is located, the river fluxes limit the sensitivity to the boundary condition.
 </div>
 
-## 2.7 Sensitivity with respect to north.bnd
+
+_north.bnd_
+
 <div class="exercise">
 Again take care to manually reset the boundary conditions. For the northern boundary, use:
 `for (i in 4:11) {set.BC.fixedstate(IJsselmodel,i,north.bnd)}`
@@ -458,11 +420,38 @@ plot(IJsselmodel,fill=varState.north.bnd)
 The sensitivity to the northern boundary condition shows the same pattern as for the southern boundary. The groundwater levels are sensitive up to about 1 km distance, except where the river is flowing.
 </div>
 
-# 3. LSA: relative contribution of the parameters
+_drainage.resist_
 
-## 3.1 Relative contributions to variance in M
+<div class="student_answer">
+```{r}
+# Type your code here...
+```
+</div>
 
-The following chunk plots the relative contributions of the parameters with a pie chart:
+<div class="answer">
+```{r,fig.height=4}
+eps = scale$drainage.resist * 1e-2
+drainage.resist = base$drainage.resist+eps
+control = solve.steps(IJsselmodel,verbose=FALSE)
+drainage.resist=base$drainage.resist
+# For the MRESULT
+dMddrainage.resist  = (MRESULT()-M_base)/eps
+varM.drainage.resist = (scale$drainage.resist*dMddrainage.resist)^2 #the variance in M due to the drainage resistance
+print(paste("Variance in M due to drainage.resist=",varM.drainage.resist))
+# For all states
+dstateddrainage.resist = (dataframe.states(IJsselmodel)$state-state_base)/eps
+varState.drainage.resist = (scale$drainage.resist*dstateddrainage.resist)^2
+set.name(IJsselmodel,"Variance due to drainage.resist")
+plot(IJsselmodel,fill=varState.drainage.resist)
+```
+
+The sensitivity with respect to the drainage resistance is restricted to the drained area, with the exception of the river path. There the river controls the groundwater levels.
+</div>
+
+
+## Relative contribution of the parameters to variance in MRESULT 
+
+The following chunk plots the relative contributions of the parameters to MRESULT (groundwater level in housing area) with a pie chart:
 ```{r}
 varMtot = varM.Qrch+varM.Qwell+varM.kD+varM.river.resist+
     varM.drainage.resist+varM.south.bnd+varM.north.bnd
@@ -480,7 +469,7 @@ pie(as.numeric(relvarM),labels=names(relvarM),
 ```
 
 <div class="exercise">
-DIscuss the relative contribution of the parameters to the variation in MRESULT. Is it as you had expected?
+Discuss the relative contribution of the parameters to the variation in MRESULT. Is it as you had expected?
 </div>
 
 <div class="student_answer">
@@ -488,10 +477,10 @@ Type your answer here...
 </div>
 
 <div class="answer">
-The variation in the groundwater level of the housing area as induced by uncertainty in parameters and boundary conditions, is about 10 cm. Clearly the recharge is the dominant source of variation, followed by the transmissivity and river resistance. That uncertainty in the recharge is important, could have been expected by the fact that recharge is by far the largest flux, as discussed in 1.1 (although the parameter describing the largest overall flux does not always have to be the most sensitive parameter, this also depends on the area of interest as the next sections show, and the scale of variation of this parameter). 
+The variation in the groundwater level of the housing area as induced by uncertainty in parameters and boundary conditions, is about 13 cm. Clearly the recharge is the dominant source of variation, followed by the river and drainage resistance. That recharge is important, could have been expected by the fact that recharge is by far the largest flux, although the parameter describing the largest overall flux does not always have to be the most sensitive parameter.  
 </div>
 
-## 3.2 Total variation of states
+## Variance in the states throughout the whole domain 
 
 ```{r}
 varStateTot = varState.Qrch + varState.Qwell + varState.kD + varState.drainage.resist +   varState.river.resist + varState.south.bnd + varState.north.bnd
@@ -500,18 +489,18 @@ plot(IJsselmodel,fill=sqrt(varStateTot))
 ```
 
 <div class="exercise">
-In sections 3.3 to 3.9, the relative contributions of the parameters to the variation in the groundwater levels over the complete domain is calculated. The first example for Qrch is already given. Finish the analysis for the other parameters. In section 3.10, add a discussion about how the contributions of all the parameters are distributed over the domain.
+Below, the relative contribution of the parameters to the variation in the groundwater levels over the complete domain is calculated. The first example for Qrch is already given. Finish the analysis for the other parameters. Add a discussion at the end about how the contributions of all the parameters are distributed over the domain.
 </div>
 
-## 3.3 Contribution of Qrch to variation in groundwater level
+
+_Qrch_
 
 ```{r}
 set.name(IJsselmodel,"Fraction contribution Qrch to variation in states")
 plot(IJsselmodel,fill= varState.Qrch/varStateTot)
 ```
 
-## 3.4 Contribution of Qwell to variation in groundwater level
-
+_Qwell_
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -525,7 +514,7 @@ plot(IJsselmodel,fill= varState.Qwell/varStateTot)
 ```
 </div>
 
-## 3.5 Contribution of kD to variation in groundwater level
+_kD_
 
 <div class="student_answer">
 ```{r}
@@ -540,8 +529,7 @@ plot(IJsselmodel,fill= varState.kD/varStateTot)
 ```
 </div>
 
-## 3.6 Contribution of river.resist to variation in groundwater level
-
+_river.resist_
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -555,22 +543,7 @@ plot(IJsselmodel,fill= varState.river.resist/varStateTot)
 ```
 </div>
 
-## 3.7 Contribution of drainage.resist to variation in groundwater level
-
-<div class="student_answer">
-```{r}
-# Type your code here...
-```
-</div>
-
-<div class="answer">
-```{r}
-set.name(IJsselmodel,"Fraction contribution drainage.resist to variation in states")
-plot(IJsselmodel,fill= varState.drainage.resist/varStateTot)
-```
-</div>
-
-## 3.8 Contribution of south.bnd to variation in groundwater level
+_south.bnd_
 
 <div class="student_answer">
 ```{r}
@@ -585,8 +558,7 @@ plot(IJsselmodel,fill= varState.south.bnd/varStateTot)
 ```
 </div>
 
-## 3.9 Contribution of north.bnd to variation in groundwater level
-
+_north.bnd_
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -600,28 +572,41 @@ plot(IJsselmodel,fill= varState.north.bnd/varStateTot)
 ```
 </div>
 
-## 3.10 Discussion
+_drainage.resist_
 <div class="student_answer">
-Type your answer here...
+```{r}
+# Type your code here...
+```
+</div>
+
+<div class="answer">
+```{r}
+set.name(IJsselmodel,"Fraction contribution drainage.resist to variation in states")
+plot(IJsselmodel,fill= varState.drainage.resist/varStateTot)
+```
+</div>
+
+<div class="student_answer">
+Discuss the results here ...
 </div>
 
 <div class="answer">
 Which parameter causes most of the variation in M varies widely depending on location. The recharge is dominant in most places, but not everywhere: all parameters have some location where they dominate. The extraction well and the drainage resistance show important local contributions to the variation in M. Sensitivity analysis can be perceived as a method to investigate uncertainty, but as shown here, it can also provide insight into which processes dominate where.
 </div>
 
-# 4. LSA calculation with different base value
-Assume that by dredging the river, the resistance of the river bed is decreased (see chunk below). This may affect the sensitivity patterns of the model.
+## Changing the base value
 
+Assume that by dredging the river, the resistance of the river bed is decreased (see chunk below). This may affect the sensitivity patterns of the model.
 ```{r}
 base$river.resist = base$river.resist/2
 ```
+Below, recalculate the local sensitivities of the groundwater levels (states) the way you did before. For this, you should create a new base run that includes the new river bed resistance. Recalculate the local sensitivities of the groundwater levels of the model (there is no need to make all the local sensitivity plots again). Finally, evaluate the effect of the changed base value.
+
 
 <div class="exercise">
-In section 4.1 and 4.2, recalculate the local sensitivities of the groundwater levels (states) the way you did in section 2.1-2.7. In section 4.1 you should create a new base run that includes the new river bed resistance. In section 4.2, recalculate the local sensitivities of the groundwater levels of the model (there is no need to make all the local sensitivity plots again). Finally, analyse the effects of the changed base value in section 4.3-4.5 (see exercises there).
+Recalculate the base run with the updated river resistance
 </div>
 
-
-## 4.1 Recalculate the base run
 <div class="student_answer">
 ```{r}
 # type your code here...
@@ -640,7 +625,10 @@ state_base = dataframe.states(IJsselmodel)$state
 ```
 </div>
 
-## 4.2 Recalculate local sensitivities to all parameters
+<div class="exercise">
+Recalculate local sensitivities to all parameters
+</div>
+
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -738,8 +726,6 @@ dstatednorth.bnd = (dataframe.states(IJsselmodel)$state-state_base)/eps
 varState.north.bnd = (scale$north.bnd*dstatednorth.bnd)^2
 ```
 
-## 4.3 Sensitivity of groundwater levels with respect to river.resist
-
 <div class="exercise">
 Plot the sensitivity of the groundwater levels to the river resistance. Add a short discussion: what is the effect of the changed river resistance?
 </div>
@@ -749,7 +735,6 @@ Plot the sensitivity of the groundwater levels to the river resistance. Add a sh
 ```{r}
 # Type your code here...
 ```
-Discussion:
 </div>
 
 <div class="answer">
@@ -761,9 +746,8 @@ plot(IJsselmodel,fill=varState.river.resist)
 The pattern of the local sensitivities is the same as before. However, the values are higher. Changes in the base-value thus can change the conclusions of a LSA! 
 </div>
 
-## 4.4 Relative contribution of river.resist to variation in groundwater level
 <div class="exercise">
-Plot the relative contribution of river.resist to the variation in the groundwater levels over the domain. Compare them with the previous results (section 3.6), and shortly discuss your observations.
+Plot the relative contribution of river.resist to the variation in the groundwater levels over the domain. Compare them with the results based on the old base value, and shortly discuss your observations.
 </div>
 
 <div class="student_answer">
@@ -784,7 +768,6 @@ plot(IJsselmodel,fill= varState.river.resist/varStateTot)
 The relative contribution of the river resistance has increased, especially in the upstream area of the river. Here, it now causes almost all of the variation in groundwater levels.
 </div>
 
-## 4.5 contribution of river.resist to variation in M
 <div class="exercise">
 Calculate the relative contribution of river.resist to the variation in MRESULT and describe the changes. Plot the results in a pie chart.
 </div>
@@ -815,7 +798,7 @@ pie(as.numeric(relvarM),labels=names(relvarM),
     col = rainbow(length(relvarM)))
 ```
 
-Looking at the MRESULT before and after the "dredging" (represented as lowering of river.resist), the groundwater level in the housing area has decreased by about 3 cm. However, the standard deviation of M has increased by about the same amount. The relative contribution of the river resistance has become much larger, and even dominates over the recharge. This makes sense because the housing area is just in the upstream area close to the river, where the contribution of the river resistance is largest. This exercise demonstrates that the base values have high influence on the results of LSA. If the situation in the area changes, and as a consquence one of the parameter values changes, a new sensitivity analysis is needed. 
+Looking at the MRESULT before and after the "dredging" (represented as lowering of river.resist), the groundwater level in the housing area has decreased by about 3 cm. However, the standard deviation of M has increased by about the same amount. The relative contribution of the river resistance has become much larger, and even dominates over the recharge. This makes sense because the housing area is just in the upstream area close to the river, where the contribution of the river resistance is largest. This exercise demonstrates that the base values have high influence on the results of LSA. If the situation in the area changes, and as a consequence one of the parameter values changes, a new sensitivity analysis is needed. 
 </div>
 
 Reset the river resistance to its original value:
@@ -825,7 +808,7 @@ base$river.resist = base$river.resist*2
 river.resist=base$river.resist
 ```
 
-# 5. Global Sensitivity Analysis (GSA)
+# Global Sensitivity Analysis (GSA)
 
 The functions defined in this script will be used to create parameter samples:
 ```{r}
