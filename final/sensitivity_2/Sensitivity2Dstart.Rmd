@@ -223,7 +223,7 @@ scale= list(Qrch=0.00025,Qwell=500,kD=50,river.resist=2.5,
 str(scale)
 ```
 
-# Local sensitivity analysis in 2D
+# Local Sensitivity Analysis (LSA) in 2D
 
 ## Calculate the sensitivity 
 <div class="exercise">
@@ -266,7 +266,7 @@ The plot shows how sensitivity of the states throughout the domain varies for pa
 Now calculate the local sensitivities to the other six parameters: Qwell, kD, river.resist, south.bnd, north.bnd, drainage.resist. Do this both for MRESULT and for all the states. For each of the parameters, add a short discussion of the results.
 </div>
 
-_Qwell_
+**Qwell**
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -293,7 +293,7 @@ plot(IJsselmodel,fill=varState.Qwell)
 Only the immediate neighbourhood of the well is sensitive to the variation in extraction rates.
 </div>
 
-_kD_
+**kD**
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -320,7 +320,7 @@ plot(IJsselmodel,fill=varState.kD)
 The sensitivity with respect to the kD is highest near the no-flux boundaries. Closer to the river, drainage and seepage limit the sensitivity to kD. The influence of kD is also visible around the well.
 </div>
 
-_river.resist_
+**river.resist**
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -347,9 +347,7 @@ plot(IJsselmodel,fill=varState.river.resist)
 The sensitivity to the river resistance is only visible in a small corner at the upstream part of the river. This is also where we saw the possible error in the boundary conditions.
 </div>
 
-
-
-_south.bnd_
+**south.bnd**
 <div class="exercise">
 Note: when you adapt the `south.bnd` and `north.bnd` values, the model **will not automatically adapt the boundary conditions**. Make sure you do this yourself after you have adapted the south.bnd or north.bnd value. For the south boundary, this can be done by:  
 `for (i in c(1,2,13,14,15,16)) {set.BC.fixedstate(IJsselmodel,i,south.bnd)}`
@@ -385,8 +383,7 @@ The influence of the boundary condition is limited to about 1 km from the bounda
 </div>
 
 
-_north.bnd_
-
+**north.bnd**
 <div class="exercise">
 Again take care to manually reset the boundary conditions. For the northern boundary, use:
 `for (i in 4:11) {set.BC.fixedstate(IJsselmodel,i,north.bnd)}`
@@ -420,8 +417,7 @@ plot(IJsselmodel,fill=varState.north.bnd)
 The sensitivity to the northern boundary condition shows the same pattern as for the southern boundary. The groundwater levels are sensitive up to about 1 km distance, except where the river is flowing.
 </div>
 
-_drainage.resist_
-
+**drainage.resist**
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -493,14 +489,13 @@ Below, the relative contribution of the parameters to the variation in the groun
 </div>
 
 
-_Qrch_
-
+**Qrch**
 ```{r}
 set.name(IJsselmodel,"Fraction contribution Qrch to variation in states")
 plot(IJsselmodel,fill= varState.Qrch/varStateTot)
 ```
 
-_Qwell_
+**Qwell**
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -514,8 +509,7 @@ plot(IJsselmodel,fill= varState.Qwell/varStateTot)
 ```
 </div>
 
-_kD_
-
+**kD**
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -529,7 +523,7 @@ plot(IJsselmodel,fill= varState.kD/varStateTot)
 ```
 </div>
 
-_river.resist_
+**river.resist**
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -543,8 +537,7 @@ plot(IJsselmodel,fill= varState.river.resist/varStateTot)
 ```
 </div>
 
-_south.bnd_
-
+**south.bnd**
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -558,7 +551,7 @@ plot(IJsselmodel,fill= varState.south.bnd/varStateTot)
 ```
 </div>
 
-_north.bnd_
+**north.bnd**
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -572,7 +565,7 @@ plot(IJsselmodel,fill= varState.north.bnd/varStateTot)
 ```
 </div>
 
-_drainage.resist_
+**drainage.resist**
 <div class="student_answer">
 ```{r}
 # Type your code here...
@@ -808,18 +801,17 @@ base$river.resist = base$river.resist*2
 river.resist=base$river.resist
 ```
 
-# Global Sensitivity Analysis (GSA)
+# Global Sensitivity Analysis (GSA) in 2D
 
 The functions defined in this script will be used to create parameter samples:
 ```{r}
 source("samplehelpers.R")
 ```
 
-## 5.1 GSA with a small sample size
+## GSA with a small sample size
 Because the model takes a while to run, you will do a 'try-out' GSA with a (very) small sample size of 5.
 
 **Constructing the parameter sample**
-
 <div class="exercise">
 In the chunk below, choose sensible boundaries for the parameters, and sample the parameters. 
 </div>
@@ -855,9 +847,8 @@ parsampleTest = GaussianLHS(samplesize,parmeans,parsd,parnames,parlower,parupper
 </div>
 
 **Making all the model runs**
-
 <div class="exercise">
-Run the model for your five parameter samples and save the MRESULT (still defined as groundwater level in housing area) of each run - this is best done in a for-loop.   Make a plot or histogram of MRESULT to get a first idea of the variation.
+Run the model for your five parameter samples and save the MRESULT (still defined as groundwater level in housing area) of each run - this is best done in a for-loop. Make a plot or histogram of MRESULT to get a first idea of the variation.
 </div>
 
 <div class="student_answer">
@@ -879,6 +870,9 @@ for(i in 1:nrow(parsampleTest))
     drainage.resist = parsampleTest[i,"drainage.resist"]
     south.bnd = parsampleTest[i,"south.bnd"]
     north.bnd = parsampleTest[i,"north.bnd"]
+    #remember that north and south bound need redefinition
+    for (j in 4:11) {set.BC.fixedstate(IJsselmodel,j,north.bnd)}
+    for (j in c(1,2,13,14,15,16)) {set.BC.fixedstate(IJsselmodel,j,south.bnd)}
     control = solve.steps(IJsselmodel)
     MsampleTest [i] = MRESULT()
     }
