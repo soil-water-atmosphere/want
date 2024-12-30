@@ -402,7 +402,17 @@ Write your answer here...
 </div>
 
 <div class="answer">
-Because with GSA we first determine the total variance, and then evaluate which part of that is explained by which parameter. Very often, the sum of the explained variance is unequal to the total variance of the model. The part that is left unexplained is caused by parameter interactions. 
+Because with GSA we first determine the total variance, and then evaluate which part of that is explained by which parameter. Very often, the sum of the explained variance is unequal to the total variance of the model. The part that is left unexplained is caused by parameter interactions. When we show that in the pie-chart, we notice that interaction plays a substantial role in this model. The next step would be to evaluate all the different interaction terms, but you can imagine that this increases the dimensions of evaluation quite fast: all combinations of parameters need to be tested for different types of interaction, and it is of course also possible that more than two parameters interact. 
+
+```{r}
+interaction = VARM-sum(ANOVA1)
+ANOVA_tot = c(ANOVA1,Interaction=interaction,)
+
+pie(ANOVA_tot,
+    main=paste("Standard deviation of M =",round(SDM,4),"m"),
+    col = rainbow(6),
+    radius=1)
+```
 </div>
 
 
