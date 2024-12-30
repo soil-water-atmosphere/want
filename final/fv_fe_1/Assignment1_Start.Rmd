@@ -863,11 +863,20 @@ The unit of the internal flux can be derived from the formulas: as $u_*$ is a 'v
 </div>
 
 <div class="exercise"> 
-@Chiel Add here a question to set-up the balance manually. 
+Assume a grid spacing of 2 meter, and a grid cell that starts at 9 m above the surface and ends at 11 m, thus with the center point at 10 m. Write down the balance of this cell, assuming that we have both fluxes and radiative cooling. Assume that the potential temperature profile is linearly increasing with height at a rate of 0.003 K m$^{-1}$ and reason whether the cell is warming or cooling.
 </div>
 
 <div class="answer"> 
-@Chiel Add here the answer. 
+The mass balance terms are:
+
+Balance               | Unit               
+----------------------|---------------    
+Internal flux at 9 m  | $-k u_* x \left. \dfrac{\partial \theta}{\partial x} \right|_{9 m} = 0.4 \cdot 0.25 \cdot 9 \cdot 0.003 = -0.0027$ K m s$^{-1}$.
+Internal flux at 11 m | $+k u_* x \left. \dfrac{\partial \theta}{\partial x} \right|_{11 m} = 0.4 \cdot 0.25 \cdot 11 \cdot 0.003 = 0.0033$ K m s$^{-1}$
+External flux         | $R\ \Delta x = -1 \cdot 10^{-4} \cdot 2 = -0.0002$ K m s$^{-1}$
+Balance               | 0.0033 - 0.0027 - 0.0002 = 0.004 K m s$^{-1}$
+
+The cell is warming as the heat influx from the top dominates due to the higher diffusivity.
 </div>
 
 <span class="comment"> **[LM]** @Chiel Zie hierboven waar je vraag en antwoordover handmatig opzetten van balans kan toevoegen.</span>
