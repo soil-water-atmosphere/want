@@ -93,7 +93,7 @@ print(M_base)
 state_base = dataframe.states(GWmodel)$state
 ```
 
-# Sampling the parameters
+## Sampling the parameters
 The first step in global sensitivity analysis (GSA) is to create a parameter sample. As discussed during the lectures, Latin Hypercube Sampling (LHS) is an efficient sampling technique. The `GaussianLHS` function provided by `samplehelpers` can be used to create such a sample. The function generates random samples from the given parameter distributions.    
 
 This function requires as arguments:
@@ -195,7 +195,7 @@ Write your answer here...
 As all random number generators, the results depend on a so called "seed". With the same seed the same numbers will be generated; changing the seed generates different random numbers. If the sample size is large enough, changing the seed should not lead to major changes in the parameter distributions. However, in the case of 15 samples (which is too small), a different seed might lead to rather different parameter distributions in the sample, and eventually lead to different sensitivity analysis results.  
 </div>
 
-# Performing the calculations
+## Performing the calculations
 
 Now the most time consuming part of GSA starts: for each row of the parameter sample, a model run is performed. 
 In each model run, we store:
@@ -406,7 +406,7 @@ Because with GSA we first determine the total variance, and then evaluate which 
 
 ```{r}
 interaction = VARM-sum(ANOVA1)
-ANOVA_tot = c(ANOVA1,Interaction=interaction,)
+ANOVA_tot = c(ANOVA1,Interaction=interaction)
 
 pie(ANOVA_tot,
     main=paste("Standard deviation of M =",round(SDM,4),"m"),
@@ -416,7 +416,7 @@ pie(ANOVA_tot,
 </div>
 
 
-# 5. Decisions made during the sensitivity analysis
-In performing this sensitivity analysis, many decisions are made. Two were already discussed; the sample size and the seed. In principle, the effect of the seed should diminish when a sufficient sample size is chosen. Other decisions, however, are for instance the parameter boundaries, the normal distribution that is sampled (why not uniform?), and the variable of interest. Feel free to play around with any of these choices, and investigate how they lead to different results. It is important to keep in mind that sensitivity analysis is always only valid for the specific instance for which it was conducted: sensitive parameters for one variable of interest (e.g. groundwater level in nature area) does for example not mean that this parameter is also sensitive for another variable of interest (e.g. when one is interested in the max groundwater level). 
+# Decisions made during the sensitivity analysis
+In performing this sensitivity analysis, many decisions are made. Two were already discussed; the sample size and the seed. In principle, the effect of the seed should diminish when a sufficient sample size is chosen. Other decisions are for instance the parameter boundaries, which parameters are included at all in the analysis, the normal distribution that is sampled (why not uniform?), and the variable of interest. Feel free to play around with any of these choices, and investigate how they lead to different results. It is important to keep in mind that sensitivity analysis is always only valid for the specific instance for which it was conducted: sensitive parameters for one variable of interest (e.g. average groundwater level in nature area) does for example not mean that this parameter is also sensitive for another variable of interest (e.g. when one is interested in the max groundwater level across the whole domain). 
 
 
