@@ -1,7 +1,7 @@
 ---
 title: "Assignment 1: Finite differences in time"
 author: "The WANT team"
-date: "Updated on 17/09/2024"
+date: "Updated on 17/12/2024"
 output:
   html_document:
     css: ../../want.css
