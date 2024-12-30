@@ -1,19 +1,25 @@
 ---
-title: "Sensitivity Assignment 3 - 1D systems"
-subtitle: "Global sensitivity analysis in a 1D groundwater model"
-author: "EB/LM"
-date: "11/12/2019"
+title: "Assignment 3: Global sensitivity analysis in 1D"
+author: "The WANT team"
+date: "Updated on 24/12/2024"
 output:
-   html_document:
-    css: want.css
+  bookdown::html_document2:
+    css: want_n.css
+    toc: yes
+  html_document:
+    css: want_n.css
+    toc: yes
+  html_notebook:
+    css: want_n.css
     toc: yes
 ---
 
 # Learning goals
-*  Performing global sensitivity analysis on a simple model *(Exercise 1-3)*
-*  Understanding the importance of the size of the parameter sample for the results of the sensitivity analysis *(Exercise 6,7)*
+*  Performing global sensitivity analysis on a simple model
+*  Understanding the importance of the size of the parameter sample for the results of the sensitivity analysis
 
-# Introduction
+# The model
+## Introduction
 In this assignment you will apply a global sensitivity analysis to the same 1D groundwater model that we used for the local sensitivity analysis. The model simulates a groundwater extraction well that is located next to a nature reserve (depicted by the reed vegetation), as shown in the figure below, with a river on the left side of the nature reserve.  
 
 ![1D saturated stationary groundwater model](1Dsensmodel.png)   
@@ -31,7 +37,6 @@ First of all, install the following packages from CRAN:
 *  `matrixStats`   
 </div>
 
-# 1. The model
 The same model is used as for the Local Sensitivity Analysis 1D assignment. The definition of the model is already provided below:
 ```{r}
 # Domain
@@ -88,8 +93,8 @@ print(M_base)
 state_base = dataframe.states(GWmodel)$state
 ```
 
-# 2. Sampling the parameters
-The first step in global sensitivity analysis (GSA) is to create a parameter sample. As discussed during the lectures, Latin Hypercube Sampling (LHS) is the most efficient sampling technique. The `GaussianLHS` function provided by `samplehelpers` can be used to create such a sample. The function generates random samples from the given parameter distributions.    
+# Sampling the parameters
+The first step in global sensitivity analysis (GSA) is to create a parameter sample. As discussed during the lectures, Latin Hypercube Sampling (LHS) is an efficient sampling technique. The `GaussianLHS` function provided by `samplehelpers` can be used to create such a sample. The function generates random samples from the given parameter distributions.    
 
 This function requires as arguments:
 
@@ -175,7 +180,7 @@ Write your answer here...
 </div>
 
 <div class="answer">
-A sample size of 15 is rather small, and this is visible in the histograms. Using a Gaussian Latin Hypercube Sample, we would expect to see normal distributions, the normal distribution is recognizable for all parameters but not very smooth. When comparing the parameter means in the sample with summary(parsample) to the parameter means that we defined in parmeans, we see that the mean deviates quite a bit for some parameters. This is probably all the result of a too small parameter sample. 
+A sample size of 15 is rather small, and this is visible in the histograms. Using a Gaussian Latin Hypercube Sample, we would expect to see normal distributions. the typical 'bell curve' for normal distributions is recognizable for all parameters, but does not look very smooth. When comparing the parameter means in the sample with summary(parsample) to the parameter means that we defined in parmeans, we see that the mean deviates quite a bit for some parameters. This is probably all the result of a too small parameter sample. 
 </div>
 
 <div class="exercise">
@@ -190,7 +195,7 @@ Write your answer here...
 As all random number generators, the results depend on a so called "seed". With the same seed the same numbers will be generated; changing the seed generates different random numbers. If the sample size is large enough, changing the seed should not lead to major changes in the parameter distributions. However, in the case of 15 samples (which is too small), a different seed might lead to rather different parameter distributions in the sample, and eventually lead to different sensitivity analysis results.  
 </div>
 
-# 3. Performing the calculations
+# Performing the calculations
 
 Now the most time consuming part of GSA starts: for each row of the parameter sample, a model run is performed. 
 In each model run, we store:
@@ -231,7 +236,7 @@ matplot(nodes,t(statesSample),type="l",main="States for all parameter sets",ylab
 ```
 
 <div class="exercise">
-It is also interesting to evaluate some randomly selected model outcomes indivually, to get an idea of how the parameters can influence the model results. Replace the XX below with a vector of sample numbers, and check the different model results obtained using different parameter samples.  
+It is also interesting to evaluate some randomly selected model outcomes individually, to get an idea of how the parameters can influence the model results. Replace the XX below with a vector of sample numbers, and check the different model results obtained using different parameter samples.  
 </div>
 
 ```{r, eval=FALSE}
@@ -269,10 +274,10 @@ It can be seen that the mean model result of all the parameter sets is close to 
 </div>
 
 
-# 4. GSA variation analysis
-The GSA variation analysis for the state at all nodes is time consuming. For that reason we will limit the GSA variation analysis to the data calculated by MRESULT - the groundwater level in the nature reserve.
+# Analysing the results
+GSA for the state at all nodes becomes quite complex to analyze. For now, we will limit analyzing the results of the GSA to the data calculated by MRESULT - the groundwater level in the nature reserve.
 
-## 4.1 Analysis of the M-sample
+## Analysis of the M-sample
 
 First we determine the basic statistics of the M-sample:
 ```{r}
@@ -296,7 +301,7 @@ lines(smoothdensM,col="red",lwd=3)
 You can repeat the whole analysis up to here to investigate the effect of changing the seed. The effect of changing the seed depends on the size of your parameter sample. 
 </div>
 
-## 4.2 Conditional expectation of M with respect to parameters
+## Conditional expectation of M with respect to parameters
 
 The next step is to investigate to what extent variation in a parameter can explain variation in model result. Therefore, it is handy to combine the M-sample and the parameter-sample into one big matrix:
 
@@ -348,9 +353,8 @@ par(old.par)
 ```
 </div>
 
-
 <div class="exercise">
-Describe each plot, and estimate based on the plots which parameter you think has highest sensitivity. 
+Describe each plot, and estimate based on the plots which parameter you think contributes most to model sensitivity. 
 </div>
 
 <div class="student_answer">
@@ -362,7 +366,7 @@ A horizontal line implies that the parameter value does not explain the variatio
 </div>
 
 
-## 4.3 Contribution of the parameters to the variance of M
+## Contribution of the parameters to the variance of M
 
 With the help of the `sample.vardecomp` function from the `samplehelpers` code, the analysis can now be completed:
 
@@ -387,6 +391,18 @@ Write your answer here...
 
 <div class="answer">
 Yes, clearly the parameters that showed most signal in the conditional probability are the ones with the highest contribution to the total model variance. Conceptually, the results also make sense; more rainfall means a higher groundwater level, also in the nature area. A higher extraction rate means a lower groundwater level in the nature area. In many model applications, however, the parameters do not have such a clear direct physical meaning. That makes it harder to estimate whether the sensitivity analysis results make sense or not. 
+</div>
+
+<div class="exercise">
+The plot above shows a pie-chart, which we also used for local sensitivity analysis. Why is the displayed pie-chart less appropriate in this context? 
+</div>
+
+<div class="student_answer">
+Write your answer here...
+</div>
+
+<div class="answer">
+Because with GSA we first determine the total variance, and then evaluate which part of that is explained by which parameter. Very often, the sum of the explained variance is unequal to the total variance of the model. The part that is left unexplained is caused by parameter interactions. 
 </div>
 
 
