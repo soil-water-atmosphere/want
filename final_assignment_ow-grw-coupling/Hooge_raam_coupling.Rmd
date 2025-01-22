@@ -5,9 +5,6 @@ output:
     toc: true
     css: want_n.css
     df_print: paged
-  pdf_document:
-    toc: true
-    css: want_n.css
 ---
 
 # Introduction
@@ -1060,7 +1057,7 @@ while (current.time < end.time)
   
   #plot some results
   Q.range = range(GW.Q.trans$surface_runoff,GW.Q.trans$storage_2flow,GW.Q.trans$flow_2storage,GW.Q.trans$precip,GW.Q.trans$boundary)
-  plot(GW.Q.trans$time,GW.Q.trans$surface_runoff,ylim = Q.range, type = "o", col = "red",lwd =2,
+  plot(GW.Q.trans$time,GW.Q.trans$surface_runoff,ylim = Q.range, type = "l", col = "red",lwd =2,
        ylab = "flux rates in m2/d", xlab = "time in days", main = "flux rates groundwater model")
   lines(GW.Q.trans$time,GW.Q.trans$storage_2flow,col="yellow4",lwd = 2)
   lines(GW.Q.trans$time,GW.Q.trans$flow_2storage,col="orange",lwd = 2)
@@ -1456,7 +1453,7 @@ This <code>sensitivity.loop()</code> contains many lines of code but basically d
 
 To set up a proper procedure, have close look at the Local Sensitivity Analysis assignment 1, Local sensitivity 1D of last week.
 
-### predictive uncertainty to analyse; the `MRESULT()`
+### Predictive uncertainty to analyse; the `MRESULT()`
 
 For a waterboard it is important to have some insight in the way storm events are processed within the area they control. It is therefor important that the water managers can take measures beforehand, like lowering the weir of the Hooge Raam before the storm event arrives.
 
@@ -1469,7 +1466,7 @@ There are several interesting model results for close inspection w.r.t. their 'p
 *  The max. water level in the Hooge Raam
 *  Effect of the precipitation distribution during a storm event.
 
-All results are stored in the following "containers" which are all simple data frame. Simply click on them in the upper right panel (Environmental tab) to what's all stored;
+All results are stored in the following "containers" which are all simple data frames. Simply click on them in the upper right panel (Environmental tab of Rstudio) to what's all stored;
 
 *  `GW.Q.trans` for all flux rates of the groundwater model in m2/d; each row is one time step
 *  `GW.H.trans` for all heads in the groundwater model; each row is one time step 
