@@ -274,7 +274,7 @@ grid()
 
 ## Flux and Volume functions for the solute transport equation
 
-1. The convection diffusion equation contains a convective aspect for which the flow(water) 'velocity' and in our case a flux rate in the x-direction in [$\mathsf{m^2/d}$] is required. It is based on the internal flux of the groundwater flow equation.  
+1. The convective part of the CDE requires a 'velocity' which comes directly from the flow model, simply being the internal flux in the `Fmodel` and can be retrieved by `q_D = dataframe.internalfluxes(Fmodel)`.  
 2. For the dispersive part of the convection diffusion equation it is also required to create a function for the volume per $\Delta x \Delta y$ to determine the amount of mass in the solute transport model.  Here this 'volume' is simply the saturated thickness multiplied with the porosity. 
 
 <div class="question">  
@@ -290,16 +290,16 @@ grid()
 2. The total volume at a certain x called here _Volume distribution_ is $\text{por}\,*\,D_{sat}(x)$ which has unit $\mathsf{m}$ or $\mathsf{m^3}/(\Delta x \Delta y)$. In this code it is called __Vflow__, also here, "flow" indicating the source (from the groundwater model).
 
 ```{r}
-df.intq = dataframe.internalfluxes(Fmodel)
-Qflow = approxfun(df.intq$x,df.intq$intflux,rule = 2)
+q_D = dataframe.internalfluxes(Fmodel)
+Qflow = approxfun(q_D$x,q_D$intflux,rule = 2)
 plot(nodes,Qflow(nodes),type='l',lwd=2,col='red',main="Internal flux flow model",ylab='flux (m2/d)',xlab = "distance (m)")
-Vflow = approxfun(nodes,por*D.sat(nodes),rule=2)
+Vflow = approxfun(nodes,por * D_sat(nodes),rule=2)
 plot(nodes,Vflow(nodes),type='l',lwd=2,col='blue',main="Volume distribution",ylab='Volume (m3/m2)',xlab="distance (m)" )
 ```
 </div>  
 
 # Solute transport model  
-The solute transport model will simulate the movement of a certain solute in the groundwater which comes from a continuous source. The source is simulated with a prescribed amount of mass "loaded" into the groundwater which is called "mass loading".  
+The solute transport model will simulate the movement of the pollutione in the groundwater which comes from a continuous source. The source is simulated with a prescribed amount of mass "loaded" into the groundwater which is called "mass loading".  
 The movement and displacement of the solute is based on the convection diffusion equation as described in the introduction and is now extended with the source term (the contaminant from the vessel) $S$:  
 
 $$
@@ -461,7 +461,7 @@ set.discretisation(model = Cmodel,nodes = nodes, method = "FV")
 solve.steps(Cmodel)
 
 ```
-### Results
+### Results steady state Cmodel
 
 Important result to have a closer look at are:
 
@@ -582,8 +582,12 @@ The convective/advective term and the dispersive term of the mass flux cancel ea
 
 </div>
 
-## Model setup transient  
-Similar like all models up till now, the main difference between a stationary and transient model is the addition of the storage flux and the simulation through time.  
+## Pollution for only 2 years
+
+The current Cmodel is based on a stationary situation. This means the all aspects, including the massloading are constant in time. In reality pollutions are normally noticed much earlier.
+To simulate the development of the pollution over time, a transient model is required.
+
+
 
 <div class="question">
 * Define the storage flux for the transient transport model. The (groundwater)flow model remains constant.  
@@ -628,6 +632,41 @@ The clip below gives an example of the transient model setup and the time steppi
 
 
 <div class="answer">
+
+Pollution for only 2 years
+
+```{r}
+# make a model copy of the stationary solute transport model
+C2ymodel = copy.model(Cmodel)
+#remove the concentration by initializing the model
+do.initialize(C2ymodel,init = 0.0)
+prev.C = state.fun(C2ymodel)
+add.spatialflux(C2ymodel,C.sto,name = "mass_storage")
+
+start_pollutant = 0.0
+stop_pollutant = 365
+delta.t = 10 #days for now
+current.time= start_pollutant
+
+#adding a plot to see the plume development
+plot(nodes,prev.C(nodes),type = 'o',col='red',ylab = "concentration kg/m3",
+     xlab= "distance (m)", main = "Transient solute concentration distribution",
+     ylim = c(0,max(prev.C(nodes))))
+
+while(current.time < stop_pollutant)
+{
+  prev.C = state.fun(C2ymodel)
+  solve.steps(C2ymodel)
+  
+  lines(dataframe.states(C2ymodel)$x,dataframe.states(C2ymodel)$state,col = heat.colors(10)[current.time/10])
+  current.time = current.time + delta.t
+}
+```
+
+dd
+
+
+
 
 ```{r}
 # make a model copy of the stationary solute transport model
