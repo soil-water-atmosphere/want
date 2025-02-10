@@ -117,7 +117,7 @@ The model for stationary groundwater flow consists of one phreatic aquifer (k = 
 The (flat) bottom of the aquifer aligns with 0.0 m AMSL. This means that the calculated head is identical to the saturated thickness of the aquifer.
 At a later stage an extraction well will be added to the model.  
 To determine specific volume fluxes the porosity of the soil is required and is here estimated on 30%.  
-Figure 2 illustrates the situation;
+Figure 1 illustrates the situation;
 
 ![**Figure 1**: Sketch of the field situation including a point source  ](Field_situation_spill.png)
 
@@ -128,9 +128,9 @@ The model which calculates the water(volume)flux is based on a flux rate integra
 $$
 q_D = -kH(x)\frac{\partial H}{\partial x}
 $$
-Which makes this flux rate quasi 2D; the $_D$ in $q_D$ is to indicate that it is a flux over the total saturated thickness.   
+Which makes this flux rate quasi 2D; since the calculated head provides the model with a (saturated) thickness. The $_D$ in $q_D$ is to indicate that it is a flux over the total saturated thickness.   
 
-$D_{sat}$: The saturated thickness over which flow takes place ($m$).
+$H$: The saturated thickness over which flow takes place ($m$).
 
 <div class="question">
 * What is the unit of this flux rate $q_D$ for this model?
@@ -195,30 +195,42 @@ the water divide on the right
 
 ```{r}
 #model domain
-bnd.left = 0 #m boundary at left
-bnd.right = 200 #m boundary at right
-domain = c(bnd.left,bnd.right)
-#sloping aquifer
-bot.slope = 5/1000
-bot.left =1
-bot.right = bot.left - bot.slope*bnd.right
-bottom = approxfun(x = domain,y = c(bot.left,bot.right))
+x_left = 0 #m boundary at left
+x_right = 200 #m boundary at right
+domain = c(x_left,x_right)
 
-#properties
+
+
+#properties aquifer
 k = 3.0 #m/d
-precip = 0.001 #m/d
-fix.H = 3.0
 por = 0.3
-#math model& boundary conditions
 
-Darcy <- function(x,head,gradH) 
+#boundary condition properties river
+river_level = 3.2 #m AMSL
+river_resistance = 5.0  #d
+river_width = 4.0 #m
+
+river = function(head)
 {
-  return(-k*(head-bottom(x))*gradH)
+  return((river_level - head)/river_resistance * river_width)
 }
 
+#spatial flux, precipitation rate
+precip = 0.001 #m/d
+
+#math model& boundary conditions
+#internal flux based on q_D as described above
+Darcy <- function(x,head,gradH) 
+{
+  return(-k*head*gradH)
+}
+#setting up new flow model
 Fmodel = newFLOW1D(domain = domain,systemfluxfunction = Darcy,name = "Stationary flow model ")
-set.BC.fixedstate(Fmodel,'left','fix.H')
+#adding the left boundary condition, since right is a Neumann type no action needed there
+set.BC.fluxstate(model = Fmodel,where = 'left',func = river)
+#adding the precipitation
 add.spatialflux(model = Fmodel,rate = 'precip',name = 'precipitation')
+
 # numerical model
 delta.x = 5 #m
 nodes = seq(from=domain[1],to = domain[2],by=delta.x)
@@ -238,34 +250,24 @@ solve.steps(Fmodel)
 #results
 plot(Fmodel,fluxplot = T,FVstyle = T)
 kable(dataframe.balance(Fmodel), format= "markdown", align = "c", caption = "Water balance terms")
+#a closer look at the Cauchy boundary/River
+dataframe.boundaries(Fmodel)
 ```
-
-3. A plot of the head distribution and the aquifer bottom elevation
-```{r}
-#plot with heads and aquifer bottom elevation
-level.range =range(Fmodel$states,bottom(nodes))
-plot(nodes,Fmodel$states,type="o",col="red",lwd=3,main = "head and bottom of the model",
-     ylab="level (m)",xlab="distance (m)",ylim=level.range)
-lines(nodes,bottom(nodes),col='brown',lwd=3)
-grid()
-```
-
-
 </div>
 
-To determine the mass in the solute transport model the saturated thickness is required, which varies with distance (x).  
+To determine the mass in the solute transport model the saturated thickness is required, which varies with distance (x) and is equal to the head at each location.  
 
 <div class="question">  
 
-* Make a function of the saturated thickness. Call the function e.g. D.sat. It should be a function with the distance x as argument.
+* Make a function of the saturated thickness. Recall that the FVFE package has a specific/easy to use function for this: `D_sat = state.fun(model)` which can now be used whenever the saturated thickness is required with `D_sat(x)`  
 </div>
 <div class="answer">
 See below
 
 ```{r}
-D.sat = approxfun(nodes,Fmodel$states-bottom(nodes))
-plot(nodes,D.sat(nodes),type="o", main='saturated thicknes (m)',
-     ylab="saturated thickness (m)",lwd=3)
+D_sat = state.fun(Fmodel)
+plot(nodes,D_sat(nodes),type="o", main='Saturated thicknes (m)',
+     ylab="saturated thickness (m)",lwd=3, col = "blue", xlab = "distance (m)")
 grid()
 ```
 </div>
