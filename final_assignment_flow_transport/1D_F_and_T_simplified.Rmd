@@ -17,6 +17,7 @@ output:
 rm(list = ls())
 library(FVFE1D)
 library(knitr)
+library(gifski)
 ```
 
 # Learning Goals  
@@ -210,6 +211,9 @@ river_level = 3.2 #m AMSL
 river_resistance = 5.0  #d
 river_width = 4.0 #m
 
+#boundary isohypses on the left (testing)
+iso_h = 5.2 #mm
+
 river = function(head)
 {
   return((river_level - head)/river_resistance * river_width)
@@ -228,6 +232,8 @@ Darcy <- function(x,head,gradH)
 Fmodel = newFLOW1D(domain = domain,systemfluxfunction = Darcy,name = "Stationary flow model ")
 #adding the left boundary condition, since right is a Neumann type no action needed there
 set.BC.fluxstate(model = Fmodel,where = 'left',func = river)
+#just for testing with a Dirichlet on the right to see when "v" are higher
+set.BC.fixedstate(model = Fmodel,where = 'right',value = "iso_h" )
 #adding the precipitation
 add.spatialflux(model = Fmodel,rate = 'precip',name = 'precipitation')
 
@@ -635,7 +641,7 @@ The clip below gives an example of the transient model setup and the time steppi
 
 Pollution for only 2 years
 
-```{r}
+```{r fig.show = animate }
 # make a model copy of the stationary solute transport model
 C2ymodel = copy.model(Cmodel)
 #remove the concentration by initializing the model
@@ -651,14 +657,17 @@ current.time= start_pollutant
 #adding a plot to see the plume development
 plot(nodes,prev.C(nodes),type = 'o',col='red',ylab = "concentration kg/m3",
      xlab= "distance (m)", main = "Transient solute concentration distribution",
-     ylim = c(0,max(prev.C(nodes))))
+     ylim = c(0,1))
 
 while(current.time < stop_pollutant)
 {
   prev.C = state.fun(C2ymodel)
   solve.steps(C2ymodel)
+  plot(nodes,prev.C(nodes),type = 'o',col='red',ylab = "concentration kg/m3",
+       xlab= "distance (m)", main = "Transient solute concentration distribution",
+       ylim = c(0,1))
   
-  lines(dataframe.states(C2ymodel)$x,dataframe.states(C2ymodel)$state,col = heat.colors(10)[current.time/10])
+  # lines(dataframe.states(C2ymodel)$x,dataframe.states(C2ymodel)$state,col = heat.colors(10)[current.time/10])
   current.time = current.time + delta.t
 }
 ```
