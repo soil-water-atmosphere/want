@@ -75,7 +75,7 @@ x <- lapply(pkgs, function(pkg)
  }})}})
 
 } 
-CheckInstallPackages(c("knitr","FVFE1D"))
+CheckInstallPackages(c("knitr","FVFE1D","gifski"))
 ```
 
 # Learning Goals
@@ -646,14 +646,14 @@ The storage change is about 10% of the external flux
 **[GB]**zou hier niet een plot gemaakt moeten worden met de verdeling van de storage en externe flux?
 </div>
 
-##Implementing the time loop
+## Implementing the time loop
 To cycle through the time steps $\Delta t$ of 300 $\mathsf{sec}$ starting at **begin.time** and finalizing at **end.time**, a time loop needs to be implemented.
 
 <div class="exercise">
 Create a new chuck based on the pseudo-code below in order to make the transient version. Take the following actions and simulate the model for 4 hours.
 
 * Make sure that the starting states of the transient model are set explicitly before the time loop, otherwise the starting states are set to zero.
-* Add ``fig.show='animate'`` between the curly brackets of your R-code block (first line, ``{r, fig.show='animate', interval=0.1}``) to create an animation. If the animation does not display in the markdown, open the html in Google Chrome.
+* Add some arguments between the curly brackets on top of your R-code block to create an animation: ``{r, animation.hook='gifski',interval= 0.1}``) to create an animation. If the animation does not display in the markdown, open the html in your browser (Chrome, Edge..).
 </div>
 
 ```
@@ -676,7 +676,7 @@ while (time < end.time)
 ```
 
 <div class="answer">
-```{r, fig.show='animate', interval=0.1}
+```{r, animation.hook='gifski',interval= 0.1}
 # Set the time to zero
 time = 0
 
@@ -1149,9 +1149,9 @@ To cycle through the time steps $\Delta t$ of 0.5 $\left[\mathsf{d}\right]$
 Adapt the code for the specific case here. Take the following actions and simulate the model for 30 days and set `dt` ($\Delta t$) to 0.5 $\left[\mathsf{d}\right]$
 
 * Note that the starting states of the transient model should be initiated explicitly, otherwise the starting states are set to zero. Initialize the transient model with the resulting states from `stat_no_well` with `do.initialize()`. By this initialization the spin-up time of the model is minimized. It should be set prior to the time loop.  
-* add `animation1,  fig.show='animate', aniopts=c('controls','loop'), interval=0.1` between the curly brackets at the first line of your R-code block to create an animation.
+* add `animation.hook='gifski',interval= 0.1` between the curly brackets on top of your R-code block to create an animation.
 
-You should see a "movie" of the state transitions during the execution of the transient model. A real movie can be included when one Knits the document. ffmpeg.exe is a program, that should be in the same directory as your markdown file already, which creates this movie within the html document. If the animation does not work, try opening the html in Google Chrome.
+You should see a "movie" of the state transitions during the execution of the transient model. A real movie can be included when one Knits the document. If the animation does not work, try opening the html in Google Chrome.
 </div>
 
 <button type="button" onclick="showHint(2011)">Show Hint</button>
@@ -1162,7 +1162,7 @@ Fill in your answer here...
 </div>
 
 <div class="answer">
-```{r animation1,  fig.show='animate', aniopts=c('controls','loop'), interval=0.1}
+```{r animation.hook='gifski',interval= 0.1}
 # Graphical parameter for plots
 par(bg = "white") 
 
