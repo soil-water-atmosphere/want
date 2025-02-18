@@ -578,9 +578,10 @@ Next the model is copied and this BC will override the previous Dirichlet BC on 
 ```{r}
 H_canal = 5 #m water level in the canal
 bed_resist = 10 #d the entrance resistance of the canal bed
+w = 3 #m width of the canal
 Cauchy_BC = function(state)
 {
-  flux = (H_canal - state) / bed_resist
+  flux = w * (H_canal - state) / bed_resist
   return(flux)
 }
 #create a copy of the base model and adjust the name (visible in the plots)
