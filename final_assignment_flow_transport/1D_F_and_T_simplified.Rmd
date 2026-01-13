@@ -11,6 +11,9 @@ output:
     css: want.css
     number_sections: yes
     toc: yes
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r}
@@ -20,179 +23,178 @@ library(knitr)
 library(gifski)
 ```
 
-# Learning Goals  
+# Learning Goals
 
-* Understand the use of the Convection(or Advection) Diffusion/Dispersion Equation in the context of solute transport modeling.
-* Derive physical dimensions and properties related to solute transport modeling.  
-* Setup flow and transport models in a 1D or pseudo 2D environment using proper units.  
-* Critically evaluate the numerical aspects of the solutions (Courant and Peclet numbers).  
-* Setup water and mass balances for both types of models and analyse the result.
-* Carry out a local sensitivity analyses of various parameters w.r.t. the outcome of both models
+-   Understand the use of the Convection(or Advection) Diffusion/Dispersion Equation in the context of solute transport modeling.
+-   Derive physical dimensions and properties related to solute transport modeling.\
+-   Setup flow and transport models in a 1D or pseudo 2D environment using proper units.\
+-   Critically evaluate the numerical aspects of the solutions (Courant and Peclet numbers).\
+-   Setup water and mass balances for both types of models and analyse the result.
+-   Carry out a local sensitivity analyses of various parameters w.r.t. the outcome of both models
 
-# Introduction  
+# Introduction
 
+In this exercise the basic Convection Diffusion Equation (CDE) as discussed during the lectures will be reviewed and an analysis of the appropriate dimensions/units will be discussed.
+As an example we will consider the leakage of a contaminant from a vessel on the surface into the saturated groundwater towards a local river.\
+First the equations (i.e. the internal fluxes) to setup a 1- (pseudo 2-) dimensional flow and 1- (pseudo 2-) dimensional transport model need to be derived and implemented.
+Specific attention is paid to the translation of the flow, volume, density and mass into the proper units for the flow and transport problem.\
+After the stationary flow model is run, the stationary transport model is run based on the local water velocities and saturated thickness of the flow model transporting the contaminants towards the river.\
+The following assignment will be to analyse the effect of remediating the spill based on local groundwater flow only and with the aid of a "pump and treat" scenario.\
+Finally a local sensitivity analysis is carried out analyzing the effects of various variables and parameters of both models on their results.
 
-In this exercise the basic Convection Diffusion Equation (CDE) as discussed during the lectures will be reviewed and an analysis of the appropriate dimensions/units will be discussed. As an example we will consider the leakage of a contaminant from a vessel on the surface into the saturated groundwater towards a local river.  
-First the equations (i.e. the internal fluxes) to setup a 1- (pseudo 2-) dimensional flow and 1- (pseudo 2-) dimensional transport model need to be derived and implemented. Specific attention is paid to the translation of the flow, volume, density and mass into the proper units for the flow and transport problem.   
-After the stationary flow model is run, the stationary transport model is run based on the local water velocities and saturated thickness of the flow model transporting the contaminants towards the river.  
-The following assignment will be to analyse the effect of remediating the spill based on local groundwater flow only and with the aid of a "pump and treat" scenario.  
-Finally a local sensitivity analysis is carried out analyzing the effects of various variables and parameters of both models on their results.  
-
-The convection diffusion equation as discussed during the lectures is:
-$$
+The convection diffusion equation as discussed during the lectures is: $$
 \frac{\partial s}{\partial t}=-v \frac{\partial s}{\partial x}+D \frac{\partial^2 s}{\partial x^2}
 $$
 
-which is a mass balance for the particular state (s);  
+which is a mass balance for the particular state (s);\
 With:
 
-* $\frac{\partial s}{\partial t}$: mass storage change during time  
-* $v \frac{\partial s}{\partial x}$: convective(advective) mass flux  
-* $D \frac{\partial^2 s}{\partial x^2}$: diffusive/dispersive mass flux  
+-   $\frac{\partial s}{\partial t}$: mass storage change during time\
+-   $v \frac{\partial s}{\partial x}$: convective(advective) mass flux\
+-   $D \frac{\partial^2 s}{\partial x^2}$: diffusive/dispersive mass flux
 
-All the above terms (obviously) have dimensions: $\frac{\text{mass}}{\text{volume time}}$ and when multiplied with the appropriate control volume based on the finite volume or finite element techniques it results in a mass flux of $\frac{\text{mass}}{time}$ per time step.  
+All the above terms (obviously) have dimensions: $\frac{\text{mass}}{\text{volume time}}$ and when multiplied with the appropriate control volume based on the finite volume or finite element techniques it results in a mass flux of $\frac{\text{mass}}{time}$ per time step.
 
 Retardation (ad- and desorption properties of a solute which effectively slows down the convection and diffusion processes) and decay are omitted from this equation for simplicity and will not be considered in the simulations.
 
-The convective part of this equation is based on the mass influx into (or out of) an elementary volume (e.g. a cube): 
-$$
+The convective part of this equation is based on the mass influx into (or out of) an elementary volume (e.g. a cube): $$
 qC\,\,\text{or}\,\, v \text{por}C
-$$  
-Where:  
+$$\
+Where:
 
-* $q$: Flux rate into (or out of) a face of the elementary volume (length/time)  
-* $\text{por}$ : porosity of the soil ($\frac{m^3}{m^3}$)
-* $C$: Concentration of the solute (mass/volume)  
+-   $q$: Flux rate into (or out of) a face of the elementary volume (length/time)\
+-   $\text{por}$ : porosity of the soil ($\frac{m^3}{m^3}$)
+-   $C$: Concentration of the solute (mass/volume)
 
-The convective part couples groundwater to solute transport since this $q$ is determined by the groundwater model.  
+The convective part couples groundwater to solute transport since this $q$ is determined by the groundwater model.
 
-The diffusive part it is based on the equation of Fick (first law) which resembles Darcy's equation:
-$$
+The diffusive part it is based on the equation of Fick (first law) which resembles Darcy's equation: $$
 J=-D\frac{\partial C}{\partial x}
 $$
 
-Where:  
+Where:
 
-* $J$: Diffusion flux (rate)  (mass/time)  
-* $D$: Diffusivity of Diffusion coefficient length$^2$/time
+-   $J$: Diffusion flux (rate) (mass/time)\
+-   $D$: Diffusivity of Diffusion coefficient length$^2$/time
 
-
-<div class="question">
+::: question
 Why is there a negative sign in the above equation?
-</div>
+:::
 
-<div class="answer">
-The diffusion flux goes towards the lower concentration. So if that is into the $x$ direction $C_{x+\Delta x}$ is lower than $C_{x}$. Therefor, and similar like the Darcy equation the negative sign makes the flux to go in the proper direction.  
-</div>
+::: answer
+The diffusion flux goes towards the lower concentration.
+So if that is into the $x$ direction $C_{x+\Delta x}$ is lower than $C_{x}$.
+Therefor, and similar like the Darcy equation the negative sign makes the flux to go in the proper direction.
+:::
 
-
-<div class="question">
+::: question
 When using the following units:
 
-* length $\mathsf{m}$  
-* mass $\mathsf{kg}$  
-* concentration $\mathsf{kg/m^3}$  
-* time $d$  
+-   length $\mathsf{m}$\
+-   mass $\mathsf{kg}$\
+-   concentration $\mathsf{kg/m^3}$\
+-   time $d$
 
-What is the unit for the following variables when one assumes 3 dimensional (x,y,z) flow and transport?  
+What is the unit for the following variables when one assumes 3 dimensional (x,y,z) flow and transport?
 
-* $D$  
-* $q$  
-* $C$  
-* $J$
-</div>
+-   $D$\
+-   $q$\
+-   $C$\
+-   $J$
+:::
 
-<div class="answer">
+::: answer
+-   $D$ : $\mathsf{m^2/d}$
+-   $q$ : $\mathsf{m/d}$
+-   $C$ : $\mathsf{kg/m^3}$
+-   $J$ : $\mathsf{kg/d}$
+:::
 
-* $D$ : $\mathsf{m^2/d}$ 
-* $q$ : $\mathsf{m/d}$
-* $C$ : $\mathsf{kg/m^3}$
-* $J$ : $\mathsf{kg/d}$
-</div>
+In this assignment we consider the concentration of a solute to be the **only** amount of mass in a **unit volume** of groundwater.
+However in reality a concentration of e.g. 35 $kg/m^3$ of salt in a volume of 1000 liters groundwater will have a **density** of about 1025 $kg/m^3$ (also depending on pressure, viscosity and temperature).
+So although $C$ and $\rho$ do have the same unit, they are different in the way we calculate them.
+By the way, flow due to density differences are also not considered here!
 
-In this assignment we consider the concentration of a solute to be the __only__ amount of mass in a __unit volume__ of groundwater. However in reality a concentration of e.g. 35 $kg/m^3$ of salt in a volume of 1000 liters groundwater will have a __density__ of about 1025 $kg/m^3$ (also depending on pressure, viscosity and temperature). So although $C$ and $\rho$ do have the same unit, they are different in the way we calculate them. By the way, flow due to density differences are also not considered here!  
+# Groundwater flow model
 
-# Groundwater flow model  
-
-The model for stationary groundwater flow consists of one phreatic aquifer (k = 3[$\mathsf{m/d}$]). The saturated thickness is determined by the calculated head.  The total length of the model is 200 m, use a nodal distance of 5 m. At the left boundary a Cauchy type condition is assigned, simulating a river with an open water level of 3.20 m Above Mean Sea Level (AMSL) and and entrance resistance of 5 days. The right boundary is based on a water divide. On top a uniform recharge om 1 mm/d is applied.  
-The (flat) bottom of the aquifer aligns with 0.0 m AMSL. This means that the calculated head is identical to the saturated thickness of the aquifer.
-At a later stage an extraction well will be added to the model.  
-To determine specific volume fluxes the porosity of the soil is required and is here estimated on 30%.  
+The model for stationary groundwater flow consists of one phreatic aquifer (k = 3[$\mathsf{m/d}$]).
+The saturated thickness is determined by the calculated head.
+The total length of the model is 200 m, use a nodal distance of 5 m.
+At the left boundary a Cauchy type condition is assigned, simulating a river with an open water level of 3.20 m Above Mean Sea Level (AMSL) and and entrance resistance of 5 days.
+The right boundary is based on a water divide.
+On top a uniform recharge om 1 mm/d is applied.\
+The (flat) bottom of the aquifer aligns with 0.0 m AMSL.
+This means that the calculated head is identical to the saturated thickness of the aquifer.
+At a later stage an extraction well will be added to the model.\
+To determine specific volume fluxes the porosity of the soil is required and is here estimated on 30%.\
 Figure 1 illustrates the situation;
 
-![**Figure 1**: Sketch of the field situation including a point source  ](Field_situation_spill.png)
+![**Figure 1**: Sketch of the field situation including a point source](Spill_vessel_simplified.png)
 
-## Internal groundwater flux  
+## Internal groundwater flux
 
 The model which calculates the water(volume)flux is based on a flux rate integrated over the saturated thickness, here simply $H$;
 
 $$
 q_D = -kH(x)\frac{\partial H}{\partial x}
-$$
-Which makes this flux rate quasi 2D; since the calculated head provides the model with a (saturated) thickness. The $_D$ in $q_D$ is to indicate that it is a flux over the total saturated thickness.   
+$$ Which makes this flux rate quasi 2D; since the calculated head provides the model with a (saturated) thickness.
+The $_D$ in $q_D$ is to indicate that it is a flux over the total saturated thickness.
 
 $H$: The saturated thickness over which flow takes place ($m$).
 
-<div class="question">
-* What is the unit of this flux rate $q_D$ for this model?
-</div>
-<div class="answer">
- * $q_D(x)$: the flux integrated over the saturated thickness $D_{sat}(x)$ per $\Delta y$ so $\mathsf{m^3/(d m)}$ which is simply $\mathsf{m^2/d}$
-</div>
+::: question
+-   What is the unit of this flux rate $q_D$ for this model?
+:::
 
-The following illustration clarifies some dimensions of the flow in the 1D(or quasi 2D) model;  
+::: answer
+-   $q_D(x)$: the flux integrated over the saturated thickness $D_{sat}(x)$ per $\Delta y$ so $\mathsf{m^3/(d m)}$ which is simply $\mathsf{m^2/d}$
+:::
+
+The following illustration clarifies some dimensions of the flow in the 1D(or quasi 2D) model;
 
 ![**Figure 2**: Sketch of different properties and the three spatial dimensions of groundwater flow](Dimensions_properties_flow_model.png)
 
+The volume groundwater in a slice of soil is now : $\text{por}\Delta x \Delta y \,D_{sat}$ (check the units!).
+But since we consider a quasi 2-D model the $\Delta y$ is not considered in the equations.
+In other words, the volume of groundwater in a slice ($\Delta x$) of soil is $m^3/m$, the $/m$ indicating the "per meter $\Delta y$".
 
+::: question
+-   How would you derive the water velocity $\left[\mathsf{m/d}\right]$ from this groundwater flow model?
+:::
 
-The volume groundwater in a slice of soil is now : $\text{por}\Delta x \Delta y \,D_{sat}$  (check the units!). But since we consider a quasi 2-D model the $\Delta y$ is not considered in the equations. In other words, the volume of groundwater in a slice ($\Delta x$) of soil is $m^3/m$, the $/m$ indicating the "per meter $\Delta y$".
+::: answer
+-   To come from Darcy's flux "density" or rate to velocity: $v = \frac{q_D}{\text{porosity}\,D_{sat}}$. The water flow takes place in the pores.
+:::
 
-<div class="question">
-
-
-* How would you derive the water velocity $\left[\mathsf{m/d}\right]$
- from this groundwater flow model?
-
-</div>
-<div class="answer">
-
- * To come from Darcy's flux "density" or rate to velocity: $v = \frac{q_D}{\text{porosity}\,D_{sat}}$. The water flow takes place in the pores.
-
- 
-</div>
-
-## Boundary conditions  
+## Boundary conditions
 
 Possible boundary conditions for the groundwater flow model are based on:
 
-1. Dirichlet type 
-2. Neumann type
-3. Cauchy type 
+1.  Dirichlet type
+2.  Neumann type
+3.  Cauchy type
 
-<div class="question">
-implement the appropriate boundary conditions; 
-the prescribed river level left and  
+::: question
+implement the appropriate boundary conditions; the prescribed river level left and\
 the water divide on the right
-</div>
+:::
 
-<div class="answer">
+::: answer
+-   left is a Dirichlet boundary condition with a prescribed level of 3 m AMSL
+-   right is a Neumann boundary condition for no action is required
+:::
 
-* left is a Dirichlet boundary condition with a prescribed level of 3 m AMSL
-* right is a Neumann boundary condition for no action is required
-</div>
+## Setup groundwater flow model
 
-## Setup groundwater flow model  
+::: question
+1.  Setup this flow model and give it a distinctive name e.g. Fmodel or Flowmodel or so.
+    a.  Use the `do.initialize()` function to avoid numerical problems due to the non-linear character of the internal flux function.
+2.  Run the model and look at the results; head distribution, internal flux and water balance terms.\
+3.  Create a plot showing both the calculated head and the bottom of the aquifer.\
+:::
 
-<div class="question">
-1. Setup this flow model and give it a distinctive name e.g. Fmodel or Flowmodel or so. 
-   a. Use the `do.initialize()` function to avoid numerical problems due to the non-linear character of the internal flux function.
-2. Run the model and look at the results; head distribution, internal flux and water balance terms.  
-3. Create a plot showing both the calculated head and the bottom of the aquifer.  
-</div>
-
-<div class="answer">
-1. Model setup of the groundwater flow model  
+::: answer
+1.  Model setup of the groundwater flow model
 
 ```{r}
 #model domain
@@ -212,7 +214,7 @@ river_resistance = 5.0  #d
 river_width = 4.0 #m
 
 #boundary isohypses on the left (testing)
-iso_h = 5.2 #mm
+#iso_h = 5.2 #mm
 
 river = function(head)
 {
@@ -233,7 +235,8 @@ Fmodel = newFLOW1D(domain = domain,systemfluxfunction = Darcy,name = "Stationary
 #adding the left boundary condition, since right is a Neumann type no action needed there
 set.BC.fluxstate(model = Fmodel,where = 'left',func = river)
 #just for testing with a Dirichlet on the right to see when "v" are higher
-set.BC.fixedstate(model = Fmodel,where = 'right',value = "iso_h" )
+#line below was only for testing, evaluating other velocities at right border
+#set.BC.fixedstate(model = Fmodel,where = 'right',value = "iso_h" )
 #adding the precipitation
 add.spatialflux(model = Fmodel,rate = 'precip',name = 'precipitation')
 
@@ -248,7 +251,8 @@ summary(Fmodel)
 
 ```
 
-2. Solving this model and plotting the results
+2.  Solving this model and plotting the results
+
 ```{r}
 #solve
 solve.steps(Fmodel)
@@ -259,15 +263,15 @@ kable(dataframe.balance(Fmodel), format= "markdown", align = "c", caption = "Wat
 #a closer look at the Cauchy boundary/River
 dataframe.boundaries(Fmodel)
 ```
-</div>
+:::
 
-To determine the mass in the solute transport model the saturated thickness is required, which varies with distance (x) and is equal to the head at each location.  
+To determine the mass in the solute transport model the saturated thickness is required, which varies with distance (x) and is equal to the head at each location.
 
-<div class="question">  
+::: question
+-   Make a function of the saturated thickness. Recall that the FVFE package has a specific/easy to use function for this: `D_sat = state.fun(model)` which can now be used whenever the saturated thickness is required with `D_sat(x)`\
+:::
 
-* Make a function of the saturated thickness. Recall that the FVFE package has a specific/easy to use function for this: `D_sat = state.fun(model)` which can now be used whenever the saturated thickness is required with `D_sat(x)`  
-</div>
-<div class="answer">
+::: answer
 See below
 
 ```{r}
@@ -276,24 +280,21 @@ plot(nodes,D_sat(nodes),type="o", main='Saturated thicknes (m)',
      ylab="saturated thickness (m)",lwd=3, col = "blue", xlab = "distance (m)")
 grid()
 ```
-</div>
+:::
 
 ## Flux and Volume functions for the solute transport equation
 
-1. The convective part of the CDE requires a 'velocity' which comes directly from the flow model, simply being the internal flux in the `Fmodel` and can be retrieved by `q_D = dataframe.internalfluxes(Fmodel)`.  
-2. For the dispersive part of the convection diffusion equation it is also required to create a function for the volume per $\Delta x \Delta y$ to determine the amount of mass in the solute transport model.  Here this 'volume' is simply the saturated thickness multiplied with the porosity. 
+1.  The convective part of the CDE requires a 'velocity' which comes directly from the flow model, simply being the internal flux in the `Fmodel` and can be retrieved by `q_D = dataframe.internalfluxes(Fmodel)`.\
+2.  For the dispersive part of the convection diffusion equation it is also required to create a function for the volume per $\Delta x \Delta y$ to determine the amount of mass in the solute transport model. Here this 'volume' is simply the saturated thickness multiplied with the porosity.
 
-<div class="question">  
+::: question
+1.  Create the (water) flux function(x) for the internal flux. Call it **Qflow** and make use of **approxfun** and set **rule=2**.\
+2.  Create the "volume water" function(x). It is based on the volume of water contained in a slice of soil in the x-direction (and "y") and call it **Vflow**. Recall that the FVFE1D package will determine the $\Delta x$ of the slice based on the size of the volumes or elements.
+:::
 
-1. Create the (water) flux function(x) for the internal flux. Call it __Qflow__ and make use of __approxfun__  and set __rule=2__.  
-2. Create the "volume water" function(x). It is based on the volume of water contained in a slice of soil in the x-direction (and "y") and call it **Vflow**. Recall that the FVFE1D package will determine the $\Delta x$ of the slice based on the size of the volumes or elements.  
-
-</div>
-
-<div class="answer">
-
-1. The internal flux can be derived with __dataframe.internalfluxes(Fmodel)__ with this dataframe you can create a function(x) which has unit $\mathsf{m^2/d}$. In this code it is called __Qflow__, with "flow" indicating the source (from the groundwater model).
-2. The total volume at a certain x called here _Volume distribution_ is $\text{por}\,*\,D_{sat}(x)$ which has unit $\mathsf{m}$ or $\mathsf{m^3}/(\Delta x \Delta y)$. In this code it is called __Vflow__, also here, "flow" indicating the source (from the groundwater model).
+::: answer
+1.  The internal flux can be derived with **dataframe.internalfluxes(Fmodel)** with this dataframe you can create a function(x) which has unit $\mathsf{m^2/d}$. In this code it is called **Qflow**, with "flow" indicating the source (from the groundwater model).
+2.  The total volume at a certain x called here *Volume distribution* is $\text{por}\,*\,D_{sat}(x)$ which has unit $\mathsf{m}$ or $\mathsf{m^3}/(\Delta x \Delta y)$. In this code it is called **Vflow**, also here, "flow" indicating the source (from the groundwater model).
 
 ```{r}
 q_D = dataframe.internalfluxes(Fmodel)
@@ -302,45 +303,45 @@ plot(nodes,Qflow(nodes),type='l',lwd=2,col='red',main="Internal flux flow model"
 Vflow = approxfun(nodes,por * D_sat(nodes),rule=2)
 plot(nodes,Vflow(nodes),type='l',lwd=2,col='blue',main="Volume distribution",ylab='Volume (m3/m2)',xlab="distance (m)" )
 ```
-</div>  
+:::
 
-# Solute transport model  
-The solute transport model will simulate the movement of the pollutione in the groundwater which comes from a continuous source. The source is simulated with a prescribed amount of mass "loaded" into the groundwater which is called "mass loading".  
-The movement and displacement of the solute is based on the convection diffusion equation as described in the introduction and is now extended with the source term (the contaminant from the vessel) $S$:  
+# Solute transport model
+
+The solute transport model will simulate the movement of the pollutione in the groundwater which comes from a continuous source.
+The source is simulated with a prescribed amount of mass "loaded" into the groundwater which is called "mass loading".\
+The movement and displacement of the solute is based on the convection diffusion equation as described in the introduction and is now extended with the source term (the contaminant from the vessel) $S$:
 
 $$
 \frac{\partial s}{\partial t}=-v \frac{\partial s}{\partial x}+D \frac{\partial^2 s}{\partial x^2} + S
 $$
 
-The aforementioned (CDE) equation can be considered to be a **mass balance**, simply multiply all terms with a volume and it results in mass per time  $\frac{kg}{d}$.  
+The aforementioned (CDE) equation can be considered to be a **mass balance**, simply multiply all terms with a volume and it results in mass per time $\frac{kg}{d}$.
 
-## Internal mass flux for the transportmodel  
+## Internal mass flux for the transportmodel
 
 The general internal *mass flux* for the solute transport model describes the movement of mass per time unit.
 
-
 $$
 M_{flux} =A \,\, por \left\{ vC-D\frac{\partial C}{\partial x}\right\}
-$$
-But since we only simulate in 1D (or quasi 2D due to $D_{sat}$), this mass flux is a mass flux per $\Delta y$ and has the unit $\mathsf{kg/(md)}$. Reformulating the mass flux for this results in:
+$$ But since we only simulate in 1D (or quasi 2D due to $D_{sat}$), this mass flux is a mass flux per $\Delta y$ and has the unit $\mathsf{kg/(md)}$.
+Reformulating the mass flux for this results in:
 
 $$
 M'_{flux} =\frac{A \,\, por}{\Delta y} \left\{ vC-D\frac{\partial C}{\partial x}\right\}=D_{sat}\, \text{por} \left\{ vC-D\frac{\partial C}{\partial x}\right\}
 $$
 
-With:  
+With:
 
-* $A$: the area perpendicular to the mass flux, $D_{sat}\, \Delta y$, in $\mathsf{m^2}$  
-* $por$: porosity (-)  
-* $v$: local velocity in $\mathsf{m/d}$  
-* $C$: concentration of the solute in $\mathsf{kg/m^3}$  
-* $D$: Diffusion/Dispersion coefficient in $\mathsf{m^2/d}$  
-
+-   $A$: the area perpendicular to the mass flux, $D_{sat}\, \Delta y$, in $\mathsf{m^2}$\
+-   $por$: porosity (-)\
+-   $v$: local velocity in $\mathsf{m/d}$\
+-   $C$: concentration of the solute in $\mathsf{kg/m^3}$\
+-   $D$: Diffusion/Dispersion coefficient in $\mathsf{m^2/d}$
 
 Looking at both the Darcy flux and this "mass flux", there are similarities and differences:
 
-* both have a diffusion term with a minus sign up front
-* the mass flux has an additional term, the convective term
+-   both have a diffusion term with a minus sign up front
+-   the mass flux has an additional term, the convective term
 
 ### Advection/Convection
 
@@ -348,99 +349,101 @@ Solutes are displaced due to the groundwater flow and is calculated with; $vC$, 
 
 ### Dispersion/Diffusion
 
-Solutes are displaced by concentration gradients, similar like groundwater is displaced by the head gradient.  
-This term $-D \frac{\partial C}{\partial x}$ is called the (first) Fick's law (similar like Darcy's law for groundwater flow).  
+Solutes are displaced by concentration gradients, similar like groundwater is displaced by the head gradient.\
+This term $-D \frac{\partial C}{\partial x}$ is called the (first) Fick's law (similar like Darcy's law for groundwater flow).\
 During the transport simulations we will assume a constant dispersion coefficient $D$ and start with 2.5 $m^2/d$
-
-
 
 ### Derivation of the internal flux function for transport
 
-To distinguish the 'flow' and 'mass' flux rates between groundwater flow and solute transport, groundwater flow is indicated with 'flow', as in __Qflow(x)__, for the internal flux with unit $m^2/d$. Solute transport focuses on the amount of mass of a certain solute/pollutant in the groundwater and is here indicated with __Mflux(x)__ with unit $kg/(dm)$.  Again, the $/m$ comes from the "per meter $\Delta y$".
+To distinguish the 'flow' and 'mass' flux rates between groundwater flow and solute transport, groundwater flow is indicated with 'flow', as in **Qflow(x)**, for the internal flux with unit $m^2/d$.
+Solute transport focuses on the amount of mass of a certain solute/pollutant in the groundwater and is here indicated with **Mflux(x)** with unit $kg/(dm)$.
+Again, the $/m$ comes from the "per meter $\Delta y$".
 
+The (hydrodynamic) diffusion/dispersion here is a combination of the molecular diffusion(Brownian movement) and the mechanical dispersion(accounting for the local pore flow and its pore structure) and is assumed to be constant here.
 
-The (hydrodynamic) diffusion/dispersion here is a combination of the molecular diffusion(Brownian movement) and the mechanical dispersion(accounting for the local pore flow and its pore structure) and is assumed to be constant here.  
+::: question
+-   'Derive' internal flux function for the transport model which is based on the mass flux equation above and determine its unit.
+-   What is the unit for the concentration for this model?
+-   What is the unit for the mass in the model?
+:::
 
-<div class="question">
+::: answer
+-   Derivation of the mass flux/internal flux function: $$
+    \begin{align}
+    M_{flux} &= A\,\text{por} \left ( vC -D\frac{\partial C}{\partial x}\right )\\
+    &= D_{sat}\,\text{por}\,v\,C - D_{sat}\,\text{por}\,D\frac{\partial C}{\partial x}\\
+    &= q_D\,C - D_{sat}\,\text{por}\,D\frac{\partial C}{\partial x}\\
+    &= \text{Qflow}\,C - \text{Vflow}\,D\frac{\partial C}{\partial x}\\
+    q_D \, C&:[\mathsf{m^2d^{-1}kgm^{-3}}]\rightarrow [\mathsf{kg/(md)}]\\
+    D_{sat}\,\text{por}\,D\frac{\partial C}{\partial x} &:[\mathsf{m\,-\, m^2d^{-1}kgm^{-3}m^{-1}}] \rightarrow [\mathsf{kg/(md)}]
+    \end{align}\\
+    $$
+-   $C$ is in $\mathsf{kg/m^3}$, and also for this model if we consider the volume being $D(x)*\text{por}\,\Delta x \, \Delta y$.
+-   Mass has the unit $\mathsf{kg}$ but to derive mass from the concentration in this model it is $C\,D_{sat}\,por\,\Delta x \rightarrow [\mathsf{kgm^{-3}\,m\,-\,m}] \rightarrow [\mathsf{kg/m}]$ which is stored in the soil for a certain moment in time. The amount of mass entering or leaving the model can be calculated with $\text{mass flux}\,\text{time step}\rightarrow qC\Delta t\rightarrow [\mathsf{m^2d^{-1}kgm^{-3}d}]\rightarrow [\mathsf{kg/m}]$.
+:::
 
-* 'Derive' internal flux function for the transport model which is based on the mass flux equation above and determine its unit.
-* What is the unit for the concentration for this model?
-* What is the unit for the mass in the model?
+## Model setup stationary
 
-</div>
-
-<div class="answer">  
-
-* Derivation of the mass flux/internal flux function:
-$$
-\begin{align}
-M_{flux} &= A\,\text{por} \left ( vC -D\frac{\partial C}{\partial x}\right )\\
-&= D_{sat}\,\text{por}\,v\,C - D_{sat}\,\text{por}\,D\frac{\partial C}{\partial x}\\
-&= q_D\,C - D_{sat}\,\text{por}\,D\frac{\partial C}{\partial x}\\
-&= \text{Qflow}\,C - \text{Vflow}\,D\frac{\partial C}{\partial x}\\
-q_D \, C&:[\mathsf{m^2d^{-1}kgm^{-3}}]\rightarrow [\mathsf{kg/(md)}]\\
-D_{sat}\,\text{por}\,D\frac{\partial C}{\partial x} &:[\mathsf{m\,-\, m^2d^{-1}kgm^{-3}m^{-1}}] \rightarrow [\mathsf{kg/(md)}]
-\end{align}\\
-$$
-* $C$ is in $\mathsf{kg/m^3}$, and also for this model if we consider the volume being $D(x)*\text{por}\,\Delta x \, \Delta y$.
-* Mass has the unit $\mathsf{kg}$ but to derive mass from the concentration in this model it is $C\,D_{sat}\,por\,\Delta x \rightarrow [\mathsf{kgm^{-3}\,m\,-\,m}] \rightarrow [\mathsf{kg/m}]$ which is stored in the soil for a certain moment in time. The amount of mass entering or leaving the model can be calculated with $\text{mass flux}\,\text{time step}\rightarrow qC\Delta t\rightarrow [\mathsf{m^2d^{-1}kgm^{-3}d}]\rightarrow [\mathsf{kg/m}]$.
-
-</div>
-
-## Model setup  stationary
-
-The domain of the solute transport model is identical to the groundwater flow model.  On the right hand side no solute is entering or leaving the model so the boundary is closed, simply because there is no flow there. On the left hand side solute leaves the model due to convection; i.o.w. groundwater flow carries the solute out of the model, into the river.
+The domain of the solute transport model is identical to the groundwater flow model.
+On the right hand side no solute is entering or leaving the model so the boundary is closed, simply because there is no flow there.
+On the left hand side solute leaves the model due to convection; i.o.w. groundwater flow carries the solute out of the model, into the river.
 
 ### Boundary conditions tranport model
 
 Also here we can chose between the three different types of boundary conditions
 
-*  Dirichlet, a prescribed concentration: $C(x,t)$
-*  Neumann, a prescribed concentration **gradient**: $\frac{\partial C}{\partial x}$
-*  Cauchy, combination of both: $vC - D \frac{\partial C}{\partial x}$  
+-   Dirichlet, a prescribed concentration: $C(x,t)$
+-   Neumann, a prescribed concentration **gradient**: $\frac{\partial C}{\partial x}$
+-   Cauchy, combination of both: $vC - D \frac{\partial C}{\partial x}$
 
 A relevant difference between applying boundary conditions for transport models compared to flow models, is that there is a large difference in applications when water with a certain concentration is flowing **in** or **out** of the model.
 
-The Dirichlet condition is used mostly when the concentration is known at a certain point in time and that one is ensured the flow will always be oriented inwards. When outflow is expected, the model runs into problems. Simply consider what would happen with a model when you force it to come up with a prescribed concentration flowing out of the model...
+The Dirichlet condition is used mostly when the concentration is known at a certain point in time and that one is ensured the flow will always be oriented inwards.
+When outflow is expected, the model runs into problems.
+Simply consider what would happen with a model when you force it to come up with a prescribed concentration flowing out of the model...
 
-Applying the Neumann boundary condition and assuming that no mass/solute is entering the model, is similar to applying this in a flow model.  
+Applying the Neumann boundary condition and assuming that no mass/solute is entering the model, is similar to applying this in a flow model.
 
-The Cauchy boundary condition is a special and important case for transport modeling. It serves as a tool to let water with a solute move out of the model. Most of the time the concentration gradient at the boundary (outflow) is assumed to be 0 resulting in $vC$ indicating that the local groundwater velocity at this boundary multiplied with the concentration at that point results in mass flux leaving the model.  
-
+The Cauchy boundary condition is a special and important case for transport modeling.
+It serves as a tool to let water with a solute move out of the model.
+Most of the time the concentration gradient at the boundary (outflow) is assumed to be 0 resulting in $vC$ indicating that the local groundwater velocity at this boundary multiplied with the concentration at that point results in mass flux leaving the model.
 
 The dispersion coefficient is set to 2.5 $\mathsf{m^2/d}$ being 1/2 of the volume size, nodal distance.
 
-<div class="question">
+::: question
+-   Determine the proper boundary conditions for the transport model.
+:::
 
-* Determine the proper boundary conditions for the transport model.
-</div>
-<div class="answer">
+::: answer
+-   $qC \rightarrow [\mathsf{m^2d^{-1}kgm^{-3}}]\rightarrow [\mathsf{kgd^{-1}m^{-1}}]\rightarrow [\mathsf{kg/(md)}]$
+-   Boundary right: nothing to do, natural boundary condition
+-   Boundary left : $A\,\text{por}\,\left ( vC -D\frac{\partial C}{\partial x}\right )$ and assume $\frac{\partial C}{\partial x}=0\rightarrow =q_D\,C \rightarrow \text{Qflow}(x=0)C$
+:::
 
-* $qC \rightarrow [\mathsf{m^2d^{-1}kgm^{-3}}]\rightarrow [\mathsf{kgd^{-1}m^{-1}}]\rightarrow [\mathsf{kg/(md)}]$
-* Boundary right: nothing to do, natural boundary condition
-* Boundary left : $A\,\text{por}\,\left ( vC -D\frac{\partial C}{\partial x}\right )$ and assume $\frac{\partial C}{\partial x}=0\rightarrow =q_D\,C \rightarrow \text{Qflow}(x=0)C$
-</div>
+### Point source
 
-### Point source  
-
-Somewhere in the middle of the solute transport model a solute source (pollutant) is assigned to the model. It will be implemented as a _mass loading_ condition/forcing. One could imagine it being a substance dissolving into the groundwater. This way an amount of 'mass' is loaded into the model/groundwater during a certain amount of time.  In this case the substance is leaking into the groundwater continuously with a mass loading of 0.125 $\mathsf{kg/(md)}$
+Somewhere in the middle of the solute transport model a solute source (pollutant) is assigned to the model.
+It will be implemented as a *mass loading* condition/forcing.
+One could imagine it being a substance dissolving into the groundwater.
+This way an amount of 'mass' is loaded into the model/groundwater during a certain amount of time.
+In this case the substance is leaking into the groundwater continuously with a mass loading of 0.125 $\mathsf{kg/(md)}$
 
 ### Implementation of the model
-<div class="question">
-Setup the solute transport model.  
-* Add the point source  
-* What is the unit for the continuous solute source?  
-* Run the model  
-* Plot the Concentration and internal mass flux  
-* Analysze the mass balance `dataframe.balance()`  
-</div>
 
+::: question
+Setup the solute transport model.\
+\* Add the point source\
+\* What is the unit for the continuous solute source?\
+\* Run the model\
+\* Plot the Concentration and internal mass flux\
+\* Analysze the mass balance `dataframe.balance()`
+:::
 
+When looking at the results of this model;
 
-When looking at the results of this  model;  
-
-<div class="answer">
+::: answer
 First the setup of the model
+
 ```{r}
 Disp = 2.5  # m2/d constant dispersion not depending on local velocities
 # math model
@@ -467,63 +470,60 @@ set.discretisation(model = Cmodel,nodes = nodes, method = "FV")
 solve.steps(Cmodel)
 
 ```
+
 ### Results steady state Cmodel
 
 Important result to have a closer look at are:
 
-1.  the concentration distribution and  
+1.  the concentration distribution and\
+
 2.  the mass flux distribution.
+
 3.  the mass flux leaving the model at the river
 
+4.  `plot(your_transport_model, fluxplot = TRUE, FVstyle = T)`
 
-1.  `plot(your_transport_model, fluxplot = TRUE, FVstyle = T)`
-2.  `mass_balance = dataframe.balance(your_transport_model)`
-3.  `boundary_flux = dataframe.boundaries(your_transport_model)`
+5.  `mass_balance = dataframe.balance(your_transport_model)`
 
+6.  `boundary_flux = dataframe.boundaries(your_transport_model)`
 
 ```{r}
 plot(Cmodel,fluxplot = T,FVstyle = T)
 kable(dataframe.balance(Cmodel), format= "markdown", align = "c", caption = "Mass balance terms kg/(md)")
 kable(dataframe.boundaries(Cmodel), format= "markdown", align = "c", caption = "Mass flux at the boundaries kg/(md)")
 ```
-</div>  
+:::
 
-<div class="question">
+::: question
+1.  What are these calculated states?
+2.  What is the unit of this balance?
+3.  Check for the left boundary (with some "hand" calculations) the mass flux leaving the left boundary and what unit does it have?
+:::
 
-1. What are these calculated states?
-2. What is the unit of this balance?
-3. Check for the left boundary (with some "hand" calculations) the mass flux leaving the left boundary and what unit does it have?
-
-</div>
-<div class="answer">
-
-1. These are the concentrations ($\mathsf{kg/m^3}$)
-2. The unit of the mass flux which is $\mathsf{kg/(md)}$
-3. Mass flux leaving the boundary, which is based on the Cauchy function (boundary)
+::: answer
+1.  These are the concentrations ($\mathsf{kg/m^3}$)
+2.  The unit of the mass flux which is $\mathsf{kg/(md)}$
+3.  Mass flux leaving the boundary, which is based on the Cauchy function (boundary)
 
 ```{r}
 # mass flux leaving the boundary, based on the Cauchy function (boundary)
 Qflow(0)*Cmodel$states[1]
 ```
-The unit of this mass flux is identical to the unit of the Mass flux equation and here:  $\text{qC}\rightarrow \mathsf{m^2/d\,kg/m^3} \rightarrow \mathsf{kg/(m d)}$
-</div>
 
-### Results a closer look 
+The unit of this mass flux is identical to the unit of the Mass flux equation and here: $\text{qC}\rightarrow \mathsf{m^2/d\,kg/m^3} \rightarrow \mathsf{kg/(m d)}$
+:::
 
-Most probably your results looks similar like the following plots:
-![Results base transport model](base_results_transport.png)
-In the upper panel the concentration distribution is visible, the lower panel shows the mass flux distribution in the model.
-The leaking vessel is located at x=85 where concentrations are highest and mass flux switches from 0.0 $kg/(md)$ to 0.125 $kg/(md)$.  
+### Results a closer look
 
-<div class="question">  
-  
-*  Isn't it strange? On the right hand side of the vessel there seems to be some concentration although the water flow is from right to left. Can you explain why?  
-*  Moreover, there is some concentration on the right side of the vessel but no mass flux. 
-Can you explain this?  
+Most probably your results looks similar like the following plots: ![Results base transport model](base_results_transport.png) In the upper panel the concentration distribution is visible, the lower panel shows the mass flux distribution in the model.
+The leaking vessel is located at x=85 where concentrations are highest and mass flux switches from 0.0 $kg/(md)$ to 0.125 $kg/(md)$.
 
-</div>
+::: question
+-   Isn't it strange? On the right hand side of the vessel there seems to be some concentration although the water flow is from right to left. Can you explain why?\
+-   Moreover, there is some concentration on the right side of the vessel but no mass flux. Can you explain this?
+:::
 
-The following analysis could help answering the question above.  
+The following analysis could help answering the question above.\
 Looking at the mass (internal) flux equation of the transport model, see below, one can see that it contains two components, a convective part (first one) and a dispersive part (second one):
 
 $$
@@ -531,19 +531,18 @@ $$
 M_{flux} &= A\,\text{por} \left ( vC -D\frac{\partial C}{\partial x}\right )\\
 &= \text{Qflow}\,C - \text{Vflow}\,D\frac{\partial C}{\partial x}\\
 \end{align}
-$$
-Calculate for both parts(convective and dispersive) for two distinctive volumes in the model, one upstream of the vessel and one downstream. For example for volume (at node) 10 and 30 and sum these to have the mass flux at that border of the volume. Calculate the mass balance for both volumes and look at the results (mass flux in-region and out-region).
+$$ Calculate for both parts(convective and dispersive) for two distinctive volumes in the model, one upstream of the vessel and one downstream.
+For example for volume (at node) 10 and 30 and sum these to have the mass flux at that border of the volume.
+Calculate the mass balance for both volumes and look at the results (mass flux in-region and out-region).
 Some tips:
 
-*  Put the concentrations in a dataframe, e.g. `conc = dataframe.states(your_C_model)`
-*  Calculate concentrations at the borders of the volumes/elements (for convective part)
-*  Calculate the concentration gradients at the borders of the volumes/elements (for dispersive part)
-*  Determine both terms and sum them
-*  Compare your results with the mass balance of the volumes/elements. They should match.
+-   Put the concentrations in a dataframe, e.g. `conc = dataframe.states(your_C_model)`
+-   Calculate concentrations at the borders of the volumes/elements (for convective part)
+-   Calculate the concentration gradients at the borders of the volumes/elements (for dispersive part)
+-   Determine both terms and sum them
+-   Compare your results with the mass balance of the volumes/elements. They should match.
 
-
-<div class="answer"> 
-
+::: answer
 ```{r}
 # mass flux for volume 30 right hand side
 concentration = dataframe.states(Cmodel)
@@ -581,64 +580,61 @@ print(paste("mass balance 10 calculate by the model: "))
 mass_balance_10
 ```
 
-Due to dispersion, which is determined by the concentration gradient, the solute will flow from a higher concentration to a lower one and therefor will migrate opposite the groundwater flow.  
+Due to dispersion, which is determined by the concentration gradient, the solute will flow from a higher concentration to a lower one and therefor will migrate opposite the groundwater flow.\
 Convection carries the solute with the flow.
 The convective/advective term and the dispersive term of the mass flux cancel each other on the right hand side of the vessel.
-
-
-</div>
+:::
 
 ## Pollution for only 2 years
 
-The current Cmodel is based on a stationary situation. This means the all aspects, including the massloading are constant in time. In reality pollutions are normally noticed much earlier.
+The current Cmodel is based on a stationary situation.
+This means the all aspects, including the massloading are constant in time.
+In reality pollutions are normally noticed much earlier.
 To simulate the development of the pollution over time, a transient model is required.
 
+::: question
+-   Define the storage flux for the transient transport model. The (groundwater)flow model remains constant.\
+    In determining this flux(rate) and its units; Be aware that the storage (mass) flux is a spatial flux and based on the concentration change over time and the elemental "Volume" of water,here the saturated thickness times porosity. The x-dimension over which the flux rate is integrated is carried out by the FVFE1D package.
+:::
 
+::: answer
+The storage flux is: $-D_{sat}\,por \,\frac{\partial C}{\partial t}$.
+Solute stored means that this is removed from the system, hence the minus sign.
+The numerical equivalent is: $-\text{Vflow(x)}\frac{C_i^{t+\Delta t}-C_i^{t}}{\Delta t}$.
 
-<div class="question">
-* Define the storage flux for the transient transport model. The (groundwater)flow model remains constant.  
-In determining this flux(rate) and its units; Be aware that the storage (mass) flux is a spatial flux and based on the concentration change over time and the elemental "Volume" of water,here the saturated thickness times porosity. The x-dimension over which the flux rate is integrated is carried out by the FVFE1D package.
-</div>  
-
-<div class="answer">
-The storage flux is: $-D_{sat}\,por \,\frac{\partial C}{\partial t}$. Solute stored means that this is removed from the system, hence the minus sign.
-The numerical equivalent is: $-\text{Vflow(x)}\frac{C_i^{t+\Delta t}-C_i^{t}}{\Delta t}$.  
 ```{r}
 C.sto = function(x,Conc)
 {
   return(Vflow(x)*(prev.C(x) - Conc)/delta.t)
 }
 ```
-</div>
+:::
 
-The source of solute is removed from the transient solute transport model, implying that the pollutant has been cleaned up at the surface.  
+The source of solute is removed from the transient solute transport model, implying that the pollutant has been cleaned up at the surface.
 
-To see whether numerical problems occur one need to determine the Peclet and Courant numbers for the given properties of the model. 
+To see whether numerical problems occur one need to determine the Peclet and Courant numbers for the given properties of the model.
 
-* Peclet$_{grid}$ number: $\frac{v\Delta x}{D} < 2$ 
-* Courant number: $\frac{v\Delta t}{\Delta x} < 1$
-* Based on previous $\Delta t < \frac{\Delta x}{v}$
+-   Peclet$_{grid}$ number: $\frac{v\Delta x}{D} < 2$
+-   Courant number: $\frac{v\Delta t}{\Delta x} < 1$
+-   Based on previous $\Delta t < \frac{\Delta x}{v}$
 
-
-<div class="question">
-Set up a transient solute transport model based on the stationary model. 
+::: question
+Set up a transient solute transport model based on the stationary model.
 At the start of the transient simulation the initial concentration of the solute is the calculated concentration distribution of the stationary solute transport model.
-Consider the following aspects of this model:  
+Consider the following aspects of this model:
 
-* make a copy of the stationary transport model to develop the transient one. The transport model now contains the proper initial concentration distribution.  
-* remove the source from this model
-* calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$
-* create a time stepping loop running for at least one year
-* plot the transient steps in one graph in the time stepping loop
-* Store the mass balance terms into different arrays to plot these afterwards. See assignment 2 for details.
-</div>
+-   make a copy of the stationary transport model to develop the transient one. The transport model now contains the proper initial concentration distribution.\
+-   remove the source from this model
+-   calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$
+-   create a time stepping loop running for at least one year
+-   plot the transient steps in one graph in the time stepping loop
+-   Store the mass balance terms into different arrays to plot these afterwards. See assignment 2 for details.
+:::
 
 The clip below gives an example of the transient model setup and the time stepping loop.
-![**Figure 3** Pseudo code for setting up the required data sets and a time loop](pseudo_code_transient_mass_model.png)
+![Figure 3 Pseudo code for setting up the required data sets and a time loop](pseudo_code_transient_mass_model.png)
 
-
-<div class="answer">
-
+::: answer
 Pollution for only 2 years
 
 ```{r, animation.hook='gifski',fig.show='animate'}
@@ -674,9 +670,6 @@ while(current.time < stop_pollutant)
 
 dd
 
-
-
-
 ```{r}
 # make a model copy of the stationary solute transport model
 Ctransmodel = copy.model(Cmodel)
@@ -703,7 +696,7 @@ end.time = 5*365
 current.time= beg.time
 
 #check numerical aspects
-v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+v = Qflow(nodes)/(D_sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
 #calculation of reasonable time step
 #V*delta.t/delta.x < 1 so delta.t < delta.x/v
 max_delta_t = delta.x/abs(v)
@@ -748,22 +741,21 @@ lines(mass.balance$time.step,mass.balance$storage.in, col="blue",lwd=3,lty="dash
 grid()
 
 ```
+:::
 
-</div>
+## Transient solute transport model with pump & treat
 
+As can be seen from the results of the transient model, the solute disappears slowly at the left boundary.
+To speed up this process an extraction well is implemented at the location of the original source and will have an extraction rate equal to 50% of the recharge of the model.\
+If the solute was some sort op pollutant this way of removing is called "pump & treat", where the solute is removed/processed from the extracted groundwater.
+Pump & treat systems may also inject this cleaned water upstream but could be discarded here.
 
-## Transient solute transport model with pump & treat  
- As can be seen from the results of the transient model, the solute disappears slowly at the left boundary. To speed up this process an extraction well is implemented at the location of the original source and will have an extraction rate equal to 50% of the recharge of the model.   
-If the solute was some sort op pollutant this way of removing is called "pump & treat", where the solute is removed/processed from the extracted groundwater. Pump & treat systems may also inject this cleaned water upstream but could be discarded here.
- 
-<div class="question">  
+::: question
+-   Adjust the groundwater flow model by adding the extraction well.
+-   Run the adjusted flow model and recalculate D.sat(), the internal flux (Qflow) and Volume (Vflow) functions.
+:::
 
-* Adjust the groundwater flow model by adding the extraction well.
-* Run the adjusted flow model and recalculate D.sat(), the internal flux (Qflow) and Volume (Vflow) functions.
-</div>
-
-<div class="answer">  
-
+::::::::::: answer
 ```{r}
 # add the extraction well to the flow model
 p_t.rate = -0.10 #m2/d extraction rate
@@ -775,7 +767,8 @@ plot(Fmodel,fluxplot = T)
 dataframe.balance(Fmodel)
 
 #recalculate the Volumflux and massflux functions
-D.sat = approxfun(nodes,Fmodel$states-bottom(nodes))
+##D.sat = approxfun(nodes,Fmodel$states-bottom(nodes))
+D.sat = state.fun(Fmodel)
 plot(nodes,D.sat(nodes),type="o", main='saturated thicknes (m)')
 df.intq = dataframe.internalfluxes(Fmodel)
 Qflow = approxfun(df.intq$x,df.intq$intflux,rule = 2)
@@ -785,17 +778,13 @@ plot(nodes,Vflow(nodes),type='l',lwd=2,col='blue',main="Volume m3/m2",ylab='Volu
 
 ```
 
+::: question
+-   Make a copy of the stationary solute transport model.
+-   Remove the source.
+-   Add the "sink": the pump&treat point flux, which is a function of the extraction rate and the solute concentration at this location.
+:::
 
-<div class="question">  
-
-* Make a copy of the stationary solute transport model.
-* Remove the source.
-* Add the "sink": the pump&treat point flux, which is a function of the extraction rate and the solute concentration at this location.
-
-</div>
-
-<div class="answer">
-
+::: answer
 ```{r}
 # make a model copy of the stationary solute transport model
 Ctransmodel = copy.model(Cmodel)
@@ -818,15 +807,13 @@ add.pointflux(Ctransmodel,at = 100,p_t.sink,name = "pump_treat")
 add.spatialflux(Ctransmodel,C.sto,name = "mass_storage")
 
 ```
-</div>
+:::
 
-<div class="question">  
+::: question
+-   Calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$.
+:::
 
-* Calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$.
-</div>
-
-<div class="answer">
-
+::: answer
 ```{r}
 #check numerical aspects
 v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
@@ -844,17 +831,15 @@ plot(nodes,Courant,type="o",col="red", main = c("Courant at nodes; with delta t 
 
 
 ```
-</div>
+:::
 
-<div class="question">  
+::: question
+-   Create a time stepping loop running for at least one year with daily time steps.
+-   Plot the transient steps in one graph in the time stepping loop.
+-   Store the mass balance terms into different arrays to analyze and plot them afterwards. See assignment 2 for details.
+:::
 
-* Create a time stepping loop running for at least one year with daily time steps.
-* Plot the transient steps in one graph in the time stepping loop.
-* Store the mass balance terms into different arrays to analyze and plot them afterwards. See assignment 2 for details.
-</div>
-
-<div class="answer">
-
+::: answer
 ```{r}
 # some containers for the mass balance terms
 bnd.out = c()
@@ -904,27 +889,27 @@ grid()
 error = mass.balance$bnd.out+mass.balance$pump.treat-mass.balance$storage.in
 dataframe.balance(Ctransmodel)
 ```
+:::
 
-</div>
+::: question
+Calculate the following total amounts of solute mass ($kg$):
 
-<div class="question">
-Calculate the following total amounts of solute mass ($kg$):  
+-   How much mass did the model contain at the start of the remediation?
+    -   $\Delta y\int C(x)D_{sat}(x)dx$
+-   How much mass is discharged by the boundary condition (i.e. the river)?
+    -   $\Delta y\sum(mass.balance[t]\$bnd.out)\Delta t$
+-   What is extracted with the pump & treat?
+    -   $\Delta y \sum(mass.balance[t]\$pump.treat)\Delta t$
+-   What is still stored?
+    -   $\Delta y\int C(x)D_{sat}(x)dx$
+-   Do they balance?
+:::
 
-* How much mass did the model contain at the start of the remediation?  
-    * $\Delta y\int C(x)D_{sat}(x)dx$
-* How much mass is discharged by the boundary condition (i.e. the river)?  
-    * $\Delta y\sum(mass.balance[t]\$bnd.out)\Delta t$
-* What is extracted with the pump & treat?  
-    * $\Delta y \sum(mass.balance[t]\$pump.treat)\Delta t$
-* What is still stored?  
-    * $\Delta y\int C(x)D_{sat}(x)dx$
-* Do they balance?
-</div>  
-
-<div class="answer">
+::: answer
 The required data is already stored in the **mass.balance** data frame and simply need to be multiplied with $\Delta t$.
 
-What still is stored/left in the model requires nodal cell "area's" which are lengths in this 1D model. Then the amount of mass still left is calculated by: $C_{left}\,L_{nodes}\,D_{sat}\,por$.  
+What still is stored/left in the model requires nodal cell "area's" which are lengths in this 1D model.
+Then the amount of mass still left is calculated by: $C_{left}\,L_{nodes}\,D_{sat}\,por$.
 
 ```{r}
 
@@ -968,131 +953,119 @@ data <- data.frame(
 # Maak de tabel
 kable(data, format = "markdown",caption = "Mass balance kg/m", align = "c", col.names = c("mass begin", "mass boundary out", "mass pump&treat", "mass left behind", "difference"))
 ```
-
-
-
- </div>   
- </div>   
- 
+:::
+:::::::::::
 
 # Sensitivity Analysis
 
-Finally you are conducting a sensitivity analysis to investigate the most import aspects of the numerical simulations.  
-Here we will consider two interesting outputs;  
+Finally you are conducting a sensitivity analysis to investigate the most import aspects of the numerical simulations.\
+Here we will consider two interesting outputs;
 
-1.  Highest concentration in the subsoil  
+1.  Highest concentration in the subsoil\
 2.  Efficiency pump and treat
 
-Probably the most important parameters impacting the aforementioned outputs are:  
+Probably the most important parameters impacting the aforementioned outputs are:
 
-*  Flow model  
-    + fix.H     : prescribed head of the river  
-    + k         : hydraulic conductivity of the subsoil (aquifer)
-    + Qwell     : extraction rate of the well  
-    + precip    : precipitation rate  
-    + bot.slope : bottom slope of the subsoil (aquifer)  
-  
-*  Transport model   
-    + M.load    : Mass load at the spill out of the vessel  
-    + Disp      : Dispersion coefficient  
-    + por       : porosity of the subsoil (aquifer)  
-    
-    
-## Outputs to be analyzed  
+-   Flow model
+    -   river_level : prescribed head of the river\
+    -   k : hydraulic conductivity of the subsoil (aquifer)
+    -   Qwell : extraction rate of the well\
+    -   precip : precipitation rate\
+-   Transport model
+    -   M.load : Mass load at the spill out of the vessel\
+    -   Disp : Dispersion coefficient\
+    -   por : porosity of the subsoil (aquifer)
+
+## Outputs to be analyzed
 
 ### Highest concentration in the subsoil
 
-One can imagine that de highest concentration could be important when the solute is (very) toxic.  
+One can imagine that de highest concentration could be important when the solute is (very) toxic.\
 The concentration is the actual calculated state of the transport model and can easily be derived through the `dataframe.state()` function.
-
 
 ### Efficiency pump and treat (when engough time)
 
-The efficiency of the pump and treat scenario is determined by the amount of mass extracted by the extraction well.  
-This can be calculated by setting up the mass balance for the transport model for each time step and analyze the total amount of mass extracted by the well. This data is stored in the mass balance. Retreiving this data per time step gains insight in the effectiveness of the pump & treat scenario.
+The efficiency of the pump and treat scenario is determined by the amount of mass extracted by the extraction well.\
+This can be calculated by setting up the mass balance for the transport model for each time step and analyze the total amount of mass extracted by the well.
+This data is stored in the mass balance.
+Retreiving this data per time step gains insight in the effectiveness of the pump & treat scenario.
 
-
-  
-<div class="comment">
-**[GB]**     AANPAK VANAF HIER 31-1-24
+::: comment
+**[GB]** AANPAK VANAF HIER 31-1-24
 
 het nodige moet nog worden geimplementeer:
 
-*  voordat de lsa begint moeten de basis data (modelen, resultaten) worden gesaved om de afgeleiden te berekenen
-*  veranderingen van de mass balansen vanhet stoffen model zitten nog niet in sensitivity geimplementeerd
-*  studenten moeten denk ik meer code gegeven krijgen denk ik omdat het anders veel te veel wordt. Immers zonder lsa zijn ze al vol bezig
-*  de plotten() functie moet netter zodat de assen een correcte naam krijgen.
-
-
-</div>
+-   voordat de lsa begint moeten de basis data (modelen, resultaten) worden gesaved om de afgeleiden te berekenen
+-   veranderingen van de mass balansen vanhet stoffen model zitten nog niet in sensitivity geimplementeerd
+-   studenten moeten denk ik meer code gegeven krijgen denk ik omdat het anders veel te veel wordt. Immers zonder lsa zijn ze al vol bezig
+-   de plotten() functie moet netter zodat de assen een correcte naam krijgen.
+:::
 
 ## Local Sensitivity Analysis setup
 
 Like with the LSA of previous week, to set up the LSA procedure:
 
-1.    Create the **base** data to compare with  
-2.    Determine the type of model output which need to be investigated 
-3.    Determine/estimate/google for reasonable scale of variations of the parameters
-3.    Chose for an epsilon to determine the $\frac {\partial \mathsf{output}}{\partial \mathsf{P}}$  
-4.    Calculate all derivatives of the output (model output) w.r.t. parameters
-5.    Calculate the variances of all parameters w.r.t. output
-
+1.  Create the **base** data to compare with\
+2.  Determine the type of model output which need to be investigated
+3.  Determine/estimate/google for reasonable scale of variations of the parameters
+4.  Chose for an epsilon to determine the $\frac {\partial \mathsf{output}}{\partial \mathsf{P}}$\
+5.  Calculate all derivatives of the output (model output) w.r.t. parameters
+6.  Calculate the variances of all parameters w.r.t. output
 
 ### Base values of the model
 
-Since we determine the local sensitivities with a numerical approximation we require the base values to compare with. Moreover, it's convenient to have base parameter values to reset them each time another parameter is analysed.  
+Since we determine the local sensitivities with a numerical approximation we require the base values to compare with.
+Moreover, it's convenient to have base parameter values to reset them each time another parameter is analysed.\
 Similar to week 3 of this course, we're going to set up a `list` for the base data.
 Do not forget to remove `eval = FALSE` from the code chunk below.
 
 ```{r eval = FALSE}
-base = list(fix.H = fix.H,
+base = list(river_level = river_level,
             k = k,
             p_t.rate = p_t.rate,
             precip = precip,
-            bot.slope = bot.slope,
             M.load = M.load,
             Disp = Disp,
             por = por)
 str(base)
 ```
 
-<div class="answer">
+::: answer
 ```{r }
-base = list(fix.H = fix.H,
+base = list(river_level = river_level,
             k = k,
             p_t.rate = p_t.rate,
             precip = precip,
-            bot.slope = bot.slope,
             M.load = M.load,
             Disp = Disp,
             por = por)
 str(base)
 ```
-</div>
+:::
 
 ### Type of model output to investigate
 
-For 1. the concentration distribution in calculated for every time step in the time loop of the transport model.
+For 1.
+the concentration distribution in calculated for every time step in the time loop of the transport model.
 To determine the highest concentration in the subsoil, the maximum concentration in the concentration distribution need determined for the last model run of the transport model.
 Simply create a data frame of the concentrations (`dataframe.state(Ctransmodel)`) and determine the maximum concentration in this data frame (use `max` for this in R).
-As with LSA last week, create a function `MRESULT()` which contains the max concentration of the current run. Put the base value in `M_base`.
+As with LSA last week, create a function `MRESULT()` which contains the max concentration of the current run.
+Put the base value in `M_base`.
 
+### Scale of variation of the selected parameters
 
+Another important aspect is the scale of variance of the parameters.
+When a specific site is involved, field data (drillings, lab analysis) could be of great help to quantify this scale of the parameters.
+If field or calibration data is not available, educated guesses, references (books), Google search, could help out here.
 
-### Scale of variation of the selected parameters  
-
-Another important aspect is the scale of variance of the parameters. When a specific site is involved, field data (drillings, lab analysis) could be of great help to quantify this scale of the parameters. If field or calibration data is not available, educated guesses, references (books), Google search, could help out here.
-
-Below just some "silly" values to start with;
-Please adjust to your own guesses/info/refs.
+Below just some "silly" values to start with; Please adjust to your own guesses/info/refs.
 Do not forget to remove `eval = FALSE` from the code chunk below.
 
 ```{r eval = FALSE}
-scale = list(fix.H = 0.1,
+scale = list(river_level = 0.1,
              k = 0.1*base$k, 
              p_t.rate = 0.1*base$p_t.rate,
              precip = 0.1*base$precip,
-             bot.slope = 0.1*base$bot.slope, 
              M.load = 0.1*base$M.load,
              Disp = 0.1*base$Disp,
              por = 0.05*base$por)
@@ -1100,60 +1073,57 @@ scale = list(fix.H = 0.1,
 str(scale)
 ```
 
-<div class="answer">
+::: answer
 ```{r }
-scale = list(fix.H = 0.1,
+scale = list(river_level = 0.1,
              k = 0.1*base$k, 
              p_t.rate = 0.1*base$p_t.rate,
              precip = 0.1*base$precip,
-             bot.slope = 0.1*base$bot.slope, 
              M.load = 0.1*base$M.load,
              Disp = 0.1*base$Disp,
              por = 0.05*base$por)
 
 str(scale)
 ```
-
-</div>
+:::
 
 ### Choice of the epsilon $\epsilon$
 
-At this stage the base data; parameter values and the scale of variation (i.e. $\sigma$). 
+At this stage the base data; parameter values and the scale of variation (i.e. $\sigma$).
 Identical to the assignments of week 3, the LSA is set up by calculating the derivatives of the output w.r.t. the parameters.
 Use a fixed values for the $\epsilon$ for example 0.01 or a 'relative' $\epsilon$; e.g. 1% of the parameter value.
 
+### Calculation of the derivatives
 
-### Calculation of the derivatives  
+To determine these derivatives not only the tansport model need to be each time but also the flow model because many parameters are related to the flow model (`river_level, k, p_rate, precip`).
+This means that `Qflow()`, `D.sat`and Vflow()\` need to be recalculated each time the flow model is run.
 
-To determine these derivatives not only the tansport model need to be each time but also the flow model because many parameters are related to the flow model (`fix.H, k, p_rate, precip, bot.slope`).
-This means that `Qflow()`, `D.sat`and Vflow()` need to be recalculated each time the flow model is run.
+::: question
+Create a sequence of commands to calculate the derivatives one by one.
+You could of course also create a function for this.
+That's up to you.
+This sequence should look like this:
 
-<div class="question">
-Create a sequence of commands to calculate the derivatives one by one. 
-You could of course also create a function for this. That's up to you.
-This sequence should look like this:  
+-   Adjust the base parameter increasing in with the $\epsilon$\
+-   Run the flow model\
+-   Re-calculate Qflow(), D.sat() and Vflow(), do not forget `rule = 2`!
+-   Calculate the new time step `delta.t`
+-   Run the transport model\
+-   Determine the MRESULT(), i.e. the max concentration at the end of the transport simulation
+-   Calculate the derivative of the output w.r.t. the parameter\
+-   Reset the parameter to the base value
+:::
 
-*  Adjust the base parameter increasing in with the $\epsilon$  
-*  Adjust bottom slope of the flow model when `bot.slope` is adjusted
-*  Run the flow model  
-*  Re-calculate Qflow(), D.sat() and Vflow(), do not forget `rule = 2`!
-*  Calculate the new time step `delta.t` 
-*  Run the transport model  
-*  Determine the MRESULT(), i.e. the max concentration at the end of the transport simulation
-*  Calculate the derivative of the output w.r.t. the parameter  
-*  Reset the parameter to the base value
-
-</div>
-
-<div class="question">
-Setup the LSA procedure in the code chunk below. Do not forget to creat the MRESULT() function and this base value to e.g. `M_base`.
+::: question
+Setup the LSA procedure in the code chunk below.
+Do not forget to creat the MRESULT() function and this base value to e.g.
+`M_base`.
 
 ```{r}
 ```
-</div>
+:::
 
-<div class="answer">
-
+::: answer
 #### Calculation of the considered model output
 
 ```{r}
@@ -1181,7 +1151,6 @@ M_base_pump = MRESULT_pump()
 
 ```
 
-
 #### Sensitivity on the prescribed head of the river
 
 ```{r}
@@ -1191,10 +1160,11 @@ mass.pt = c()
 
 rel.eps = 0.01
 
-fix.H = (1+rel.eps)*base$fix.H
+river_level = (1+rel.eps)*base$river_level
 
 solve.steps(Fmodel)
-D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+#D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+D_sat = state.fun(Fmodel)
 Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
 Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
 
@@ -1221,16 +1191,17 @@ while (current.time < end.time)
 }
 MRESULT()
 #calculate the derivative
-dM_dfix.H = (MRESULT() - M_base)/(fix.H - base$fix.H)
-print(paste("dM_dfix.H: ",dM_dfix.H))
+dM_driver_level = (MRESULT() - M_base)/(river_level - base$river_level)
+print(paste("dM_driver_level: ",dM_driver_level))
 MRESULT_pump()
-dM_dfix.H_pump = (MRESULT_pump() - M_base_pump)/(fix.H - base$fix.H)
-print(paste("dM_dfix.H_pump: ",dM_dfix.H_pump))
+dM_driver_level_pump = (MRESULT_pump() - M_base_pump)/(river_level - base$river_level)
+print(paste("dM_driver_level_pump: ",dM_driver_level_pump))
 
 
 #Do not forget to set the parameter back to the base value
-fix.H = base$fix.H
+river_level = base$river_level
 ```
+
 #### Sensitivity on hydraulic conductivity
 
 ```{r}
@@ -1239,7 +1210,8 @@ mass.pt = c()
 k = (1+rel.eps)*base$k
 
 solve.steps(Fmodel)
-D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+#D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+D_sat = state.fun(Fmodel)
 Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
 Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
 
@@ -1275,6 +1247,7 @@ print(paste("dM_dk_pump: ",dM_dk_pump))
 k = base$k
 
 ```
+
 #### Sensitivity on extraction rate
 
 ```{r}
@@ -1284,7 +1257,8 @@ mass.pt = c()
 p_t.rate = (1+rel.eps)*base$p_t.rate
 
 solve.steps(Fmodel)
-D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+#D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+D_sat = state.fun(Fmodel)
 Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
 Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
 
@@ -1320,6 +1294,7 @@ print(paste("dM_dp_t_rate_pump: ",dM_dp_t_rate_pump))
 p_t.rate = base$p_t.rate
 
 ```
+
 #### Sensitivity on precipitation
 
 ```{r}
@@ -1328,7 +1303,8 @@ mass.pt = c()
 precip = (1+rel.eps)*base$precip
 
 solve.steps(Fmodel)
-D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+#D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+D_sat = state.fun(Fmodel)
 Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
 Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
 
@@ -1363,54 +1339,6 @@ print(paste("dM_dprecip_pump: ",dM_dprecip_pump))
 
 precip = base$precip
 ```
-#### Sensitivity on bottom slope
-
-```{r}
-mass.pt = c()
-
-bot.slope = (1+rel.eps)*base$bot.slope
-bot.right = bot.left - bot.slope*bnd.right #since the bot.slope can change
-bottom = approxfun(x = domain,y = c(bot.left,bot.right)) #bottom changes 
-solve.steps(Fmodel)
-D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
-Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
-Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
-
-#calculate new time step delta.t
-v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
-max_delta_t = delta.x/abs(v)
-delta.t = floor(min(max_delta_t))
-print(paste("current time step: ",delta.t))
-
-#time loop for the transport model
-initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
-do.initialize(Ctransmodel,init = initial.C)
-prev.C = initial.C
-current.time = 0.0
-while (current.time < end.time)
-{
-  solve.steps(Ctransmodel)
-  # dataframe.balance(Ctransmodel)
-  # plot(Ctransmodel,fluxplot = T)
-  prev.C = state.fun(Ctransmodel)
-  current.time = current.time + delta.t
-    ## keep track of the mass extracted by the extraction well
-  df.mass = dataframe.balance(Ctransmodel)
-  mass.pt = c(mass.pt,df.mass[3,3])
-
-}
-print(paste("current MRESULT ",MRESULT()))
-#calculate the derivative of this parameter
-dM_dbot.slope = (MRESULT() - M_base)/(bot.slope - base$bot.slope)
-print(paste("dM_dbot.slope: ",dM_dbot.slope))
-MRESULT_pump()
-dM_dbot.slope_pump = (MRESULT_pump() - M_base_pump)/(bot.slope - base$bot.slope)
-print(paste("dM_dbot.slope_pump: ",dM_dbot.slope_pump))
-
-bot.slope = base$bot.slope
-
-
-```
 
 #### Sensitivity on Mass load
 
@@ -1420,9 +1348,10 @@ mass.pt = c()
 
 M.load = (1+rel.eps)*base$M.load
 
-#this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
+
 solve.steps(Fmodel)
-D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+#D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+D_sat = state.fun(Fmodel)
 Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
 Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
 
@@ -1467,11 +1396,6 @@ mass.pt = c()
 Disp = (1+rel.eps)*base$Disp
 
 
-#this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
-# solve.steps(Fmodel)
-# D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
-# Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
-# Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
 
 #calculate new time step delta.t
 v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
@@ -1506,18 +1430,13 @@ Disp = base$Disp
 
 ```
 
-#### Sensitivity on  porosity
+#### Sensitivity on porosity
 
 ```{r}
 mass.pt = c()
 
 por = (1+rel.eps)*base$por
 
-#this time also rerun Fmodel since the previous run contained adjustment in de bottom slope and should first be reset
-# solve.steps(Fmodel)
-# D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
-# Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
-# Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
 
 #calculate new time step delta.t
 v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
@@ -1550,36 +1469,29 @@ print(paste("dM_dpor_pump: ",dM_dpor_pump))
 por = base$por
 
 ```
+:::
 
+# Calculation of the variances
 
-</div>
-
-
-# Calculation of the variances  
-To calculate the LSA variances, the derivatives need to be squared and multiplied with the variance of the parameters and summarized; 
+To calculate the LSA variances, the derivatives need to be squared and multiplied with the variance of the parameters and summarized;
 
 $$\text{VAR(MRESULT)} = \sum_{i=1}^{nrP} \left ( \frac{dM_{result}}{dP_i}\sigma  P_i\right)^2$$
 
-<div class="answer">
-
-
-
+::: answer
 ```{r}
-variance = list(fix.H = scale$fix.H^2*dM_dfix.H^2,
+variance = list(river_level = scale$river_level^2*dM_driver_level^2,
                 k = scale$k^2*dM_dk^2,
                 p_t.rate = scale$p_t.rate^2*dM_dp_t_rate^2,
                 precip = scale$precip^2*dM_dprecip^2,
-                bot.slope = scale$bot.slope^2*dM_dbot.slope^2,
                 M.load = scale$M.load^2*dM_dM.load^2,
                 Disp = scale$Disp^2*dM_dDisp^2,
                 por = scale$por^2*dM_dpor^2)
 
 Total_variance = sum(unlist(variance))
-rel_variance= list(fix.H = variance$fix.H/Total_variance,
+rel_variance= list(river_level = variance$river_level/Total_variance,
                     k = variance$k/Total_variance,
                     p_t.rate = variance$p_t.rate/Total_variance,
                     precip = variance$precip/Total_variance,
-                    bot.slope = variance$bot.slope/Total_variance,
                     M.load = variance$M.load/Total_variance,
                     Disp = variance$Disp/Total_variance,
                     por = variance$por/Total_variance)
@@ -1589,38 +1501,33 @@ pie(as.numeric(unlist(rel_variance)),labels = paste(names(rel_variance),round(un
 scale_variation = data.frame(scale = unlist(scale),variance = unlist(variance),rel_variance = unlist(rel_variance))
 ```
 
-
 plots for the effectiveness of the pump & treat scenario
 
 ```{r}
-variance_pump = list(fix.H = scale$fix.H^2*dM_dfix.H_pump^2,
+variance_pump = list(river_level = scale$river_level^2*dM_driver_level_pump^2,
                 k = scale$k^2*dM_dk_pump^2,
                 p_t.rate = scale$p_t.rate^2*dM_dp_t_rate_pump^2,
                 precip = scale$precip^2*dM_dprecip_pump^2,
-                bot.slope = scale$bot.slope^2*dM_dbot.slope_pump^2,
                 M.load = scale$M.load^2*dM_dM.load_pump^2,
                 Disp = scale$Disp^2*dM_dDisp_pump^2,
                 por = scale$por^2*dM_dpor_pump^2)
 Total_variance_pump = sum(unlist(variance_pump))
-rel_variance_pump= list(fix.H = variance_pump$fix.H/Total_variance_pump,
+rel_variance_pump= list(river_level = variance_pump$river_level/Total_variance_pump,
                     k = variance_pump$k/Total_variance_pump,
                     p_t.rate = variance_pump$p_t.rate/Total_variance_pump,
                     precip = variance_pump$precip/Total_variance_pump,
-                    bot.slope = variance_pump$bot.slope/Total_variance_pump,
                     M.load = variance_pump$M.load/Total_variance_pump,
                     Disp = variance_pump$Disp/Total_variance_pump,
                     por = variance_pump$por/Total_variance_pump)
 pie(as.numeric(unlist(rel_variance_pump)),labels = paste(names(rel_variance_pump),round(unlist(rel_variance_pump)*100,1), "%", sep=" "),main = paste("Contrib P's on uncert of the predic mass extract.,with st.dev:", round(sqrt(Total_variance_pump),5),"kg"), sub = paste("relative variation w.r.t. mass extract",round(sqrt(Total_variance_pump)/M_base_pump*100,3), '%'))
 ```
-</div>
+:::
 
+# \*\*\*\*EXTRA\*\*\*\*
 
-# ****EXTRA****
 # Global Sensitivity Analysis (GSA) using SOBOL
 
-The Sobol method is a global sensitivity analysis method which
-decomposes the variance of the output of a model into fractions which can be attributed to the input factors.
-
+The Sobol method is a global sensitivity analysis method which decomposes the variance of the output of a model into fractions which can be attributed to the input factors.
 
 ## Setup of the Sobol analysis
 
@@ -1631,13 +1538,14 @@ The Sobol analysis is based on the variance of the output of the model, which is
 The same parameters and outputs will be used for the GSA.
 However, some additional values are required for the Sobol analysis:
 
+-   The number of runs of the model, $N$
+-   The range of the parameters
+    -   as a first guess the range could be set to 2 time the scale of variation below and above the average/estimated value
 
-*  The number of runs of the model, $N$
-*  The range of the parameters
-    * as a first guess the range could be set to 2 time the scale of variation below and above the average/estimated value  
-    
-It is convenient to use the following structure. Using this structure means that very easily the analysis can be carried with the aid of the **GSOBOL** package developed by former lecturer and colleague Paul Torfs. 
-This package depends on the following two packages: **lhs** and **truncnorm**. These packages can be installed from CRAN and need to be installed prior to GSOBOL.
+It is convenient to use the following structure.
+Using this structure means that very easily the analysis can be carried with the aid of the **GSOBOL** package developed by former lecturer and colleague Paul Torfs.
+This package depends on the following two packages: **lhs** and **truncnorm**.
+These packages can be installed from CRAN and need to be installed prior to GSOBOL.
 
 ```{r}
 library(GSOBOL)
@@ -1655,11 +1563,8 @@ parsample = GaussianLHS(samplesize,mean = parmeans, sd = parsd, varnames = parna
 ### Inspecting the sample data
 
 quickly inspect the sample data by looking at the first few rows and plotting the data.
-<div class="answer">
 
-
-
-
+::: answer
 ```{r}
 head(parsample)
 plot(parsample)
@@ -1668,9 +1573,9 @@ old.par = par(no.readonly = T)
 par(mfrow = c(2,3))
 par(mar=c(5,5,1,1)) 
 
-hist(parsample[,fix.H],main = "Histogram of the sample",xlab = "fix.H",col = "lightblue",prob = T)
-rug(parsample[,fix.H],col = "red")
-lines(density(parsample[,fix.H]),col = "red")
+hist(parsample[,river_level],main = "Histogram of the sample",xlab = "river_level",col = "lightblue",prob = T)
+rug(parsample[,river_level],col = "red")
+lines(density(parsample[,river_level]),col = "red")
 hist(parsample[,k],main = "Histogram of the sample",xlab = "k",col = "lightblue",prob = T)
 rug(parsample[,k],col = "red")
 lines(density(parsample[,k]),col = "red")
@@ -1680,9 +1585,6 @@ lines(density(parsample$p_t.rate),col = "red")
 hist(parsample$precip,main = "Histogram of the sample",xlab = "precip",col = "lightblue",prob = T)
 rug(parsample$precip,col = "red")
 lines(density(parsample$precip),col = "red")
-hist(parsample$bot.slope,main = "Histogram of the sample",xlab = "bot.slope",col = "lightblue",prob = T)
-rug(parsample$bot.slope,col = "red")
-lines(density(parsample$bot.slope),col = "red")
 hist(parsample$M.load,main = "Histogram of the sample",xlab = "M.load",col = "lightblue",prob = T)
 rug(parsample$M.load,col = "red")
 lines(density(parsample$M.load),col = "red")
@@ -1696,6 +1598,7 @@ lines(density(parsample$por),col = "red")
 par(old.par)
 
 ```
+
 ### Creating a function to run the model-train (flow and transport) for each sample
 
 Since both model need to be run for each sample, it is convenient to create a loop calculating flow and transport and iterating through the `parsample` set.
@@ -1705,18 +1608,18 @@ Mresult.data = c()  #container for storing the max. C data
 Mresult.pump.data = c()  #container for storing the mass extracted by the pump&treat data
 for (i in 1:nrow(parsample))
 {
-  fix.H = parsample[i,1]
+  river_level = parsample[i,1]
   k = parsample[i,2]
   p_t.rate = parsample[i,3]
   precip = parsample[i,4]
-  bot.slope = parsample[i,5]
-  M.load = parsample[i,6]
-  Disp = parsample[i,7]
-  por = parsample[i,8]
+  M.load = parsample[i,5]
+  Disp = parsample[i,6]
+  por = parsample[i,7]
   
   #run the flow model
   solve.steps(Fmodel)
-  D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+  #D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
+  D_sat = state.fun(Fmodel)
   Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
   Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
   
@@ -1744,7 +1647,7 @@ for (i in 1:nrow(parsample))
 
 ### adding the MRESULT data to the `parsample` data frame
 
-The output from the  model(s) can now easily be analyzed through the function `Sobol()`.
+The output from the model(s) can now easily be analyzed through the function `Sobol()`.
 See the help of the **GSOBOL** package for more information on the function `Sobol()`.
 
 ```{r}
@@ -1785,7 +1688,8 @@ kable(Sob1$var, format = "markdown",main = "First order decomposition of the var
 print(paste("The sum of the variances is,: ",sum(Sob1$var)))
 
 ```
-Now we  will do the decompostion of the second order as well, indicating interactions between the parameters.
+
+Now we will do the decompostion of the second order as well, indicating interactions between the parameters.
 
 ```{r}
 Sob2 = Sobol(output.ensemble,order = 2)
@@ -1795,14 +1699,15 @@ kable(Sob2$var, format = "markdown")
 
 ### Visualizing the 'fit' of the parameters w.r.t. model output
 
-Looking at the results of the Sobol analysis, we can see that the parameters `fix.H`, `k`, `p_t.rate`, `precip`, `bot.slope`, `M.load`, `Disp` and `por` have a different impact on the output of the model. The sum of the first order and second order variances is equal to the total variance of the output of the model. The first order variances indicate the impact of the parameters on the output of the model, while the second order variances indicate the interactions between the parameters.
+Looking at the results of the Sobol analysis, we can see that the parameters `river_level`, `k`, `p_t.rate`, `precip`, `M.load`, `Disp` and `por` have a different impact on the output of the model.
+The sum of the first order and second order variances is equal to the total variance of the output of the model.
+The first order variances indicate the impact of the parameters on the output of the model, while the second order variances indicate the interactions between the parameters.
 
 ```{r}
-condexp.fix.H =  condexp1(Modresult,fix.H,data = output.ensemble)
+condexp.river_level =  condexp1(Modresult,river_level,data = output.ensemble)
 condexp.k =  condexp1(Modresult,k,data = output.ensemble)
 condexp.p_t.rate =  condexp1(Modresult,p_t.rate,data = output.ensemble)
 condexp.precip =  condexp1(Modresult,precip,data = output.ensemble)
-condexp.bot.slope =  condexp1(Modresult,bot.slope,data = output.ensemble)
 condexp.M.load =  condexp1(Modresult,M.load,data = output.ensemble)
 condexp.Disp =  condexp1(Modresult,Disp,data = output.ensemble)
 condexp.por =  condexp1(Modresult,por,data = output.ensemble)
@@ -1811,16 +1716,14 @@ par(mfrow = c(2,4))
 par(mar=c(5,5,1,1))
 
 with(output.ensemble, {
-plot(fix.H,Modresult)
-points(fix.H,condexp.fix.H$predictions,col = "red")
+plot(river_level,Modresult)
+points(river_level,condexp.river_level$predictions,col = "red")
 plot(k,Modresult)
 points(k,condexp.k$predictions,col = "red")
 plot(p_t.rate,Modresult)
 points(p_t.rate,condexp.p_t.rate$predictions,col = "red")
 plot(precip,Modresult)
 points(precip,condexp.precip$predictions,col = "red")
-plot(bot.slope,Modresult)
-points(bot.slope,condexp.bot.slope$predictions,col = "red")
 plot(M.load,Modresult)
 points(M.load,condexp.M.load$predictions,col = "red")
 plot(Disp,Modresult)
@@ -1856,7 +1759,7 @@ print(paste("The sum of the variances is,: ",sum(Sob1.pump$var)))
 
 ```
 
-Now we  will do the decompostion of the second order as well, indicating interactions between the parameters.
+Now we will do the decompostion of the second order as well, indicating interactions between the parameters.
 
 ```{r}
 Sob2.pump = Sobol(output.ensemble.pump,order = 2)
@@ -1866,14 +1769,15 @@ kable(Sob2.pump$var, format = "markdown")
 
 ### Visualizing the 'fit' of the parameters w.r.t. model output
 
-Looking at the results of the Sobol analysis, we can see that the parameters `fix.H`, `k`, `p_t.rate`, `precip`, `bot.slope`, `M.load`, `Disp` and `por` have a different impact on the output of the model. The sum of the first order and second order variances is equal to the total variance of the output of the model. The first order variances indicate the impact of the parameters on the output of the model, while the second order variances indicate the interactions between the parameters.
+Looking at the results of the Sobol analysis, we can see that the parameters `river_level`, `k`, `p_t.rate`, `precip`, `M.load`, `Disp` and `por` have a different impact on the output of the model.
+The sum of the first order and second order variances is equal to the total variance of the output of the model.
+The first order variances indicate the impact of the parameters on the output of the model, while the second order variances indicate the interactions between the parameters.
 
 ```{r}
-condexp.fix.H =  condexp1(Modresult,fix.H,data = output.ensemble.pump)
+condexp.river_level =  condexp1(Modresult,river_level,data = output.ensemble.pump)
 condexp.k =  condexp1(Modresult,k,data = output.ensemble.pump)
 condexp.p_t.rate =  condexp1(Modresult,p_t.rate,data = output.ensemble.pump)
 condexp.precip =  condexp1(Modresult,precip,data = output.ensemble.pump)
-condexp.bot.slope =  condexp1(Modresult,bot.slope,data = output.ensemble.pump)
 condexp.M.load =  condexp1(Modresult,M.load,data = output.ensemble.pump)
 condexp.Disp =  condexp1(Modresult,Disp,data = output.ensemble.pump)
 condexp.por =  condexp1(Modresult,por,data = output.ensemble.pump)
@@ -1882,16 +1786,14 @@ par(mfrow = c(2,4))
 par(mar=c(5,5,1,1))
 
 with(output.ensemble.pump, {
-plot(fix.H,Modresult)
-points(fix.H,condexp.fix.H$predictions,col = "red")
+plot(river_level,Modresult)
+points(river_level,condexp.river_level$predictions,col = "red")
 plot(k,Modresult)
 points(k,condexp.k$predictions,col = "red")
 plot(p_t.rate,Modresult)
 points(p_t.rate,condexp.p_t.rate$predictions,col = "red")
 plot(precip,Modresult)
 points(precip,condexp.precip$predictions,col = "red")
-plot(bot.slope,Modresult)
-points(bot.slope,condexp.bot.slope$predictions,col = "red")
 plot(M.load,Modresult)
 points(M.load,condexp.M.load$predictions,col = "red")
 plot(Disp,Modresult)
@@ -1900,5 +1802,4 @@ plot(por,Modresult)
 points(por,condexp.por$predictions,col = "red")
 })
 ```
-</div>
-
+:::
