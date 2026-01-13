@@ -3,13 +3,13 @@ title: "1D Flow & Transport modeling"
 author: "G.Bier, P.Torfs"
 date: "Feb. 2025"
 output:
-  html_notebook:
-    css: want.css
-    number_sections: yes
-    toc: yes
   html_document:
     css : want.css
     df_print: paged
+    toc: yes
+  html_notebook:
+    css: want.css
+    number_sections: yes
     toc: yes
 ---
 
@@ -641,7 +641,7 @@ The clip below gives an example of the transient model setup and the time steppi
 
 Pollution for only 2 years
 
-```{r fig.show = animate }
+```{r, animation.hook='gifski',fig.show='animate'}
 # make a model copy of the stationary solute transport model
 C2ymodel = copy.model(Cmodel)
 #remove the concentration by initializing the model
