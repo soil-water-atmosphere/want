@@ -1,0 +1,44 @@
+# Create a copy of the stationary model
+ use the function: copy.model()
+ 
+# save the current concentrations
+ use state.fun()
+ 
+# remove the point source from the transient model
+ use rem.pointflux()
+ 
+# add storage to you model with your storage function
+
+# create some container for the mass balance terms
+bnd.out = c()
+storage.in = c()
+storage.out = c()
+time.step = c()
+
+
+
+# set the begin time and end time of the simulation, for example
+beg.time = 0
+end.time = 2*365 #so a simulation period of two years
+current.time = beg.time
+
+#use a delta.t of 10 days for now
+delta.t = 10
+
+# plot the starting/initial  concentration of the transient model, for example
+#plot(nodes,prev.C(nodes),type = 'o',col='red',ylab = "concentration kg/m3",
+#     xlab= "distance (m)", main = "Transient solute concentration distribution",
+#     ylim = c(0,max(prev.C(nodes))))
+
+# create the time loop, for example
+# while (current.time < end.time
+# {
+#   save the current concentration of the transient model
+#   run the model
+#  store and plot the states by adding them as a line for each time step, for example
+#  lines(df.states$x,df.states$state)  
+#   create dataframes for the mass balance to add the mass terms to the containers for later #  inspection
+#
+#  be sure to add the next line to evolve in time
+# current.time = current.time + delta.t
+# }

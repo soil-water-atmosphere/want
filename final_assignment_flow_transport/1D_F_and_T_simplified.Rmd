@@ -3,14 +3,15 @@ title: "1D Flow & Transport modeling"
 author: "G.Bier, P.Torfs"
 date: "Feb. 2026"
 output:
-  html_document:
-    css : want.css
-    df_print: paged
-    toc: yes
   html_notebook:
     css: want.css
     number_sections: yes
     toc: yes
+  html_document:
+    css : want.css
+    df_print: paged
+    toc: yes
+    number_sections: true
 editor_options: 
   markdown: 
     wrap: sentence
@@ -289,8 +290,20 @@ grid()
 2.  For the dispersive part of the convection diffusion equation, it is also required to create a function for the volume water per $\Delta x \Delta y$ to determine the amount of mass in the solute transport model. Here this 'volume' is simply the saturated thickness multiplied with the porosity. See point 2 for additional details in the next assignment block
 
 ::: question
-1.  Create the (water) flux function(x) for the internal flux. Call it **Qflow** and make use of **approxfun** and set **rule=2**.\
+1.  Create the (water) flux function(x) for the internal flux; the abovementioned `q_D`. Call it **Qflow** and make use of **approxfun** and set **rule=2**.\
 2.  Create the "volume water" function(x). It is based on the volume of water contained in a slice of soil in the x-direction (and "y") and call it **Vflow**. Recall that the FVFE1D package will determine the $\Delta x$ of the slice based on the size of the volumes or elements.
+
+```{r eval=FALSE}
+# create function based on the internal flux
+Qflow = approxfun(q_D$XXXXXXX,q_D$XXXXXXXX,rule=2)
+# create a plot to inspect the Qflow(x)
+plot(nodes,Qflow(nodes),type='l',lwd=2,col='red',main="Internal flux flow model",ylab='flux (m2/d)',xlab = "distance (m)")
+
+# create function based on the volume water using D_sat() and porosity
+Vflow = approxfun(nodes,XXXX * YYYY,rule=2)
+# create a plot to inspect the Vflow(x)
+plot(nodes,Vflow(nodes),type='l',lwd=2,col='blue',main="Volume distribution",ylab='Volume (m3/m2)',xlab="distance (m)" )
+```
 :::
 
 ::: answer
@@ -354,36 +367,42 @@ Solutes are displaced by concentration gradients, similar like groundwater is di
 This term $-D \frac{\partial C}{\partial x}$ is called the (first) Fick's law (similar like Darcy's law for groundwater flow).\
 During the transport simulations we will assume a constant dispersion coefficient $D$ and start with 2.5 $m^2/d$
 
-### Derivation of the internal flux function for transport
+### From mathematical model to numerical model; Derivation of the internal flux function for transport
 
 To distinguish the 'flow' and 'mass' flux rates between groundwater flow and solute transport, groundwater flow is indicated with 'flow', as in **Qflow(x)**, for the internal flux with unit $m^2/d$.
+
 Solute transport focuses on the amount of mass of a certain solute/pollutant in the groundwater and is here indicated with **Mflux(x)** with unit $kg/(dm)$.
 Again, the $/m$ comes from the "per meter $\Delta y$".
 
 The (hydrodynamic) diffusion/dispersion here is a combination of the molecular diffusion(Brownian movement) and the mechanical dispersion(accounting for the local pore flow and its pore structure) and is assumed to be constant here.
 
+As mentioned above, in section 4.1 the mass flux for the transport model is:
+
+$$
+M'_{flux} =\frac{A \,\, por}{\Delta y} \left\{ vC-D\frac{\partial C}{\partial x}\right\}=D_{sat}\, \text{por} \left\{ vC-D\frac{\partial C}{\partial x}\right\}
+$$
+
+rewriting for clarity
+
+$$D_{sat}\, \text{por}  vC-D_{sat}\, \text{por}D\frac{\partial C}{\partial x}$$
+
+knowing that $v=\frac{q_D}{\text{por}D_{sat}}$ The convective part of the mass flux reads: $q_DC$ which is the numerical equivalent of **Qflow(x)C**
+
+Also knowing that $D_{sat}\text{por}$ is equal to **Vflow(x)** the mathematical mass flux equation translated into the following numerical equivalent:
+
+$$\text{Qflow}\,C - \text{Vflow}\,D\frac{\partial C}{\partial x}$$
+
 ::: question
--   'Derive' internal flux function for the transport model which is based on the mass flux equation above and determine its unit.
 -   What is the unit for the concentration for this model?
--   What is the unit for the mass in the model?
+-   What is the unit for the mass flux in the model?
 :::
 
 ::: answer
--   Derivation of the mass flux/internal flux function: $$
-    \begin{align}
-    M_{flux} &= A\,\text{por} \left ( vC -D\frac{\partial C}{\partial x}\right )\\
-    &= D_{sat}\,\text{por}\,v\,C - D_{sat}\,\text{por}\,D\frac{\partial C}{\partial x}\\
-    &= q_D\,C - D_{sat}\,\text{por}\,D\frac{\partial C}{\partial x}\\
-    &= \text{Qflow}\,C - \text{Vflow}\,D\frac{\partial C}{\partial x}\\
-    q_D \, C&:[\mathsf{m^2d^{-1}kgm^{-3}}]\rightarrow [\mathsf{kg/(md)}]\\
-    D_{sat}\,\text{por}\,D\frac{\partial C}{\partial x} &:[\mathsf{m\,-\, m^2d^{-1}kgm^{-3}m^{-1}}] \rightarrow [\mathsf{kg/(md)}]
-    \end{align}\\
-    $$
 -   $C$ is in $\mathsf{kg/m^3}$, and also for this model if we consider the volume being $D(x)*\text{por}\,\Delta x \, \Delta y$.
--   Mass has the unit $\mathsf{kg}$ but to derive mass from the concentration in this model it is $C\,D_{sat}\,por\,\Delta x \rightarrow [\mathsf{kgm^{-3}\,m\,-\,m}] \rightarrow [\mathsf{kg/m}]$ which is stored in the soil for a certain moment in time. The amount of mass entering or leaving the model can be calculated with $\text{mass flux}\,\text{time step}\rightarrow qC\Delta t\rightarrow [\mathsf{m^2d^{-1}kgm^{-3}d}]\rightarrow [\mathsf{kg/m}]$.
+-   Mass flux is a rate of mass transport over time in $\mathsf{kg/(dm)}$ where the length (meter) comes for the $\Delta y$; Mass has the unit $\mathsf{kg}$ but to derive mass from the concentration in this model it is $C\,D_{sat}\,por\,\Delta x \rightarrow [\mathsf{kgm^{-3}\,m\,-\,m}] \rightarrow [\mathsf{kg/m}]$ which is stored in the soil for a certain moment in time. The amount of mass entering or leaving the model can be calculated with $\text{mass flux}\,\text{time step}\rightarrow qC\Delta t\rightarrow [\mathsf{m^2d^{-1}kgm^{-3}d}]\rightarrow [\mathsf{kg/m}]$.
 :::
 
-## Model setup stationary
+## Transport model setup stationary
 
 The domain of the solute transport model is identical to the groundwater flow model.
 On the right hand side no solute is entering or leaving the model so the boundary is closed, simply because there is no flow there.
@@ -411,19 +430,18 @@ Most of the time the concentration gradient at the boundary (outflow) is assumed
 
 The dispersion coefficient is set to 2.5 $\mathsf{m^2/d}$ being 1/2 of the volume size, nodal distance.
 
-::: question
--   Determine the proper boundary conditions for the transport model.
-:::
+#### Applying the boundary conditions for the transport model
 
-::: answer
--   $qC \rightarrow [\mathsf{m^2d^{-1}kgm^{-3}}]\rightarrow [\mathsf{kgd^{-1}m^{-1}}]\rightarrow [\mathsf{kg/(md)}]$
--   Boundary right: nothing to do, natural boundary condition
--   Boundary left : $A\,\text{por}\,\left ( vC -D\frac{\partial C}{\partial x}\right )$ and assume $\frac{\partial C}{\partial x}=0\rightarrow =q_D\,C \rightarrow \text{Qflow}(x=0)C$
-:::
+On the right hand side there is no flow, since the flow model has a no-flow boundary condition on that side.
+So also for the transport model the "No mass flow" is applied on that side; so nothing to do for the model.
+
+Water and the solute will be transported to the right into the river.
+The mass flux at that boundary is $A\text{por}vC$ which is the numerical equivalent of **Qflow(x=0)C**.
+So simply the concentration of the amount of water flowing into the river (at x = 0).
 
 ### Point source
 
-Somewhere in the middle of the solute transport model a solute source (pollutant) is assigned to the model.
+At x=85 m of the solute transport model a solute source (pollutant from the vessel) is assigned to the model.
 It will be implemented as a *mass loading* condition/forcing.
 One could imagine it being a substance dissolving into the groundwater.
 This way an amount of 'mass' is loaded into the model/groundwater during a certain amount of time.
@@ -431,16 +449,53 @@ In this case the substance is leaking into the groundwater continuously with a m
 
 ### Implementation of the model
 
-::: question
-Setup the solute transport model.\
-\* Add the point source\
-\* What is the unit for the continuous solute source?\
-\* Run the model\
-\* Plot the Concentration and internal mass flux\
-\* Analysze the mass balance `dataframe.balance()`
-:::
+The transport model has the same dimensions as the flow model.
+The internal flux is now: **Qflow(x)*C - Vflow(x)*D\*gradC**
 
-When looking at the results of this model;
+-   Define the abovementioned internal flux and dispersion coefficient (2.5 $\text{m}^2\text{/d}$) for the transport model.
+    To avoid confusion with the saturated thickness $D_{sat}$ one could call the dispersion coefficient simply **Disp**.
+
+-   Add the point source with **add.pointflux()** with a mass load of 0.125 $\text{kg/(dm)}$
+
+-   Define the appropriate boundary condition for the river
+
+-   Descritise the model, using the same domain, nodes and numerical approximation as for the flow model
+
+-   Run the model
+
+-   Analyse the results with plots and mass balance
+
+```{r eval = FALSE}
+Disp = 
+  
+CDE = function(x,C,gradC)
+{
+  XXX
+}
+
+Cmodel = newFLOW1D(domain = domain,systemfluxfunction = CDE,name = "solute transport")
+
+#boundary condition left (river)
+Cauchy = function(C)
+{
+  XXX
+}
+set.BC.fluxstate()
+
+M.load =XXX #kg/(m d)
+add.pointflux(XXX)
+
+#creating the numerical model
+set.discretisation(XXX)
+
+
+#solve
+solve.steps(Cmodel)
+
+#evaluate results
+plot(Cmodel, fluxstate=TRUE, FVstyle=TRUE)
+dataframe.balance(Cmodel)
+```
 
 ::: answer
 First the setup of the model
@@ -471,29 +526,27 @@ set.discretisation(model = Cmodel,nodes = nodes, method = "FV")
 solve.steps(Cmodel)
 
 ```
+:::
 
 ### Results steady state Cmodel
 
-Important result to have a closer look at are:
+Important results to have a closer look at are:
 
-1.  the concentration distribution and\
+1.  the concentration distribution; `plot(your_transport_model, fluxplot = TRUE, FVstyle = T)`
 
-2.  the mass flux distribution.
+2.  the mass flux distribution; `mass_balance = dataframe.balance(your_transport_model)`
 
-3.  the mass flux leaving the model at the river
+3.  the mass flux leaving the model at the river; `boundary_flux = dataframe.boundaries(your_transport_model)`
 
-4.  `plot(your_transport_model, fluxplot = TRUE, FVstyle = T)`
-
-5.  `mass_balance = dataframe.balance(your_transport_model)`
-
-6.  `boundary_flux = dataframe.boundaries(your_transport_model)`
-
+::: answer
 ```{r}
 plot(Cmodel,fluxplot = T,FVstyle = T)
 kable(dataframe.balance(Cmodel), format= "markdown", align = "c", caption = "Mass balance terms kg/(md)")
 kable(dataframe.boundaries(Cmodel), format= "markdown", align = "c", caption = "Mass flux at the boundaries kg/(md)")
 ```
 :::
+
+When looking at the results of this model;
 
 ::: question
 1.  What are these calculated states?
@@ -508,7 +561,7 @@ kable(dataframe.boundaries(Cmodel), format= "markdown", align = "c", caption = "
 
 ```{r}
 # mass flux leaving the boundary, based on the Cauchy function (boundary)
-Qflow(0)*Cmodel$states[1]
+print(Qflow(0)*Cmodel$states[1])
 ```
 
 The unit of this mass flux is identical to the unit of the Mass flux equation and here: $\text{qC}\rightarrow \mathsf{m^2/d\,kg/m^3} \rightarrow \mathsf{kg/(m d)}$
@@ -532,16 +585,16 @@ $$
 M_{flux} &= A\,\text{por} \left ( vC -D\frac{\partial C}{\partial x}\right )\\
 &= \text{Qflow}\,C - \text{Vflow}\,D\frac{\partial C}{\partial x}\\
 \end{align}
-$$ Calculate for both parts(convective and dispersive) for two distinctive volumes in the model, one upstream of the vessel and one downstream.
+$$ Calculate for both parts(convective and dispersive) for two distinctive (finite) volumes in the model, one upstream of the vessel and one downstream.
 For example for volume (at node) 10 and 30 and sum these to have the mass flux at that border of the volume.
 Calculate the mass balance for both volumes and look at the results (mass flux in-region and out-region).
 Some tips:
 
 -   Put the concentrations in a dataframe, e.g. `conc = dataframe.states(your_C_model)`
--   Calculate concentrations at the borders of the volumes/elements (for convective part)
--   Calculate the concentration gradients at the borders of the volumes/elements (for dispersive part)
+-   Calculate mass flux for convective part using `Qflow * C` at the interface between 10 and 11 and 30 and 31
+-   Calculate mass flux, for the dispersive part using `-Vflow * Disp * grad_C` at the interface between 10 and 11 and 30 and 31
 -   Determine both terms and sum them
--   Compare your results with the mass balance of the volumes/elements. They should match.
+-   Compare your results with the mass balance of the same volumes. They should match.
 
 ::: answer
 ```{r}
@@ -560,7 +613,7 @@ mass.balance_30 = dataframe.balance(Cmodel,c(30))
 print(paste("convection part mass flux 30-31: ",convection_part_30_31))
 print(paste("dispersion part mass flux 30-31: ",dispersion_part_30_31))
 print(paste("both 30-31: ",convection_part_30_31 + dispersion_part_30_31))
-print(paste("mass balance 30 calculate by the model: "))
+print("mass balance 30 calculated by the model: ")
 mass.balance_30
 
 # mass flux for volume 10
@@ -581,95 +634,65 @@ print(paste("mass balance 10 calculate by the model: "))
 mass_balance_10
 ```
 
-Due to dispersion, which is determined by the concentration gradient, the solute will flow from a higher concentration to a lower one and therefor will migrate opposite the groundwater flow.\
+Due to dispersion, which is determined by the concentration gradient, the solute will flow from a higher concentration to a lower one and therefor will migrate opposite to the groundwater flow.\
 Convection carries the solute with the flow.
 The convective/advective term and the dispersive term of the mass flux cancel each other on the right hand side of the vessel.
 :::
 
-## Pollution for only 2 years
+## Transport simulation for 2 years after the vessel removal
 
 The current Cmodel is based on a stationary situation.
-This means the all aspects, including the massloading are constant in time.
-In reality pollutions are normally noticed much earlier.
-To simulate the development of the pollution over time, a transient model is required.
+This means that all aspects, including the mass loading are constant in time.
+Suppose that the leaking vessel is removed at a certain moment in time.
+How long does it take to clean up the pollution in the groundwater?
+To simulate concentration distribution of the pollution over time, a transient model is required.
 
 ::: question
 -   Define the storage flux for the transient transport model. The (groundwater)flow model remains constant.\
-    In determining this flux(rate) and its units; Be aware that the storage (mass) flux is a spatial flux and based on the concentration change over time and the elemental "Volume" of water,here the saturated thickness times porosity. The x-dimension over which the flux rate is integrated is carried out by the FVFE1D package.
+    In determining this flux(rate) and its units; Be aware that the storage (mass) flux is a spatial flux and based on the concentration change over time and the elemental "Volume" of water,here the saturated thickness times porosity; $-D_{sat}\text{por} \frac{\partial C}{\partial t}$ The x-dimension over which the flux rate is integrated is carried out by the FVFE1D package. Recall that $-D_{sat}\text{por}$ is equal to **-Vflow(x)**.
+
+```{r}
+#mass storage flux
+C.sto = function(x,Conc)
+{
+  XXX  
+}
+```
 :::
 
 ::: answer
 The storage flux is: $-D_{sat}\,por \,\frac{\partial C}{\partial t}$.
-Solute stored means that this is removed from the system, hence the minus sign.
+
 The numerical equivalent is: $-\text{Vflow(x)}\frac{C_i^{t+\Delta t}-C_i^{t}}{\Delta t}$.
 
 ```{r}
 C.sto = function(x,Conc)
 {
-  return(Vflow(x)*(prev.C(x) - Conc)/delta.t)
+  return(Vflow(x)*(prev.C(x) - Conc)/delta.t) #changed the order of dC (i.e. Ct+dt - Ct) so omitting the minus sign this way
 }
 ```
 :::
 
-The source of solute is removed from the transient solute transport model, implying that the pollutant has been cleaned up at the surface.
-
-To see whether numerical problems occur one need to determine the Peclet and Courant numbers for the given properties of the model.
-
--   Peclet$_{grid}$ number: $\frac{v\Delta x}{D} < 2$
--   Courant number: $\frac{v\Delta t}{\Delta x} < 1$
--   Based on previous $\Delta t < \frac{\Delta x}{v}$
+After the removal of the vessel, the concentration in the groundwater should reduce gradually.
 
 ::: question
 Set up a transient solute transport model based on the stationary model.
 At the start of the transient simulation the initial concentration of the solute is the calculated concentration distribution of the stationary solute transport model.
 Consider the following aspects of this model:
 
--   make a copy of the stationary transport model to develop the transient one. The transport model now contains the proper initial concentration distribution.\
--   remove the source from this model
--   calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$
--   create a time stepping loop running for at least one year
--   plot the transient steps in one graph in the time stepping loop
+-   Make a copy of the stationary transport model to develop the transient one. The transport model now contains the proper initial concentration distribution.\
+-   Remove the source from this model with `rem.pointflux()`, see the help of FVFE1D for details.\
+-   Calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$
+-   Create a time stepping loop running for at least one year
+-   Plot the transient steps in one graph in the time stepping loop
 -   Store the mass balance terms into different arrays to plot these afterwards. See assignment 2 for details.
 :::
 
 The clip below gives an example of the transient model setup and the time stepping loop.
-![Figure 3 Pseudo code for setting up the required data sets and a time loop](pseudo_code_transient_mass_model.png)
+![Figure 3 Pseudo code for setting up the required data sets and a time loop](pseudo_code_transient_mass_model_simplified.png)
 
 ::: answer
-Pollution for only 2 years
-
-```{r, animation.hook='gifski',fig.show='animate'}
-# make a model copy of the stationary solute transport model
-C2ymodel = copy.model(Cmodel)
-#remove the concentration by initializing the model
-do.initialize(C2ymodel,init = 0.0)
-prev.C = state.fun(C2ymodel)
-add.spatialflux(C2ymodel,C.sto,name = "mass_storage")
-
-start_pollutant = 0.0
-stop_pollutant = 365
-delta.t = 10 #days for now
-current.time= start_pollutant
-
-#adding a plot to see the plume development
-plot(nodes,prev.C(nodes),type = 'o',col='red',ylab = "concentration kg/m3",
-     xlab= "distance (m)", main = "Transient solute concentration distribution",
-     ylim = c(0,1))
-
-while(current.time < stop_pollutant)
-{
-  prev.C = state.fun(C2ymodel)
-  solve.steps(C2ymodel)
-  plot(nodes,prev.C(nodes),type = 'o',col='red',ylab = "concentration kg/m3",
-       xlab= "distance (m)", main = "Transient solute concentration distribution",
-       ylim = c(0,1))
-  
-  # lines(dataframe.states(C2ymodel)$x,dataframe.states(C2ymodel)$state,col = heat.colors(10)[current.time/10])
-  current.time = current.time + delta.t
-}
-```
-
-dd
+Concentration distbitribution for 2 years
 
 ```{r}
 # make a model copy of the stationary solute transport model
@@ -692,25 +715,28 @@ time.step = c()
 
 # transient aspects
 beg.time = 0
-end.time = 5*365
+end.time = 2 * 365
+
+# start with a delta.t of 10 days
+delta.t = 10
 
 current.time= beg.time
 
-#check numerical aspects
-v = Qflow(nodes)/(D_sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
-#calculation of reasonable time step
-#V*delta.t/delta.x < 1 so delta.t < delta.x/v
-max_delta_t = delta.x/abs(v)
-plot(nodes,max_delta_t,type =  "o",col="green", main = "max_delta_t at nodes")
-
-#largest time step should be smallest of max_delta_t. Since delta.x is constant it is at the location where velocity is highest
-delta.t = floor(min(max_delta_t))
-
-Peclet = abs(v) * delta.x/Disp
-Courant = abs(v) * delta.t/delta.x 
-plot(nodes,Peclet,type="o",col="blue",main="Peclet at nodes")
-plot(nodes,Courant,type="o",col="red", main = c("Courant at nodes; with delta t :",delta.t))
-
+# #check numerical aspects
+# v = Qflow(nodes)/(D_sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
+# #calculation of reasonable time step
+# #V*delta.t/delta.x < 1 so delta.t < delta.x/v
+# max_delta_t = delta.x/abs(v)
+# plot(nodes,max_delta_t,type =  "o",col="green", main = "max_delta_t at nodes")
+# 
+# #largest time step should be smallest of max_delta_t. Since delta.x is constant it is at the location where velocity is highest
+# delta.t = floor(min(max_delta_t))
+# 
+# Peclet = abs(v) * delta.x/Disp
+# Courant = abs(v) * delta.t/delta.x 
+# plot(nodes,Peclet,type="o",col="blue",main="Peclet at nodes")
+# plot(nodes,Courant,type="o",col="red", main = c("Courant at nodes; with delta t :",delta.t))
+# 
 
 #plot the starting solute concentration distribution
 plot(nodes,prev.C(nodes),type = 'o',col='red',ylab = "concentration kg/m3",
@@ -734,12 +760,66 @@ while (current.time < end.time)
   time.step = c(time.step,current.time)
   col_number = col_number + 1
 }
-# mass balance plot.
-mass.balance = data.frame(time.step,bnd.out,storage.in,storage.out)
-plot(mass.balance$time.step,mass.balance$bnd.out,main="mass balance, green:boundary out, blue:storage change",type="l",
-     col="green",lwd=3,ylab="mass kg/(dm)",xlab="time step (d)")
-lines(mass.balance$time.step,mass.balance$storage.in, col="blue",lwd=3,lty="dashed")
-grid()
+# # mass balance plot.
+# mass.balance = data.frame(time.step,bnd.out,storage.in,storage.out)
+# plot(mass.balance$time.step,mass.balance$bnd.out,main="mass balance, green:boundary out, blue:storage change",type="l",
+#      col="green",lwd=3,ylab="mass kg/(dm)",xlab="time step (d)")
+# lines(mass.balance$time.step,mass.balance$storage.in, col="blue",lwd=3,lty="dashed")
+# grid()
+
+```
+:::
+
+## Numerical stability transport model
+
+Since we are solving the Convection/Advection Diffusion Equation, numerical stability should be critically evaluated.
+
+To see whether numerical problems occur, one need to determine the Peclet and Courant numbers:
+
+-   Peclet$_{grid}$ number: $\frac{v\Delta x}{Disp} < 2$
+-   Courant number: $\frac{v\Delta t}{\Delta x} < 1$
+-   Based on previous $\Delta t < \frac{\Delta x}{v}$
+
+If one or both conditions are not met, numerical instability may occur.
+If so one may consider adjusting the time step size ($\Delta t$) and or the spatial step ($\Delta x$).
+
+Here we limit ourselves to adjust the time step size if this is required.
+
+To calculate the smallest ($\Delta t$), the local flow velocity is required; $v = \frac{q_D}{D_{sat}\text{por}}$ which is equivalent to `Qflow(x)/(D_sat * por)`.
+Note that the sign of the velocity is not relevant here, so use the absolute value.
+
+::: question
+-   Calculate the Peclet and Courant numbers for each node with the current `delta.t` of 10 days and see if both conditions are met.
+-   Play around with larger and smaller time steps to see the effect on the Courant number. **do not forget** to set a proper `delta.t` value back.
+-   Note also that when Courant numbers are larger thant 1, numerical instability may occur. But instability may probably not be visible immediately, since the solution is not based on a purely explicit (Euler forward) scheme. See the Finite Differences lecture notes 4 of the first week.
+
+```{r eval= FALSE}
+#calculate local flow velocity
+v = XXXX
+
+#calculate local Peclet and Courant numbers
+
+Peclet = XXXX
+Courant = XXXX
+
+##see if all numbers meet the conditions by simply looking at the numbers or plotting them
+
+```
+:::
+
+::: answer
+```{r}
+#calculate local flow velocity
+v = abs(Qflow(nodes)/(D_sat(nodes)*por)) #Qflow = m2/d so v=Qflow/(D.sat*por)
+
+#calculate local Peclet and Courant numbers
+
+Peclet = v * delta.x/Disp
+Courant = v * delta.t/delta.x
+
+##see if all numbers meet the conditions by simply looking at the numbers or plotting them
+plot(nodes,Peclet,type="o",col="blue",main="Peclet at nodes")
+plot(nodes,Courant,type="o",col="red", main = "Courant at nodes")
 
 ```
 :::
@@ -752,11 +832,36 @@ If the solute was some sort op pollutant this way of removing is called "pump & 
 Pump & treat systems may also inject this cleaned water upstream but could be discarded here.
 
 ::: question
--   Adjust the groundwater flow model by adding the extraction well.
+-   Adjust the groundwater flow model by adding the extraction well with `add.pointflux()` see the help of the FVFE1D package for details.
 -   Run the adjusted flow model and recalculate D.sat(), the internal flux (Qflow) and Volume (Vflow) functions.
+
+```{r eval= FALSE}
+#add the extraction well to the flow model 
+p_t.rate = XXX #m2/d extraction rate
+add.pointflux(model = xxx,at = yy,value = "p_t.rate",name="pump")
+
+#run the flow model and have a look at the results
+solve.steps(XXX)
+plot(XXX,fluxplot = T,FVstyle = T)
+dataframe.balance(XXX)
+
+
+#recalculate D_sat(), the internal flux (Qflow) and Volume (Vflow) functions
+D.sat = XXX
+plot(nodes,D.sat(nodes),type="o", main='saturated thicknes (m
+)')
+df.intq = dataframe.internalfluxes(XXX)
+Qflow = XXX
+plot(nodes,Qflow(nodes),type='l',lwd=2,col='red',main
+="Internal flux flow model",ylab='flux (m2/d)',xlab = "distance (m)")
+Vflow = XXX
+plot(nodes,Vflow(nodes),type='l',lwd=2,col='blue',main
+="Volume m3/m2",ylab='Volume (m)',xlab="distance (m)" )
+
+```
 :::
 
-::::::::::: answer
+:::::::::: answer
 ```{r}
 # add the extraction well to the flow model
 p_t.rate = -0.10 #m2/d extraction rate
@@ -776,13 +881,66 @@ Qflow = approxfun(df.intq$x,df.intq$intflux,rule = 2)
 plot(nodes,Qflow(nodes),type='l',lwd=2,col='red',main="Internal flux flow model",ylab='flux (m2/d)',xlab = "distance (m)")
 Vflow = approxfun(nodes,por*D.sat(nodes),rule=2)
 plot(nodes,Vflow(nodes),type='l',lwd=2,col='blue',main="Volume m3/m2",ylab='Volume (m)',xlab="distance (m)" )
+```
+
+### Numerical stability transport model with pump & treat
+
+With adding the extraction well the flow model changes and thus also the local flow velocities Therefore Peclet and Courant numbers need to be checked again.
+Simply copy paste the code chunk you created earlier for this
+
+```{r}
+## determine Peclet and Courant numbers based on  the Qflow() and D_sat() values
+
 
 ```
+
+::: answer
+```{r}
+#calculate local flow velocity
+v = abs(Qflow(nodes)/(D_sat(nodes)*por)) #Qflow = m2/d so v=Qflow/(D.sat*por)
+
+#calculate local Peclet and Courant numbers
+
+Peclet = v * delta.x/Disp
+Courant = v * delta.t/delta.x
+
+##see if all numbers meet the conditions by simply looking at the numbers or plotting them
+plot(nodes,Peclet,type="o",col="blue",main="Peclet at nodes")
+plot(nodes,Courant,type="o",col="red", main = "Courant at nodes")
+```
+:::
 
 ::: question
 -   Make a copy of the stationary solute transport model.
 -   Remove the source.
--   Add the "sink": the pump&treat point flux, which is a function of the extraction rate and the solute concentration at this location.
+-   Add the "sink": the pump&treat point flux, which is a function of the extraction rate and the solute concentration at this location; `p_t.rate * conc` . Check the unit of this sink
+
+```{r eval=FALSE}
+# make a model copy of the stationary solute transport model.
+# the new model will simulate transient conditions
+XXXXX = copy.model(Cmodel)
+
+# save the current concentration distribution in prev.C for calculation of storage change
+XXXXX = state.fun(Cmodel)
+
+
+# remove the source from the transient solute transport model
+# be sure to add the exact name of the source point flux for removal
+# one can check this name by using : summary(Cmodel)
+rem.pointflux(XXXXXX,"exact name solute")
+
+# add the pump&treat extraction well for removing the solute
+# only at the location of the extraction well the concentration (conc) will be applied
+p_t.sink = function(conc)
+{
+ return(p_t.rate*conc) 
+}
+add.pointflux(XXXXXX,at = YYYY,p_t.sink,name = "pump_treat")
+
+# add storage to the model
+add.spatialflux(XXXXX,C.sto,name = "mass_storage")
+
+```
 :::
 
 ::: answer
@@ -802,7 +960,7 @@ p_t.sink = function(conc)
 {
  return(p_t.rate*conc) 
 }
-add.pointflux(Ctransmodel,at = 100,p_t.sink,name = "pump_treat")
+add.pointflux(Ctransmodel,at = 85,p_t.sink,name = "pump_treat")
 
 # add storage to the model
 add.spatialflux(Ctransmodel,C.sto,name = "mass_storage")
@@ -811,33 +969,9 @@ add.spatialflux(Ctransmodel,C.sto,name = "mass_storage")
 :::
 
 ::: question
--   Calculate the Peclet and Courant numbers for each node for inspection and to determine a proper time step $\Delta t$.
-:::
-
-::: answer
-```{r}
-#check numerical aspects
-v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
-
-#calculation of reasonable time step (using Courant)
-#abs(V)*delta.t/delta.x < 1 so delta.t < delta.x/abs(V)
-max_delta_t = delta.x/abs(v)
-plot(nodes,max_delta_t,type =  "o",col="green", main = "max_delta_t at nodes")
-delta.t = floor(min(max_delta_t))
-
-Peclet = abs(v) * delta.x/Disp
-Courant = abs(v) * delta.t/delta.x 
-plot(nodes,Peclet,type="o",col="blue",main="Peclet at nodes")
-plot(nodes,Courant,type="o",col="red", main = c("Courant at nodes; with delta t :",delta.t))
-
-
-```
-:::
-
-::: question
--   Create a time stepping loop running for at least one year with daily time steps.
+-   Create a time stepping loop running for at least one year with 10 daily time steps.
 -   Plot the transient steps in one graph in the time stepping loop.
--   Store the mass balance terms into different arrays to analyze and plot them afterwards. See assignment 2 for details.
+-   Store the mass balance terms into different arrays to analyze and plot them afterwards. See assignment 2 of week 2 for details.
 :::
 
 ::: answer
@@ -851,7 +985,7 @@ pump.treat = c()
 
 # transient aspects
 beg.time = 0
-end.time = 5*365
+end.time = 2 * 365
 
 current.time= beg.time
 
@@ -955,7 +1089,7 @@ data <- data.frame(
 kable(data, format = "markdown",caption = "Mass balance kg/m", align = "c", col.names = c("mass begin", "mass boundary out", "mass pump&treat", "mass left behind", "difference"))
 ```
 :::
-:::::::::::
+::::::::::
 
 # Sensitivity Analysis
 
@@ -991,16 +1125,6 @@ This can be calculated by setting up the mass balance for the transport model fo
 This data is stored in the mass balance.
 Retreiving this data per time step gains insight in the effectiveness of the pump & treat scenario.
 
-::: comment
-**[GB]** AANPAK VANAF HIER 31-1-24
-
-het nodige moet nog worden geimplementeer:
-
--   voordat de lsa begint moeten de basis data (modelen, resultaten) worden gesaved om de afgeleiden te berekenen
--   veranderingen van de mass balansen vanhet stoffen model zitten nog niet in sensitivity geimplementeerd
--   studenten moeten denk ik meer code gegeven krijgen denk ik omdat het anders veel te veel wordt. Immers zonder lsa zijn ze al vol bezig
--   de plotten() functie moet netter zodat de assen een correcte naam krijgen.
-:::
 
 ## Local Sensitivity Analysis setup
 
@@ -1055,7 +1179,7 @@ Put the base value in `M_base`.
 
 ### Scale of variation of the selected parameters
 
-Another important aspect is the scale of variance of the parameters.
+Another important aspect is the scale of variation of the parameters.
 When a specific site is involved, field data (drillings, lab analysis) could be of great help to quantify this scale of the parameters.
 If field or calibration data is not available, educated guesses, references (books), Google search, could help out here.
 
@@ -1521,286 +1645,5 @@ rel_variance_pump= list(river_level = variance_pump$river_level/Total_variance_p
                     Disp = variance_pump$Disp/Total_variance_pump,
                     por = variance_pump$por/Total_variance_pump)
 pie(as.numeric(unlist(rel_variance_pump)),labels = paste(names(rel_variance_pump),round(unlist(rel_variance_pump)*100,1), "%", sep=" "),main = paste("Contrib P's on uncert of the predic mass extract.,with st.dev:", round(sqrt(Total_variance_pump),5),"kg"), sub = paste("relative variation w.r.t. mass extract",round(sqrt(Total_variance_pump)/M_base_pump*100,3), '%'))
-```
-:::
-
-# \*\*\*\*EXTRA\*\*\*\*
-
-# Global Sensitivity Analysis (GSA) using SOBOL
-
-The Sobol method is a global sensitivity analysis method which decomposes the variance of the output of a model into fractions which can be attributed to the input factors.
-
-## Setup of the Sobol analysis
-
-The Sobol analysis requires a bit more work than the LSA.
-The Sobol analysis requires a number of runs of the model, each time with a different combination of the parameters.
-The Sobol analysis is based on the variance of the output of the model, which is decomposed into fractions which can be attributed to the input factors.
-
-The same parameters and outputs will be used for the GSA.
-However, some additional values are required for the Sobol analysis:
-
--   The number of runs of the model, $N$
--   The range of the parameters
-    -   as a first guess the range could be set to 2 time the scale of variation below and above the average/estimated value
-
-It is convenient to use the following structure.
-Using this structure means that very easily the analysis can be carried with the aid of the **GSOBOL** package developed by former lecturer and colleague Paul Torfs.
-This package depends on the following two packages: **lhs** and **truncnorm**.
-These packages can be installed from CRAN and need to be installed prior to GSOBOL.
-
-```{r}
-library(GSOBOL)
-parnames = names(base) # this creates a vector with the names of the parameters
-parmeans = unlist(base) # this creates a vector with the means of the parameters
-parsd = abs(unlist(scale)) # this creates a vector with the standard deviations of the parameters
-parlower = parmeans - 2*abs(parsd) # this creates a vector with the lower bounds of the parameters
-parupper = parmeans + 2*abs(parsd) # this creates a vector with the upper bounds of the parameters
-samplesize = 100
-set.seed(234)  # setting a seed to see if this drastically changes the results
-parsample = GaussianLHS(samplesize,mean = parmeans, sd = parsd, varnames = parnames, lower = parlower, upper = parupper)
-
-```
-
-### Inspecting the sample data
-
-quickly inspect the sample data by looking at the first few rows and plotting the data.
-
-::: answer
-```{r}
-head(parsample)
-plot(parsample)
-
-old.par = par(no.readonly = T)
-par(mfrow = c(2,3))
-par(mar=c(5,5,1,1)) 
-
-hist(parsample[,river_level],main = "Histogram of the sample",xlab = "river_level",col = "lightblue",prob = T)
-rug(parsample[,river_level],col = "red")
-lines(density(parsample[,river_level]),col = "red")
-hist(parsample[,k],main = "Histogram of the sample",xlab = "k",col = "lightblue",prob = T)
-rug(parsample[,k],col = "red")
-lines(density(parsample[,k]),col = "red")
-hist(parsample$p_t.rate,main = "Histogram of the sample",xlab = "p_t.rate",col = "lightblue",prob = T)
-rug(parsample$p_t.rate,col = "red")
-lines(density(parsample$p_t.rate),col = "red")
-hist(parsample$precip,main = "Histogram of the sample",xlab = "precip",col = "lightblue",prob = T)
-rug(parsample$precip,col = "red")
-lines(density(parsample$precip),col = "red")
-hist(parsample$M.load,main = "Histogram of the sample",xlab = "M.load",col = "lightblue",prob = T)
-rug(parsample$M.load,col = "red")
-lines(density(parsample$M.load),col = "red")
-hist(parsample[,Disp],main = "Histogram of the sample",xlab = "Disp",col = "lightblue",prob = T)
-rug(parsample[,Disp],col = "red")
-lines(density(parsample[,Disp]),col = "red")
-hist(parsample$por,main = "Histogram of the sample",xlab = "por",col = "lightblue",prob = T)
-rug(parsample$por,col = "red")
-lines(density(parsample$por),col = "red")
-
-par(old.par)
-
-```
-
-### Creating a function to run the model-train (flow and transport) for each sample
-
-Since both model need to be run for each sample, it is convenient to create a loop calculating flow and transport and iterating through the `parsample` set.
-
-```{r}
-Mresult.data = c()  #container for storing the max. C data
-Mresult.pump.data = c()  #container for storing the mass extracted by the pump&treat data
-for (i in 1:nrow(parsample))
-{
-  river_level = parsample[i,1]
-  k = parsample[i,2]
-  p_t.rate = parsample[i,3]
-  precip = parsample[i,4]
-  M.load = parsample[i,5]
-  Disp = parsample[i,6]
-  por = parsample[i,7]
-  
-  #run the flow model
-  solve.steps(Fmodel)
-  #D.sat = approxfun(nodes,Fmodel$states-bottom(nodes),rule = 2)
-  D_sat = state.fun(Fmodel)
-  Vflow = approxfun(nodes,por*D.sat(nodes),rule = 2)
-  Qflow = approxfun(dataframe.internalfluxes(Fmodel),rule = 2)
-  
-  #calculate new time step delta.t
-  v = Qflow(nodes)/(D.sat(nodes)*por) #Qflow = m2/d so v=Qflow/(D.sat*por)
-  max_delta_t = delta.x/abs(v)
-  delta.t = floor(min(max_delta_t))
-  print(paste("current run nr: " ,i, " max. time step: ",delta.t))
-  
-  #run the transport model
-  initial.C = state.fun(Cmodel)  #to start with the initial concentration distribution
-  do.initialize(Ctransmodel,init = initial.C)
-  prev.C = initial.C
-  current.time = 0.0
-  while (current.time < end.time)
-  {
-    solve.steps(Ctransmodel)
-    prev.C = state.fun(Ctransmodel)
-    current.time = current.time + delta.t
-  }
-  Mresult.data = c(Mresult.data,MRESULT())
-  Mresult.pump.data = c(Mresult.pump.data,MRESULT_pump())
-}
-```
-
-### adding the MRESULT data to the `parsample` data frame
-
-The output from the model(s) can now easily be analyzed through the function `Sobol()`.
-See the help of the **GSOBOL** package for more information on the function `Sobol()`.
-
-```{r}
-output.ensemble = cbind(Modresult=Mresult.data,parsample)
-output.ensemble.pump = cbind(Modresult=Mresult.pump.data,parsample)
-```
-
-### Some basic statistical analysis on the calculated output.
-
-We now can have a look at some basic statistics of the calculated output, like the average, the standard deviation, the minimum and the maximum, the Coefficient of Variance and plot a histogram of the calculated output.
-
-#### For the max. concentration at the end of the transient simulation
-
-```{r}
-summary(output.ensemble$Modresult)
-hist(output.ensemble$Modresult)
-rug(output.ensemble$Modresult,col = "red")
-lines(density(output.ensemble$Modresult),col = "red")
-Modresult.sd = sd(output.ensemble$Modresult)
-Modresult.mean = mean(output.ensemble$Modresult)
-print(paste("The standard deviation of the model output is: ",Modresult.sd))
-print(paste("The mean of the model output is: ",Modresult.mean))
-#boxplot(scale(parsample))
-#coefficient of variation
-CV = sapply(parsample,sd)/colMeans(parsample)*100
-barplot(CV,main = "Coefficient of variation of the prediction",xlab = "parameters",ylab = "CV (%)")
-```
-
-### Running the Sobol analysis for the max. concentration at the end of the transient simulation
-
-The Sobol analysis can now be run with the function `Sobol()`.
-Here we wil have a look at the first order decomposition of the variance of the output.
-
-```{r}
-Sob1 = Sobol(output.ensemble)
-pie(Sob1$var)
-kable(Sob1$var, format = "markdown",main = "First order decomposition of the variance of the output")
-print(paste("The sum of the variances is,: ",sum(Sob1$var)))
-
-```
-
-Now we will do the decompostion of the second order as well, indicating interactions between the parameters.
-
-```{r}
-Sob2 = Sobol(output.ensemble,order = 2)
-pie(Sob2$var)
-kable(Sob2$var, format = "markdown")
-```
-
-### Visualizing the 'fit' of the parameters w.r.t. model output
-
-Looking at the results of the Sobol analysis, we can see that the parameters `river_level`, `k`, `p_t.rate`, `precip`, `M.load`, `Disp` and `por` have a different impact on the output of the model.
-The sum of the first order and second order variances is equal to the total variance of the output of the model.
-The first order variances indicate the impact of the parameters on the output of the model, while the second order variances indicate the interactions between the parameters.
-
-```{r}
-condexp.river_level =  condexp1(Modresult,river_level,data = output.ensemble)
-condexp.k =  condexp1(Modresult,k,data = output.ensemble)
-condexp.p_t.rate =  condexp1(Modresult,p_t.rate,data = output.ensemble)
-condexp.precip =  condexp1(Modresult,precip,data = output.ensemble)
-condexp.M.load =  condexp1(Modresult,M.load,data = output.ensemble)
-condexp.Disp =  condexp1(Modresult,Disp,data = output.ensemble)
-condexp.por =  condexp1(Modresult,por,data = output.ensemble)
-old.par = par(no.readonly = T)
-par(mfrow = c(2,4))
-par(mar=c(5,5,1,1))
-
-with(output.ensemble, {
-plot(river_level,Modresult)
-points(river_level,condexp.river_level$predictions,col = "red")
-plot(k,Modresult)
-points(k,condexp.k$predictions,col = "red")
-plot(p_t.rate,Modresult)
-points(p_t.rate,condexp.p_t.rate$predictions,col = "red")
-plot(precip,Modresult)
-points(precip,condexp.precip$predictions,col = "red")
-plot(M.load,Modresult)
-points(M.load,condexp.M.load$predictions,col = "red")
-plot(Disp,Modresult)
-points(Disp,condexp.Disp$predictions,col = "red")
-plot(por,Modresult)
-points(por,condexp.por$predictions,col = "red")
-})
-
-
-```
-
-#### For the mass extracted by the pump&treat
-
-```{r}
-summary(output.ensemble.pump$Modresult)
-hist(output.ensemble.pump$Modresult)
-rug(output.ensemble.pump$Modresult,col = "red")
-lines(density(output.ensemble.pump$Modresult),col = "red")
-Modresult.pump.sd = sd(output.ensemble.pump$Modresult)
-Modresult.pump.mean = mean(output.ensemble.pump$Modresult)
-print(paste("The standard deviation of the model output (mass extracted) is: ",Modresult.pump.sd))
-print(paste("The mean of the model output (mass extracted) is: ",Modresult.pump.mean))
-
-```
-
-### Running the Sobol analysis for the mass extracted by the extraction well
-
-```{r}
-Sob1.pump = Sobol(output.ensemble.pump)
-pie(Sob1.pump$var)
-kable(Sob1.pump$var, format = "markdown",main = "First order decomposition of the variance of the output")
-print(paste("The sum of the variances is,: ",sum(Sob1.pump$var)))
-
-```
-
-Now we will do the decompostion of the second order as well, indicating interactions between the parameters.
-
-```{r}
-Sob2.pump = Sobol(output.ensemble.pump,order = 2)
-pie(Sob2.pump$var)
-kable(Sob2.pump$var, format = "markdown")
-```
-
-### Visualizing the 'fit' of the parameters w.r.t. model output
-
-Looking at the results of the Sobol analysis, we can see that the parameters `river_level`, `k`, `p_t.rate`, `precip`, `M.load`, `Disp` and `por` have a different impact on the output of the model.
-The sum of the first order and second order variances is equal to the total variance of the output of the model.
-The first order variances indicate the impact of the parameters on the output of the model, while the second order variances indicate the interactions between the parameters.
-
-```{r}
-condexp.river_level =  condexp1(Modresult,river_level,data = output.ensemble.pump)
-condexp.k =  condexp1(Modresult,k,data = output.ensemble.pump)
-condexp.p_t.rate =  condexp1(Modresult,p_t.rate,data = output.ensemble.pump)
-condexp.precip =  condexp1(Modresult,precip,data = output.ensemble.pump)
-condexp.M.load =  condexp1(Modresult,M.load,data = output.ensemble.pump)
-condexp.Disp =  condexp1(Modresult,Disp,data = output.ensemble.pump)
-condexp.por =  condexp1(Modresult,por,data = output.ensemble.pump)
-old.par = par(no.readonly = T)
-par(mfrow = c(2,4))
-par(mar=c(5,5,1,1))
-
-with(output.ensemble.pump, {
-plot(river_level,Modresult)
-points(river_level,condexp.river_level$predictions,col = "red")
-plot(k,Modresult)
-points(k,condexp.k$predictions,col = "red")
-plot(p_t.rate,Modresult)
-points(p_t.rate,condexp.p_t.rate$predictions,col = "red")
-plot(precip,Modresult)
-points(precip,condexp.precip$predictions,col = "red")
-plot(M.load,Modresult)
-points(M.load,condexp.M.load$predictions,col = "red")
-plot(Disp,Modresult)
-points(Disp,condexp.Disp$predictions,col = "red")
-plot(por,Modresult)
-points(por,condexp.por$predictions,col = "red")
-})
 ```
 :::
