@@ -1,7 +1,7 @@
 ---
 title: "1D Flow & Transport modeling"
 author: "G.Bier, P.Torfs"
-date: "Feb. 2025"
+date: "Feb. 2026"
 output:
   html_document:
     css : want.css
@@ -57,13 +57,13 @@ All the above terms (obviously) have dimensions: $\frac{\text{mass}}{\text{volum
 
 Retardation (ad- and desorption properties of a solute which effectively slows down the convection and diffusion processes) and decay are omitted from this equation for simplicity and will not be considered in the simulations.
 
-The convective part of this equation is based on the mass influx into (or out of) an elementary volume (e.g. a cube): $$
+The convective part of this equation is based on the **mass flux** into (or out of) an elementary volume (e.g. a cube): $$
 qC\,\,\text{or}\,\, v \text{por}C
 $$\
 Where:
 
 -   $q$: Flux rate into (or out of) a face of the elementary volume (length/time)\
--   $\text{por}$ : porosity of the soil ($\frac{m^3}{m^3}$)
+-   $\text{por}$ : porosity of the soil (volume water/volume soil)
 -   $C$: Concentration of the solute (mass/volume)
 
 The convective part couples groundwater to solute transport since this $q$ is determined by the groundwater model.
@@ -76,6 +76,8 @@ Where:
 
 -   $J$: Diffusion flux (rate) (mass/time)\
 -   $D$: Diffusivity of Diffusion coefficient length$^2$/time
+
+Detailed info on the implementation of the CDE into modeling aspect starts at section **Internal mass flux for the transport model**
 
 ::: question
 Why is there a negative sign in the above equation?
@@ -117,16 +119,16 @@ By the way, flow due to density differences are also not considered here!
 
 # Groundwater flow model
 
-The model for stationary groundwater flow consists of one phreatic aquifer (k = 3[$\mathsf{m/d}$]).
+The model for stationary groundwater flow consists of one phreatic aquifer (**k = 3**[$\mathsf{m/d}$]).
 The saturated thickness is determined by the calculated head.
-The total length of the model is 200 m, use a nodal distance of 5 m.
-At the left boundary a Cauchy type condition is assigned, simulating a river with an open water level of 3.20 m Above Mean Sea Level (AMSL) and and entrance resistance of 5 days.
+The total length of the model is **200 m**, use a nodal distance of **5 m**.
+At the left boundary a Cauchy type condition is assigned, simulating a river with an open water level of **3.20 m** Above Mean Sea Level (AMSL) and and entrance resistance of **5 days**.
 The right boundary is based on a water divide.
-On top a uniform recharge om 1 mm/d is applied.\
-The (flat) bottom of the aquifer aligns with 0.0 m AMSL.
+On top a uniform recharge om **1 mm/d** is applied.\
+The (flat) bottom of the aquifer aligns with **0.0 m AMSL**.
 This means that the calculated head is identical to the saturated thickness of the aquifer.
-At a later stage an extraction well will be added to the model.\
-To determine specific volume fluxes the porosity of the soil is required and is here estimated on 30%.\
+At a later stage, an extraction well will be added to the model.\
+To determine specific volume fluxes the porosity of the soil is required and is here estimated on **30%**.\
 Figure 1 illustrates the situation;
 
 ![**Figure 1**: Sketch of the field situation including a point source](Spill_vessel_simplified.png)
@@ -175,28 +177,31 @@ Possible boundary conditions for the groundwater flow model are based on:
 3.  Cauchy type
 
 ::: question
-implement the appropriate boundary conditions; the prescribed river level left and\
-the water divide on the right
+Implement the appropriate boundary conditions; the river with a river level and river bed resistance left and the water divide on the right
 :::
 
 ::: answer
--   left is a Dirichlet boundary condition with a prescribed level of 3 m AMSL
--   right is a Neumann boundary condition for no action is required
+-   left is a Cauchy boundary condition with a prescribed level of 3.2 m AMSL and a river bed resistance of 5 days : $river = w \frac{H_{riv}-H_{mod}}{C}$
+-   with $w$ : width (m) of the river bed and $C$ : river bed resistances (d)
+-   right is a Neumann boundary condition, therefor no action is required
 :::
 
 ## Setup groundwater flow model
 
 ::: question
 1.  Setup this flow model and give it a distinctive name e.g. Fmodel or Flowmodel or so.
-    a.  Use the `do.initialize()` function to avoid numerical problems due to the non-linear character of the internal flux function.
-2.  Run the model and look at the results; head distribution, internal flux and water balance terms.\
-3.  Create a plot showing both the calculated head and the bottom of the aquifer.\
+    a.  Use the `do.initialize(Fmodel,init = river_level)` function to avoid numerical problems due to the non-linear character of the internal flux function.
+2.  Run the model and look at the results; head distribution, internal flux and water balance terms.
+    1.  head and internal flux: `plot(Fmodel,fluxplot=TRUE,FVstyle=TRUE)`
+    2.  waterbalance: `dataframe.balance(Fmodel)`
+    3.  flux at boundaries: `dataframe.boundaries(Fmodel)`
 :::
 
 ::: answer
 1.  Model setup of the groundwater flow model
 
 ```{r}
+
 #model domain
 x_left = 0 #m boundary at left
 x_right = 200 #m boundary at right
@@ -208,13 +213,10 @@ domain = c(x_left,x_right)
 k = 3.0 #m/d
 por = 0.3
 
-#boundary condition properties river
+#Cauchy boundary condition properties for river
 river_level = 3.2 #m AMSL
 river_resistance = 5.0  #d
 river_width = 4.0 #m
-
-#boundary isohypses on the left (testing)
-#iso_h = 5.2 #mm
 
 river = function(head)
 {
@@ -232,11 +234,10 @@ Darcy <- function(x,head,gradH)
 }
 #setting up new flow model
 Fmodel = newFLOW1D(domain = domain,systemfluxfunction = Darcy,name = "Stationary flow model ")
-#adding the left boundary condition, since right is a Neumann type no action needed there
+
+#adding the left boundary condition only, since right is a Neumann type no action needed there
 set.BC.fluxstate(model = Fmodel,where = 'left',func = river)
-#just for testing with a Dirichlet on the right to see when "v" are higher
-#line below was only for testing, evaluating other velocities at right border
-#set.BC.fixedstate(model = Fmodel,where = 'right',value = "iso_h" )
+
 #adding the precipitation
 add.spatialflux(model = Fmodel,rate = 'precip',name = 'precipitation')
 
@@ -244,7 +245,7 @@ add.spatialflux(model = Fmodel,rate = 'precip',name = 'precipitation')
 delta.x = 5 #m
 nodes = seq(from=domain[1],to = domain[2],by=delta.x)
 set.discretisation(model = Fmodel,nodes=nodes,method='FV')
-do.initialize(model = Fmodel,init = 1.0) # otherwise problems with non-linearity of the Darcy function
+do.initialize(model = Fmodel,init = river_level) # otherwise problems with non-linearity of the Darcy function
 summary(Fmodel)
 
 
@@ -284,8 +285,8 @@ grid()
 
 ## Flux and Volume functions for the solute transport equation
 
-1.  The convective part of the CDE requires a 'velocity' which comes directly from the flow model, simply being the internal flux in the `Fmodel` and can be retrieved by `q_D = dataframe.internalfluxes(Fmodel)`.\
-2.  For the dispersive part of the convection diffusion equation it is also required to create a function for the volume per $\Delta x \Delta y$ to determine the amount of mass in the solute transport model. Here this 'volume' is simply the saturated thickness multiplied with the porosity.
+1.  The convective part of the CDE requires a 'velocity' which can be derived from the flow model's internal flux `q_D = dataframe.internalfluxes(Fmodel)`. This `q_D` is a Darcy flux (rate) in `m2/d` and not the water velocity as mentioned before. However, with the implementation of the CDE in the transport model, this `q_D` becomes very handy.\
+2.  For the dispersive part of the convection diffusion equation, it is also required to create a function for the volume water per $\Delta x \Delta y$ to determine the amount of mass in the solute transport model. Here this 'volume' is simply the saturated thickness multiplied with the porosity. See point 2 for additional details in the next assignment block
 
 ::: question
 1.  Create the (water) flux function(x) for the internal flux. Call it **Qflow** and make use of **approxfun** and set **rule=2**.\
@@ -307,7 +308,7 @@ plot(nodes,Vflow(nodes),type='l',lwd=2,col='blue',main="Volume distribution",yla
 
 # Solute transport model
 
-The solute transport model will simulate the movement of the pollutione in the groundwater which comes from a continuous source.
+The solute transport model will simulate the movement of the pollution in the groundwater which comes from a continuous source.
 The source is simulated with a prescribed amount of mass "loaded" into the groundwater which is called "mass loading".\
 The movement and displacement of the solute is based on the convection diffusion equation as described in the introduction and is now extended with the source term (the contaminant from the vessel) $S$:
 
@@ -317,7 +318,7 @@ $$
 
 The aforementioned (CDE) equation can be considered to be a **mass balance**, simply multiply all terms with a volume and it results in mass per time $\frac{kg}{d}$.
 
-## Internal mass flux for the transportmodel
+## Internal mass flux for the transport model
 
 The general internal *mass flux* for the solute transport model describes the movement of mass per time unit.
 
