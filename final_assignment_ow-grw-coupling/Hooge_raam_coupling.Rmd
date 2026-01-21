@@ -133,7 +133,8 @@ The following properties of the HOoge Raam are given in the table below:
 | bottom level downstream | 11.80 | m AMSL |
 
 The weir at the downstream end of the Hooge Raam has the following
-properties: Weir: crest width 2.0 m, crest height: 11.45 and 12.60 m.
+properties: Weir: crest width 2.25 m, crest height: 1.00 m (w.r.t.
+bottom elevation downstream).
 
 Influx stationary upstream based on base flow as discharge of an
 upstream area of 250 ha (assume a discharge of 0.5 l/s/ha).
@@ -801,7 +802,7 @@ solve.steps(HR.backwatermodel,verboselevel = 1)
 HR.states.2 = dataframe.states(HR.backwatermodel)
 nodes = HR.states.2$x
 
-plot(nodes,HR.zb(nodes),col="brown",type="l",lwd=4,ylim=c(9,16),
+plot(nodes,HR.zb(nodes),col="brown",type="l",lwd=4,ylim=c(11,16),
      xlab="l (m)",ylab="h (m)",main=paste("backwater + lateral flow Hooge Raam"))
 lines(HR.states.1,col="orange",lwd=3)
 lines(HR.states.2,col="blue",lwd=3)
@@ -884,9 +885,9 @@ as forcing.
 ## Required functions
 
 ::: question
-Finish the functions in the chunck below (replace XXXX, YYYY). These
-XXXX and YYYY only indicate that you have to fill in the correct values.
-It does not mean that all XXXX or YYYY are the same.
+Finish the functions in the chunk below (replace XXXX, YYYY). These XXXX
+and YYYY only indicate that you have to fill in the correct values. It
+does not mean that all XXXX or YYYY are the same.
 
 ```{r eval = FALSE}
 L = 125 # average ditch distance in m
@@ -1276,14 +1277,15 @@ The discharge of precipitation excess rates from these parcels/fields
 towards the ditches is calculated by the 1D groundwater model and has
 the unit $m^2/d$. This needs to be transformed to the total discharging
 area of the Hooge Raam into units of $m^3/s$ by multiplying the total
-ditch length surrounding the parcels in the Hooge Raam catchment.For
+ditch length surrounding the parcels in the Hooge Raam catchment. For
 this, one could actually digitize all ditches from a map of this area
 but here we use the simple generic method of calculating the area of a
 rectangle: $Area = Length *Width$."Length" is here the average ditch
 distance between parcels (here 125 m) and "Width" the distance or range
 you would have if you would put all parcels end to end. Let's call this
-"Width" the *total diffuse ditch length* calculated as:
-$\frac {\text{total_drained_area}}{\text{average ditch_distance}}$ .
+"Width" the *Total Diffuse Ditch Length* calculated as:
+$\text{TDDL}=\frac {\text{total_drained_area}}{\text{average ditch_distance}}$
+.
 
 Finally the groundwater drainage and surface runoff need to be
 transformed to a lateral inflow rate of $m^3/s/m_{HRcourse}$ for the
@@ -1298,7 +1300,7 @@ model ; `HR.backwatermodel`.
 ## from groundwater discharge to lateral inflow into the Hooge Raam open water model
 HR.discharge.area =  XXXXX#in m2
 day2sec = 86400 #from day to seconds
-m2.day.to.m3.day =   HR.discharge.area/L #from m2/day to m3/day; a "total diffuse length" based on the total drained area divided by the L(ditch distance)
+TDDL =   HR.discharge.area/L #from m2/day to m3/day; a "total diffuse length" based on the total drained area divided by the L(ditch distance)
 
 Q.drainage.m3.d = XXXXX#
 Q.drainage.m3.s = XXXXX#
@@ -1316,13 +1318,13 @@ Q.runoff.m2.s = XXXXX#
 ## from groundwater discharge to lateral inflow into the Hooge Raam open water model
 HR.discharge.area = 500 * 10000 #in m2
 day2sec = 86400
-m2.day.to.m3.day = HR.discharge.area/L #multiply with "total diffuse length"; i.e. Area/drain_distance
+TDDL = HR.discharge.area/L #multiply with "total diffuse length"; i.e. Area/drain_distance
 
-Q.drainage.m3.d = GW.Q.trans$boundary * m2.day.to.m3.day
+Q.drainage.m3.d = GW.Q.trans$boundary * TDDL
 Q.drainage.m3.s = Q.drainage.m3.d/day2sec
 Q.drainage.m2.s = Q.drainage.m3.s/HR.length
 
-Q.runoff.m3.d = GW.Q.trans$surface_runoff * m2.day.to.m3.day
+Q.runoff.m3.d = GW.Q.trans$surface_runoff * TDDL
 Q.runoff.m3.s = Q.runoff.m3.d/day2sec
 Q.runoff.m2.s = Q.runoff.m3.s/HR.length
 
@@ -1401,7 +1403,7 @@ are compared with both models.
 #### groundwater
 
 Volume balance for the groundwater model $$
-Total_{in} = \sum_{t= 0}^{t=T}Precip(t)\Delta t\\
+Total_{in} = \sum_{t= 0}^{t=T}Precip(t)Area\Delta t\\
 Total_{out} = \left \{ \sum_{t=0}^{t=T} Qsto(t)+\sum_{t=0}^{t=T} Runoff(t) + \sum_{t=0}^{t=T} Drainage(t) \right \} \Delta t
 $$ Recall that the water balance of the groundwater model is expressed
 in $m^2/d$. To come to volumes ($m^3$) one need to consider the "diffuse
@@ -1410,13 +1412,13 @@ length" and the time step.
 ```{r}
 # Water volumes for the 1D groundwater model during the total simulation time
 
-GW.volume.drainage = sum(GW.Q.trans$boundary) * m2.day.to.m3.day * delt.t
-GW.volume.runoff = sum(GW.Q.trans$surface_runoff) * m2.day.to.m3.day * delt.t
+GW.volume.drainage = sum(GW.Q.trans$boundary) * TDDL * delt.t
+GW.volume.runoff = sum(GW.Q.trans$surface_runoff) * TDDL * delt.t
 
-GW.volume.storage_into = sum(GW.Q.trans$storage_2flow) * m2.day.to.m3.day * delt.t
-GW.volume.storage_outof = sum(GW.Q.trans$flow_2storage) * m2.day.to.m3.day * delt.t
+GW.volume.storage_into = sum(GW.Q.trans$storage_2flow) * TDDL * delt.t
+GW.volume.storage_outof = sum(GW.Q.trans$flow_2storage) * TDDL * delt.t
 
-GW.volume.precipitation = sum(GW.Q.trans$precip) * m2.day.to.m3.day * delt.t
+GW.volume.precipitation = sum(GW.Q.trans$precip) * TDDL * delt.t
 
 GW.misfit = GW.volume.precipitation - GW.volume.drainage - GW.volume.runoff - GW.volume.storage_outof + GW.volume.storage_into
 
@@ -1906,11 +1908,11 @@ Sensitivity.loop = function()
   GW.H.trans = data.frame(GW.H.trans)
   
   # Scaling the groundwater fluxes to lateral influxes for the open water model
-  Q.drainage.m3.d = GW.Q.trans$boundary * m2.day.to.m3.day
+  Q.drainage.m3.d = GW.Q.trans$boundary * TDDL
   Q.drainage.m3.s = Q.drainage.m3.d/day2sec
   Q.drainage.m2.s = Q.drainage.m3.s/HR.length
   
-  Q.runoff.m3.d = GW.Q.trans$surface_runoff * m2.day.to.m3.day
+  Q.runoff.m3.d = GW.Q.trans$surface_runoff * TDDL
   Q.runoff.m3.s = Q.runoff.m3.d/day2sec
   Q.runoff.m2.s = Q.runoff.m3.s/HR.length
   
@@ -2056,8 +2058,8 @@ relvarM = list(HR.n = varM.HR.n/varM.total,
                H.drainage = varM.H.drainage/varM.total,
                GW.S = varM.GW.S/varM.total)
 
-pie(as.numeric(relvarM),labels = names(relvarM),
-    main = paste("MRESULT = ",round(MRESULT(),2),", Standard deviation of MRESULT = ",round(sqrt(varM.total),2),"proper unit: m3/s"),
+pie(as.numeric(relvarM),labels = paste(names(relvarM),round(unlist(relvarM)*100,1), "%", sep=" "),
+    main = paste("MRESULT = ",round(MRESULT(),2),"m3/s , Standard deviation of MRESULT = ",round(sqrt(varM.total),2),"m3/s"),
     col=rainbow(length(relvarM)))
 
 knitr::kable(as.data.frame(relvarM)*100, caption = "percentage local sensitivities",align="c")
